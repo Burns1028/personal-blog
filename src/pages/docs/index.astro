@@ -1,0 +1,57 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const entries = (await getCollection("docs", ({ data }) => !data.draft))
+  .sort((a, b) => {
+    const aDate = a.data.updatedAt?.valueOf() ?? a.data.publishedAt.valueOf();
+    const bDate = b.data.updatedAt?.valueOf() ?? b.data.publishedAt.valueOf();
+    return bDate - aDate;
+  });
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+---
+
+<BaseLayout title="文档" description="从真实工作中生长出来的操作手册、检查表和技术笔记。" paper>
+  <header class="index-hero">
+    <span class="eyebrow">DOCUMENTS / 文档</span>
+    <h1>不是归档，<br />是工作台。</h1>
+    <p>这些文档会继续更新。每一页都尽量说明适用范围、关键步骤和已知边界。</p>
+  </header>
+  <section class="index-shell" aria-label="文档列表">
+    <div class="filter-rail">
+      <strong>{entries.length.toString().padStart(2, "0")} DOCUMENTS</strong>
+      <span>LIVING</span>
+      <span>STABLE</span>
+      <span>ARCHIVED</span>
+    </div>
+    <ol class="writing-list">
+      {
+        entries.map((entry) => (
+          <li>
+            <a class="writing-row" href={`/docs/${entry.id}`}>
+              <span class="writing-row__number">{entry.data.number}</span>
+              <div class="writing-row__main">
+                <h3>{entry.data.title}</h3>
+                <span class="writing-row__tags">
+                  <span>{entry.data.section}</span>
+                  <span>{entry.data.status.toUpperCase()}</span>
+                </span>
+              </div>
+              <div class="writing-row__summary">
+                <time datetime={entry.data.publishedAt.toISOString()}>
+                  UPDATED {formatDate(entry.data.updatedAt ?? entry.data.publishedAt)}
+                </time>
+                {entry.data.summary}
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+</BaseLayout>

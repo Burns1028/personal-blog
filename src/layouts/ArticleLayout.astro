@@ -1,0 +1,130 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  summary: string;
+  number: string;
+  publishedAt: Date;
+  updatedAt?: Date;
+  tags: string[];
+  headings: Heading[];
+  kind: "思考" | "文档" | "项目";
+  readingTime?: string;
+  status?: string;
+  backHref: string;
+}
+
+const {
+  title,
+  summary,
+  number,
+  publishedAt,
+  updatedAt,
+  tags,
+  headings,
+  kind,
+  readingTime,
+  status,
+  backHref,
+} = Astro.props;
+
+const date = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format(publishedAt);
+const updated = updatedAt
+  ? new Intl.DateTimeFormat("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(updatedAt)
+  : null;
+---
+
+<BaseLayout title={title} description={summary} paper>
+  <article class="article-shell">
+    <header class="article-hero">
+      <div class="article-hero__rail">
+        <a href={backHref}>← 返回{kind}</a>
+        <span>{kind.toUpperCase()} / {number}</span>
+      </div>
+      <div class="article-hero__title">
+        <span class="eyebrow">{kind} · {date}</span>
+        <h1>{title}</h1>
+        <p>{summary}</p>
+      </div>
+      <dl class="article-hero__meta">
+        <div>
+          <dt>发布日期</dt>
+          <dd>{date}</dd>
+        </div>
+        {updated && (
+          <div>
+            <dt>最后修订</dt>
+            <dd>{updated}</dd>
+          </div>
+        )}
+        {readingTime && (
+          <div>
+            <dt>阅读时间</dt>
+            <dd>{readingTime}</dd>
+          </div>
+        )}
+        {status && (
+          <div>
+            <dt>文档状态</dt>
+            <dd>{status}</dd>
+          </div>
+        )}
+      </dl>
+    </header>
+
+    <div class="article-grid">
+      <aside class="article-aside">
+        <div class="article-aside__sticky">
+          <span class="eyebrow">ON THIS PAGE</span>
+          {
+            headings.length > 0 ? (
+              <ol>
+                {headings
+                  .filter((heading) => heading.depth <= 3)
+                  .map((heading) => (
+                    <li class:list={{ "is-sub": heading.depth === 3 }}>
+                      <a href={`#${heading.slug}`}>{heading.text}</a>
+                    </li>
+                  ))}
+              </ol>
+            ) : (
+              <p class="muted">一页短笺，无需目录。</p>
+            )
+          }
+          <div class="article-aside__tags">
+            {tags.map((tag) => <span>#{tag}</span>)}
+          </div>
+        </div>
+      </aside>
+
+      <div class="prose">
+        <slot />
+      </div>
+
+      <aside class="margin-note" aria-label="页边说明">
+        <span class="margin-note__mark">※</span>
+        <p>这是一份持续修订的个人记录。观点会随着实践更新，链接比结论更长寿。</p>
+      </aside>
+    </div>
+
+    <footer class="article-end">
+      <span>END OF FILE / {number}</span>
+      <a href={backHref}>继续翻阅 →</a>
+    </footer>
+  </article>
+</BaseLayout>

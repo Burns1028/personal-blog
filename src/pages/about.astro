@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout title="关于" description={`关于 ${site.author} 与这份个人技术刊物。`} paper>
+  <section class="about-spread">
+    <div class="about-spread__portrait" aria-label="个人字母肖像占位">
+      <span class="about-spread__monogram">M.</span>
+      <span class="about-spread__caption">PORTRAIT PLACEHOLDER / REPLACE WITH YOUR PHOTO</span>
+    </div>
+    <div class="about-spread__body">
+      <span class="eyebrow">ABOUT THE EDITOR / 关于</span>
+      <h1>你好，我是<br />{site.author}。</h1>
+      <p>
+        我关心复杂系统如何被理解、被操作，也关心技术工作如何留下可以复用的经验。这个网站是我的公开工作台：长文负责推演，文档负责复用，代码负责验证。
+      </p>
+      <p>
+        这里不追求每天更新。更希望每一页在半年以后仍然值得回来，或者至少诚实地记录了当时的边界。
+      </p>
+      <dl class="about-spread__facts">
+        <div>
+          <dt>CURRENTLY</dt>
+          <dd>Agent Applications / LLM Infrastructure</dd>
+        </div>
+        <div>
+          <dt>BASED IN</dt>
+          <dd>{site.location}</dd>
+        </div>
+        <div>
+          <dt>CONTACT</dt>
+          <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+        </div>
+        <div>
+          <dt>ELSEWHERE</dt>
+          <dd><a href={site.github} target="_blank" rel="noreferrer">GitHub ↗</a></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>

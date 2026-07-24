@@ -1,0 +1,59 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const entries = (await getCollection("projects", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+---
+
+<BaseLayout title="项目" description="开源项目与可以运行的个人实验。">
+  <div class="project-index">
+    <header class="index-hero">
+      <span class="eyebrow">SOURCE / 项目</span>
+      <h1>可以运行的<br />判断。</h1>
+      <p>代码不会让一个观点自动成立，但它会暴露观点必须面对的约束。这里收录公开仓库、实验和工具。</p>
+    </header>
+
+    <section class="project-list-page" aria-label="项目列表">
+      {
+        entries.map((entry) => (
+          <article class="project-list-item">
+            <div class="project-list-item__number">{entry.data.number}</div>
+            <div class="project-list-item__main">
+              <span class="eyebrow">{entry.data.status} / {entry.data.language}</span>
+              <h2>{entry.data.title}</h2>
+              <p>{entry.data.summary}</p>
+              <div class="project-list-item__actions">
+                <a class="button button--accent" href={entry.data.repo} target="_blank" rel="noreferrer">
+                  打开 GitHub ↗
+                </a>
+                {entry.data.demo && (
+                  <a class="button" href={entry.data.demo} target="_blank" rel="noreferrer">
+                    查看 Demo ↗
+                  </a>
+                )}
+              </div>
+            </div>
+            <div class="project-list-item__code">
+              <pre><span class="code-comment"># quick start</span>
+<span class="code-accent">$</span> {entry.data.command}
+
+<span class="code-comment"># source is the documentation</span>
+<span class="code-accent">→</span> open README.md</pre>
+              <dl>
+                <div>
+                  <dt>LANGUAGE</dt>
+                  <dd>{entry.data.language}</dd>
+                </div>
+                <div>
+                  <dt>STATUS</dt>
+                  <dd>{entry.data.status.toUpperCase()}</dd>
+                </div>
+              </dl>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </div>
+</BaseLayout>

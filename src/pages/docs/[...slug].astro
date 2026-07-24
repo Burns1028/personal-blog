@@ -1,0 +1,34 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs", ({ data }) => !data.draft);
+  return entries.map((doc) => ({
+    params: { slug: doc.id },
+    props: { doc },
+  }));
+}
+
+interface Props {
+  doc: CollectionEntry<"docs">;
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
+---
+
+<ArticleLayout
+  title={doc.data.title}
+  summary={doc.data.summary}
+  number={doc.data.number}
+  publishedAt={doc.data.publishedAt}
+  updatedAt={doc.data.updatedAt}
+  tags={doc.data.tags}
+  headings={headings}
+  kind="文档"
+  status={doc.data.status.toUpperCase()}
+  backHref="/docs"
+>
+  <Content />
+</ArticleLayout>

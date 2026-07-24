@@ -1,0 +1,251 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
+
+const writings = (await getCollection("writing", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const documents = (await getCollection("docs", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const projects = (await getCollection("projects", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+
+const featuredWriting = writings.find(({ data }) => data.featured) ?? writings[0];
+const featuredDoc = documents.find(({ data }) => data.featured) ?? documents[0];
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+---
+
+<BaseLayout>
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero__copy">
+      <span class="eyebrow">A PERSONAL TECHNICAL PERIODICAL</span>
+      <h1 id="home-title">
+        写在系统
+        <span class="accent-line">与日常的页边。</span>
+      </h1>
+      <p>
+        我在这里整理关于 Agent、LLM 基础设施、产品设计与个人工作方法的思考——包括已经验证的，也包括仍在生长的。
+      </p>
+      <div class="hero-actions">
+        <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
+          阅读本期主文 <span aria-hidden="true">→</span>
+        </a>
+        <a class="button" href="/docs">打开文档柜</a>
+      </div>
+      <div class="home-hero__folio">
+        <span>EDITED BY {site.author.toUpperCase()}</span>
+        <span>VOL. 01 / NO. 01</span>
+      </div>
+    </div>
+
+    <div class="artifact-stage" aria-label="精选内容">
+      <a class="paper-artifact" href={`/writing/${featuredWriting.id}`}>
+        <div class="paper-artifact__mast">
+          <strong>MARGIN</strong>
+          <span>页边 / ISSUE 001</span>
+        </div>
+        <div class="paper-artifact__category">
+          <span>TECHNOLOGY & PRACTICE</span>
+          <span>¥ 0 / OPEN ACCESS</span>
+        </div>
+        <h2>{featuredWriting.data.title}</h2>
+        <p class="paper-artifact__deck">{featuredWriting.data.deck ?? featuredWriting.data.summary}</p>
+        <div class="paper-artifact__columns" aria-hidden="true">
+          <p>
+            可靠性不是在最后补上的一道测试，而是从问题被拆分、状态被记录、失败被命名时就开始存在。我们需要的不是一条更长的
+            Prompt，而是一套能够留下证据的系统。
+          </p>
+        </div>
+        <div class="paper-artifact__open">
+          <span>READ THE DOCUMENT</span>
+          <span>→ {featuredWriting.data.readingTime}</span>
+        </div>
+      </a>
+
+      <a
+        class="code-docket"
+        href={site.github}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="打开 GitHub"
+      >
+        <div class="code-docket__bar">
+          <span>REPOSITORY / ACTIVE</span>
+          <span>⌘ 001</span>
+        </div>
+        <pre><span class="code-comment"># open the working archive</span>
+<span class="code-accent">$</span> git clone github.com/you/margin
+<span class="code-accent">$</span> cd experiments
+<span class="code-accent">$</span> make the-thinking-visible
+
+<span class="code-comment">→ 3 projects / 12 field notes</span></pre>
+        <div class="code-docket__footer">
+          <span>OPEN GITHUB</span>
+          <span>MAIN · PUBLIC ↗</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <div class="topic-rail" aria-label="主题索引">
+    <strong>CURRENT<br />LINES OF INQUIRY</strong>
+    <a href="/writing">Agent Systems</a>
+    <a href="/docs">LLM Infrastructure</a>
+    <a href="/projects">Developer Tools</a>
+    <a href="/about">Ways of Working</a>
+  </div>
+
+  <section class="paper-transition" data-paper-transition aria-label="进入知识库">
+    <div class="paper-transition__sticky">
+      <div class="paper-transition__sheet">
+        <div class="paper-transition__mast">
+          <strong>MARGIN / 页边</strong>
+          <span>KNOWLEDGE INDEX · 2026</span>
+        </div>
+        <div class="paper-transition__arc" aria-hidden="true">
+          <span>思考</span>
+          <span>文档</span>
+          <b>把工作留下的证据<br />整理成可复用的判断</b>
+          <span>代码</span>
+          <span>连接</span>
+        </div>
+        <div class="paper-transition__cells">
+          <a href="/writing">
+            <span>01 / WRITING</span>
+            <strong>长文与短笺</strong>
+            <small>不是结论仓库，而是思考的版本历史。</small>
+          </a>
+          <a href="/docs">
+            <span>02 / DOCUMENTS</span>
+            <strong>工作文档</strong>
+            <small>可更新、可引用、可带走的实践手册。</small>
+          </a>
+          <a href="/projects">
+            <span>03 / SOURCE</span>
+            <strong>开源实验</strong>
+            <small>让代码说明哪些判断真的跑过。</small>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="paper-world">
+    <section class="editorial-section" aria-labelledby="writing-title">
+      <div class="section-heading">
+        <span class="eyebrow">01 / RECENT WRITING</span>
+        <h2 id="writing-title">最近写下的</h2>
+        <p>长文、工作反思，以及那些值得被说完整的想法。</p>
+      </div>
+      <ol class="writing-list">
+        {
+          writings.slice(0, 3).map((entry) => (
+            <li>
+              <a class="writing-row" href={`/writing/${entry.id}`}>
+                <span class="writing-row__number">{entry.data.number}</span>
+                <div class="writing-row__main">
+                  <h3>{entry.data.title}</h3>
+                  <span class="writing-row__tags">
+                    {entry.data.tags.map((tag) => <span>#{tag}</span>)}
+                  </span>
+                </div>
+                <div class="writing-row__summary">
+                  <time datetime={entry.data.publishedAt.toISOString()}>
+                    {formatDate(entry.data.publishedAt)} · {entry.data.readingTime}
+                  </time>
+                  {entry.data.summary}
+                </div>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="editorial-section" aria-labelledby="docs-title">
+      <div class="section-heading">
+        <span class="eyebrow">02 / LIVING DOCUMENTS</span>
+        <h2 id="docs-title">持续修订的文档</h2>
+        <p>从真实工作中生长出来的操作手册、检查表和技术笔记。</p>
+      </div>
+      <div class="documents-spread">
+        <a class="documents-spread__feature" href={`/docs/${featuredDoc.id}`}>
+          <span class="eyebrow">{featuredDoc.data.section} · {featuredDoc.data.status}</span>
+          <h3>{featuredDoc.data.title}</h3>
+          <p>{featuredDoc.data.summary}</p>
+          <span class="button">打开文档 <span aria-hidden="true">→</span></span>
+        </a>
+        <div class="documents-spread__stack">
+          {
+            documents
+              .filter(({ id }) => id !== featuredDoc.id)
+              .slice(0, 2)
+              .map((entry) => (
+                <a class="doc-small" href={`/docs/${entry.id}`}>
+                  <span class="eyebrow">{entry.data.section}</span>
+                  <h3>{entry.data.title}</h3>
+                  <p>{entry.data.summary}</p>
+                  <span class="doc-small__meta">
+                    <span>{entry.data.number}</span>
+                    <span>{entry.data.status.toUpperCase()} →</span>
+                  </span>
+                </a>
+              ))
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="project-dark" aria-labelledby="projects-title">
+    <div class="project-dark__inner">
+      <div class="section-heading">
+        <span class="eyebrow">03 / OPEN SOURCE</span>
+        <h2 id="projects-title">可以运行的想法</h2>
+        <p>项目不是简历上的方块，而是判断如何变成约束、接口与代码。</p>
+      </div>
+      <div class="project-cases">
+        {
+          projects.slice(0, 3).map((entry) => (
+            <a class="project-case" href={entry.data.repo} target="_blank" rel="noreferrer">
+              <span class="project-case__top">
+                <span>{entry.data.number}</span>
+                <span>{entry.data.status.toUpperCase()}</span>
+              </span>
+              <pre><span class="code-comment"># quick start</span>
+<span class="code-accent">$</span> {entry.data.command}</pre>
+              <h3>{entry.data.title}</h3>
+              <p>{entry.data.summary}</p>
+              <span class="project-case__open">
+                <span>{entry.data.language}</span>
+                <span>OPEN REPOSITORY ↗</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    const transition = document.querySelector("[data-paper-transition]");
+    const updatePaper = () => {
+      if (!transition) return;
+      const rect = transition.getBoundingClientRect();
+      const distance = transition.offsetHeight - window.innerHeight;
+      const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, distance)));
+      transition.style.setProperty("--paper-progress", progress.toFixed(3));
+      transition.style.setProperty("--paper-scale", (0.58 + progress * 0.42).toFixed(3));
+      transition.style.setProperty("--paper-shift", `${(1 - progress) * 18}%`);
+    };
+    updatePaper();
+    window.addEventListener("scroll", updatePaper, { passive: true });
+    window.addEventListener("resize", updatePaper);
+  </script>
+</BaseLayout>

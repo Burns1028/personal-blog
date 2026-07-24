@@ -1,0 +1,53 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const entries = (await getCollection("writing", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+---
+
+<BaseLayout title="思考" description="长文、工作反思，以及那些值得被说完整的想法。" paper>
+  <header class="index-hero">
+    <span class="eyebrow">WRITING / 思考</span>
+    <h1>把判断写到<br />足够清楚。</h1>
+    <p>文章不是最终答案，而是一次判断在当时所能留下的最好版本。这里保留日期，也保留修订。</p>
+  </header>
+  <section class="index-shell" aria-label="文章列表">
+    <div class="filter-rail">
+      <strong>{entries.length.toString().padStart(2, "0")} ENTRIES</strong>
+      <span>AGENT</span>
+      <span>INFRA</span>
+      <span>DESIGN</span>
+      <span>METHOD</span>
+    </div>
+    <ol class="writing-list">
+      {
+        entries.map((entry) => (
+          <li>
+            <a class="writing-row" href={`/writing/${entry.id}`}>
+              <span class="writing-row__number">{entry.data.number}</span>
+              <div class="writing-row__main">
+                <h3>{entry.data.title}</h3>
+                <span class="writing-row__tags">
+                  {entry.data.tags.map((tag) => <span>#{tag}</span>)}
+                </span>
+              </div>
+              <div class="writing-row__summary">
+                <time datetime={entry.data.publishedAt.toISOString()}>
+                  {formatDate(entry.data.publishedAt)} · {entry.data.readingTime}
+                </time>
+                {entry.data.summary}
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+</BaseLayout>
