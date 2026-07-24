@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "npm run build:static && node scripts/prepare-sites.mjs",
+    "build:static": "astro check && astro build",
     "preview": "astro preview",
     "check": "astro check"
   },
