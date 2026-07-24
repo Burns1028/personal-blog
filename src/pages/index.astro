@@ -47,8 +47,8 @@ const formatDate = (date: Date) =>
     <div class="artifact-stage" aria-label="精选内容">
       <a class="paper-artifact" href={`/writing/${featuredWriting.id}`}>
         <div class="paper-artifact__mast">
-          <strong>MARGIN</strong>
-          <span>页边 / ISSUE 001</span>
+          <strong>{site.shortTitle}</strong>
+          <span>PERSONAL PERIODICAL / ISSUE 001</span>
         </div>
         <div class="paper-artifact__category">
           <span>TECHNOLOGY & PRACTICE</span>
@@ -80,7 +80,7 @@ const formatDate = (date: Date) =>
           <span>⌘ 001</span>
         </div>
         <pre><span class="code-comment"># open the working archive</span>
-<span class="code-accent">$</span> git clone github.com/you/margin
+<span class="code-accent">$</span> git clone github.com/you/burns-blog
 <span class="code-accent">$</span> cd experiments
 <span class="code-accent">$</span> make the-thinking-visible
 
@@ -105,7 +105,7 @@ const formatDate = (date: Date) =>
     <div class="paper-transition__sticky">
       <div class="paper-transition__sheet">
         <div class="paper-transition__mast">
-          <strong>MARGIN / 页边</strong>
+          <strong>{site.shortTitle}</strong>
           <span>KNOWLEDGE INDEX · 2026</span>
         </div>
         <div class="paper-transition__arc" aria-hidden="true">

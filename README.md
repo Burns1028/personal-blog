@@ -1,4 +1,4 @@
-# MARGIN / 页边
+# Burns’ Blog
 
 一个以“做旧技术杂志”为视觉语言的 Astro 个人博客，包含：
 

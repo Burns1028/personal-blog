@@ -9,7 +9,7 @@ export async function GET(context: { site?: URL }) {
   return rss({
     title: site.title,
     description: site.description,
-    site: context.site ?? "https://margin-notes.example.com",
+    site: context.site ?? "https://burns-blog.example.com",
     items: entries.map((entry) => ({
       title: entry.data.title,
       description: entry.data.summary,

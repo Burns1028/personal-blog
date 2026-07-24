@@ -3,8 +3,8 @@
  * All shared site chrome reads from this one object.
  */
 export const site = {
-  title: "MARGIN / 页边",
-  shortTitle: "MARGIN",
+  title: "Burns’ Blog",
+  shortTitle: "BURNS’ BLOG",
   author: "你的名字",
   description:
     "在系统、模型与日常之间，记录仍在生长的判断、文档与开源实验。",

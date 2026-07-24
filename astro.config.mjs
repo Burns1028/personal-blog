@@ -3,7 +3,7 @@ import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? "https://margin-notes.example.com",
+  site: process.env.SITE_URL ?? "https://burns-blog.example.com",
   integrations: [mdx(), sitemap()],
   markdown: {
     shikiConfig: {
