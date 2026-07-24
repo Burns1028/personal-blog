@@ -55,13 +55,9 @@ npm run dev
 生产构建：
 
 ```bash
-npm run build:static
+npm run build
 npm run preview
 ```
-
-`npm run build` 会在 Astro 静态产物外增加一个很薄的 Workers Static
-Assets 适配层，供 Codex Sites / vinext 兼容托管使用。它不会改变内容模型，也不影响
-GitHub Pages；GitHub Actions 使用的是 `build:static`。
 
 ## 发布到 GitHub Pages
 
