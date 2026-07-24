@@ -38,16 +38,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <body class:list={{ "is-paper": paper }}>
     <a class="skip-link" href="#content">跳到正文</a>
 
-    <div class="issue-strip" aria-label="当前刊期">
-      <span>{site.issue}</span>
-      <span class="issue-strip__center">THOUGHTS · DOCUMENTS · OPEN SOURCE</span>
-      <span>SHANGHAI / UTC+8</span>
-    </div>
-
     <header class="site-header">
       <a class="wordmark" href="/" aria-label={`${site.title} 首页`}>
         <span class="wordmark__main">{site.shortTitle}</span>
-        <span class="wordmark__cn">个人刊物</span>
       </a>
 
       <nav class="site-nav" aria-label="主导航">
@@ -64,7 +57,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       </nav>
 
       <a class="header-code-link" href={site.github} target="_blank" rel="noreferrer">
-        <span aria-hidden="true">⌘</span>
         GITHUB
         <span aria-hidden="true">↗</span>
       </a>
@@ -80,14 +72,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <p>把复杂的系统讲清楚，<br />也记录尚未想明白的部分。</p>
       </div>
       <div class="site-footer__links">
-        <a href={`mailto:${site.email}`}>EMAIL ↗</a>
         <a href={site.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
         <a href="/rss.xml">RSS ↗</a>
       </div>
       <div class="site-footer__meta">
         <span>© 2026 {site.author}</span>
-        <span>SET IN SYSTEM SERIF / SANS / MONO</span>
-        <span>BUILT WITH ASTRO</span>
       </div>
     </footer>
   </body>

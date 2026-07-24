@@ -24,7 +24,6 @@ const formatDate = (date: Date) =>
 <BaseLayout>
   <section class="home-hero" aria-labelledby="home-title">
     <div class="home-hero__copy">
-      <span class="eyebrow">A PERSONAL TECHNICAL PERIODICAL</span>
       <h1 id="home-title">
         写在系统
         <span class="accent-line">与日常的页边。</span>
@@ -38,21 +37,17 @@ const formatDate = (date: Date) =>
         </a>
         <a class="button" href="/docs">打开文档柜</a>
       </div>
-      <div class="home-hero__folio">
-        <span>EDITED BY {site.author.toUpperCase()}</span>
-        <span>VOL. 01 / NO. 01</span>
-      </div>
     </div>
 
     <div class="artifact-stage" aria-label="精选内容">
       <a class="paper-artifact" href={`/writing/${featuredWriting.id}`}>
         <div class="paper-artifact__mast">
           <strong>{site.shortTitle}</strong>
-          <span>PERSONAL PERIODICAL / ISSUE 001</span>
+          <span>{featuredWriting.data.number}</span>
         </div>
         <div class="paper-artifact__category">
-          <span>TECHNOLOGY & PRACTICE</span>
-          <span>¥ 0 / OPEN ACCESS</span>
+          <span>{featuredWriting.data.tags.join(" · ")}</span>
+          <span>{formatDate(featuredWriting.data.publishedAt)} · {featuredWriting.data.readingTime}</span>
         </div>
         <h2>{featuredWriting.data.title}</h2>
         <p class="paper-artifact__deck">{featuredWriting.data.deck ?? featuredWriting.data.summary}</p>
@@ -100,41 +95,6 @@ const formatDate = (date: Date) =>
     <a href="/projects">Developer Tools</a>
     <a href="/about">Ways of Working</a>
   </div>
-
-  <section class="paper-transition" data-paper-transition aria-label="进入知识库">
-    <div class="paper-transition__sticky">
-      <div class="paper-transition__sheet">
-        <div class="paper-transition__mast">
-          <strong>{site.shortTitle}</strong>
-          <span>KNOWLEDGE INDEX · 2026</span>
-        </div>
-        <div class="paper-transition__arc" aria-hidden="true">
-          <span>思考</span>
-          <span>文档</span>
-          <b>把工作留下的证据<br />整理成可复用的判断</b>
-          <span>代码</span>
-          <span>连接</span>
-        </div>
-        <div class="paper-transition__cells">
-          <a href="/writing">
-            <span>01 / WRITING</span>
-            <strong>长文与短笺</strong>
-            <small>不是结论仓库，而是思考的版本历史。</small>
-          </a>
-          <a href="/docs">
-            <span>02 / DOCUMENTS</span>
-            <strong>工作文档</strong>
-            <small>可更新、可引用、可带走的实践手册。</small>
-          </a>
-          <a href="/projects">
-            <span>03 / SOURCE</span>
-            <strong>开源实验</strong>
-            <small>让代码说明哪些判断真的跑过。</small>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <div class="paper-world">
     <section class="editorial-section" aria-labelledby="writing-title">
@@ -233,19 +193,4 @@ const formatDate = (date: Date) =>
     </div>
   </section>
 
-  <script is:inline>
-    const transition = document.querySelector("[data-paper-transition]");
-    const updatePaper = () => {
-      if (!transition) return;
-      const rect = transition.getBoundingClientRect();
-      const distance = transition.offsetHeight - window.innerHeight;
-      const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, distance)));
-      transition.style.setProperty("--paper-progress", progress.toFixed(3));
-      transition.style.setProperty("--paper-scale", (0.58 + progress * 0.42).toFixed(3));
-      transition.style.setProperty("--paper-shift", `${(1 - progress) * 18}%`);
-    };
-    updatePaper();
-    window.addEventListener("scroll", updatePaper, { passive: true });
-    window.addEventListener("resize", updatePaper);
-  </script>
 </BaseLayout>
