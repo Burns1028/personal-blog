@@ -7,14 +7,14 @@ export const site = {
   shortTitle: "BURNS’ BLOG",
   author: "Burns",
   description:
-    "在系统、模型与日常之间，记录仍在生长的判断、文档与开源实验。",
+    "Notes on agent systems, LLM infrastructure, product design, and the work of making complex systems legible.",
   email: "hello@example.com",
   github: "https://github.com/",
 };
 
 export const nav = [
-  { href: "/writing", label: "思考" },
-  { href: "/docs", label: "文档" },
-  { href: "/projects", label: "项目" },
-  { href: "/about", label: "关于" },
+  { href: "/#thinking", label: "Thinking" },
+  { href: "/#reading", label: "Reading" },
+  { href: "/#building", label: "Building" },
+  { href: "/about", label: "About" },
 ];

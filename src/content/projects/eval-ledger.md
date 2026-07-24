@@ -1,6 +1,6 @@
 ---
 title: "Eval Ledger"
-summary: "把评估样本、轨迹、失败分类与修复决策放在同一条可追溯时间线里。"
+summary: "A traceable timeline for evaluation cases, trajectories, failure classes, and repair decisions."
 publishedAt: 2026-07-03
 tags: ["Evaluation", "Agent", "Workflow"]
 featured: false

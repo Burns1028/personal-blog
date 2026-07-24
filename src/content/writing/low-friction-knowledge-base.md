@@ -1,6 +1,6 @@
 ---
-title: "一个不依赖意志力的个人知识库"
-summary: "把收集、整理和发布缩短成同一条路径，让知识管理不再成为第二份工作。"
+title: "A knowledge base that does not depend on willpower"
+summary: "Shortening capture, synthesis, and publishing into one path so knowledge work does not become a second job."
 publishedAt: 2026-06-28
 tags: ["Notes", "Workflow", "Knowledge"]
 featured: false

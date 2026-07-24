@@ -1,6 +1,6 @@
 ---
-title: "设计的克制，是把判断还给内容"
-summary: "为什么少一点边框、卡片和动画，反而能让产品显得更有立场。"
+title: "Designing with restraint"
+summary: "Why fewer borders, cards, and animations can give the content a stronger point of view."
 publishedAt: 2026-07-10
 tags: ["Design", "Interface", "Taste"]
 featured: false

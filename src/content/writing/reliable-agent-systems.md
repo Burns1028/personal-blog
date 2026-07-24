@@ -1,7 +1,7 @@
 ---
-title: "可靠 Agent 系统，不是一条更长的 Prompt"
-summary: "从状态、证据和失败恢复出发，重新理解 Agent 应用的可靠性。"
-deck: "当模型开始调用工具，可靠性就不再只是回答是否正确，而是每一步是否留下了可以检查的证据。"
+title: "Reliable agent systems are not a longer prompt"
+summary: "Rethinking agent reliability through state, evidence, and recovery."
+deck: "Once a model starts using tools, reliability is no longer just about the answer—it is about whether every step leaves evidence you can inspect."
 publishedAt: 2026-07-24
 updatedAt: 2026-07-24
 tags: ["Agent", "Reliability", "Infra"]

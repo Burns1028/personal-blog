@@ -1,6 +1,6 @@
 ---
-title: "Agent 评估现场手册"
-summary: "从任务集、轨迹证据到失败分类，搭建一套能推动迭代的 Agent 评估流程。"
+title: "A field guide to agent evaluation"
+summary: "From task contracts and trace evidence to a failure taxonomy that can actually drive iteration."
 publishedAt: 2026-07-01
 updatedAt: 2026-07-24
 tags: ["Agent", "Evaluation", "Checklist"]

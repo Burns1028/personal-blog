@@ -1,6 +1,6 @@
 ---
-title: "技术文章发布检查表"
-summary: "从事实、代码到链接和移动端阅读，在发布前做一次短而有效的检查。"
+title: "A publishing checklist for technical writing"
+summary: "A short pre-publish pass over facts, code, links, and narrow-screen reading."
 publishedAt: 2026-05-30
 updatedAt: 2026-07-12
 tags: ["Writing", "Publishing", "Checklist"]

@@ -1,6 +1,6 @@
 ---
-title: "远程训练任务排障笔记"
-summary: "把环境、资源、进程与日志拆开检查，减少在远程训练任务里盲目重试。"
+title: "Notes on debugging remote training jobs"
+summary: "Separate environment, resources, processes, and logs before spending another run on a blind retry."
 publishedAt: 2026-06-18
 updatedAt: 2026-07-20
 tags: ["Infra", "Training", "Debug"]

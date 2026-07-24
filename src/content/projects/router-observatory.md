@@ -1,6 +1,6 @@
 ---
 title: "Router Observatory"
-summary: "一个用于观察模型路由决策、延迟、成本与回退链路的监控界面实验。"
+summary: "An interface experiment for observing model routing decisions, latency, cost, and fallback paths."
 publishedAt: 2026-07-16
 tags: ["Routing", "Observability", "LLM"]
 featured: true

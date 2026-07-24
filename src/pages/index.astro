@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { readingNow } from "../data/reading";
 import { site } from "../data/site";
 
 const writings = (await getCollection("writing", ({ data }) => !data.draft))
@@ -12,97 +13,90 @@ const projects = (await getCollection("projects", ({ data }) => !data.draft))
 
 const featuredWriting = writings.find(({ data }) => data.featured) ?? writings[0];
 const featuredDoc = documents.find(({ data }) => data.featured) ?? documents[0];
+const featuredProject = projects.find(({ data }) => data.featured) ?? projects[0];
 
 const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("zh-CN", {
+  new Intl.DateTimeFormat("en-GB", {
     year: "numeric",
-    month: "2-digit",
+    month: "short",
     day: "2-digit",
   }).format(date);
 ---
 
 <BaseLayout>
-  <section class="home-hero" aria-labelledby="home-title">
+  <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
     <div class="home-hero__copy">
+      <span class="act-label">ACT I / INTRODUCTION</span>
       <h1 id="home-title">
-        写在系统
-        <span class="accent-line">与日常的页边。</span>
+        I’m Burns.
+        <span class="accent-line">I make complex systems easier to reason about.</span>
       </h1>
       <p>
-        我在这里整理关于 Agent、LLM 基础设施、产品设计与个人工作方法的思考——包括已经验证的，也包括仍在生长的。
+        I work on agent systems, LLM infrastructure, product design, and the craft
+        of turning uncertain ideas into things that run.
       </p>
       <div class="hero-actions">
         <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
-          阅读本期主文 <span aria-hidden="true">→</span>
+          Read the latest note <span aria-hidden="true">→</span>
         </a>
-        <a class="button" href="/docs">打开文档柜</a>
+        <a class="button" href="/docs">Browse documents</a>
       </div>
     </div>
 
-    <div class="artifact-stage" aria-label="精选内容">
-      <a class="paper-artifact" href={`/writing/${featuredWriting.id}`}>
+    <div class="artifact-stage" aria-label="Featured document and project">
+      <a class="paper-artifact" href={`/docs/${featuredDoc.id}`}>
         <div class="paper-artifact__mast">
           <strong>{site.shortTitle}</strong>
-          <span>{featuredWriting.data.number}</span>
+          <span>{featuredDoc.data.number}</span>
         </div>
         <div class="paper-artifact__category">
-          <span>{featuredWriting.data.tags.join(" · ")}</span>
-          <span>{formatDate(featuredWriting.data.publishedAt)} · {featuredWriting.data.readingTime}</span>
+          <span>{featuredDoc.data.section}</span>
+          <span>UPDATED {formatDate(featuredDoc.data.updatedAt ?? featuredDoc.data.publishedAt)}</span>
         </div>
-        <h2>{featuredWriting.data.title}</h2>
-        <p class="paper-artifact__deck">{featuredWriting.data.deck ?? featuredWriting.data.summary}</p>
+        <h2>{featuredDoc.data.title}</h2>
+        <p class="paper-artifact__deck">{featuredDoc.data.summary}</p>
         <div class="paper-artifact__columns" aria-hidden="true">
           <p>
-            可靠性不是在最后补上的一道测试，而是从问题被拆分、状态被记录、失败被命名时就开始存在。我们需要的不是一条更长的
-            Prompt，而是一套能够留下证据的系统。
+            Start with a clear task contract. Inspect the trace, name the failure
+            mode, and keep the evidence that makes the next iteration possible.
           </p>
         </div>
         <div class="paper-artifact__open">
-          <span>READ THE DOCUMENT</span>
-          <span>→ {featuredWriting.data.readingTime}</span>
+          <span>OPEN DOCUMENT</span>
+          <span>{featuredDoc.data.status.toUpperCase()} →</span>
         </div>
       </a>
 
       <a
         class="code-docket"
-        href={site.github}
+        href={featuredProject.data.repo}
         target="_blank"
         rel="noreferrer"
-        aria-label="打开 GitHub"
+        aria-label={`Open ${featuredProject.data.title} on GitHub`}
       >
         <div class="code-docket__bar">
-          <span>REPOSITORY / ACTIVE</span>
-          <span>⌘ 001</span>
+          <span>FEATURED PROJECT</span>
+          <span>{featuredProject.data.number}</span>
         </div>
-        <pre><span class="code-comment"># open the working archive</span>
-<span class="code-accent">$</span> git clone github.com/you/burns-blog
-<span class="code-accent">$</span> cd experiments
-<span class="code-accent">$</span> make the-thinking-visible
+        <pre><span class="code-comment"># run the current build</span>
+<span class="code-accent">$</span> {featuredProject.data.command}
 
-<span class="code-comment">→ 3 projects / 12 field notes</span></pre>
+<span class="code-comment"># {featuredProject.data.summary}</span></pre>
         <div class="code-docket__footer">
           <span>OPEN GITHUB</span>
-          <span>MAIN · PUBLIC ↗</span>
+          <span>{featuredProject.data.language.toUpperCase()} ↗</span>
         </div>
       </a>
     </div>
   </section>
 
-  <div class="topic-rail" aria-label="主题索引">
-    <strong>CURRENT<br />LINES OF INQUIRY</strong>
-    <a href="/writing">Agent Systems</a>
-    <a href="/docs">LLM Infrastructure</a>
-    <a href="/projects">Developer Tools</a>
-    <a href="/about">Ways of Working</a>
-  </div>
-
-  <div class="paper-world">
-    <section class="editorial-section" aria-labelledby="writing-title">
-      <div class="section-heading">
-        <span class="eyebrow">01 / RECENT WRITING</span>
-        <h2 id="writing-title">最近写下的</h2>
-        <p>长文、工作反思，以及那些值得被说完整的想法。</p>
-      </div>
+  <section class="paper-world act act--thinking" id="thinking" aria-labelledby="thinking-title">
+    <div class="editorial-section">
+      <header class="section-heading">
+        <span class="act-label act-label--ink">ACT II / THINKING</span>
+        <h2 id="thinking-title">What I’m thinking about.</h2>
+        <p>Working notes on systems, tools, reliability, and the choices hiding inside technical work.</p>
+      </header>
       <ol class="writing-list">
         {
           writings.slice(0, 3).map((entry) => (
@@ -126,50 +120,41 @@ const formatDate = (date: Date) =>
           ))
         }
       </ol>
-    </section>
+      <a class="act-link act-link--ink" href="/writing">View all writing →</a>
+    </div>
+  </section>
 
-    <section class="editorial-section" aria-labelledby="docs-title">
-      <div class="section-heading">
-        <span class="eyebrow">02 / LIVING DOCUMENTS</span>
-        <h2 id="docs-title">持续修订的文档</h2>
-        <p>从真实工作中生长出来的操作手册、检查表和技术笔记。</p>
-      </div>
-      <div class="documents-spread">
-        <a class="documents-spread__feature" href={`/docs/${featuredDoc.id}`}>
-          <span class="eyebrow">{featuredDoc.data.section} · {featuredDoc.data.status}</span>
-          <h3>{featuredDoc.data.title}</h3>
-          <p>{featuredDoc.data.summary}</p>
-          <span class="button">打开文档 <span aria-hidden="true">→</span></span>
-        </a>
-        <div class="documents-spread__stack">
-          {
-            documents
-              .filter(({ id }) => id !== featuredDoc.id)
-              .slice(0, 2)
-              .map((entry) => (
-                <a class="doc-small" href={`/docs/${entry.id}`}>
-                  <span class="eyebrow">{entry.data.section}</span>
-                  <h3>{entry.data.title}</h3>
-                  <p>{entry.data.summary}</p>
-                  <span class="doc-small__meta">
-                    <span>{entry.data.number}</span>
-                    <span>{entry.data.status.toUpperCase()} →</span>
-                  </span>
-                </a>
-              ))
-          }
-        </div>
-      </div>
-    </section>
-  </div>
+  <section class="reading-act act" id="reading" aria-labelledby="reading-title">
+    <div class="reading-act__inner">
+      <header class="section-heading">
+        <span class="act-label">ACT III / READING</span>
+        <h2 id="reading-title">What’s on my desk.</h2>
+        <p>Books and papers that are currently changing how I frame the work.</p>
+      </header>
+      <ol class="reading-shelf">
+        {
+          readingNow.map((item, index) => (
+            <li class="reading-entry">
+              <span class="reading-entry__number">{String(index + 1).padStart(2, "0")}</span>
+              <div class="reading-entry__title">
+                <span>{item.kind} / {item.author}</span>
+                <h3>{item.title}</h3>
+              </div>
+              <p>{item.note}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
 
-  <section class="project-dark" aria-labelledby="projects-title">
+  <section class="project-dark act act--building" id="building" aria-labelledby="building-title">
     <div class="project-dark__inner">
-      <div class="section-heading">
-        <span class="eyebrow">03 / OPEN SOURCE</span>
-        <h2 id="projects-title">可以运行的想法</h2>
-        <p>项目不是简历上的方块，而是判断如何变成约束、接口与代码。</p>
-      </div>
+      <header class="section-heading section-heading--dark">
+        <span class="act-label">ACT IV / BUILDING</span>
+        <h2 id="building-title">What we’re building now.</h2>
+        <p>Small systems and experiments where an idea has to survive contact with code.</p>
+      </header>
       <div class="project-cases">
         {
           projects.slice(0, 3).map((entry) => (
@@ -190,7 +175,7 @@ const formatDate = (date: Date) =>
           ))
         }
       </div>
+      <a class="act-link" href="/projects">View all projects →</a>
     </div>
   </section>
-
 </BaseLayout>
