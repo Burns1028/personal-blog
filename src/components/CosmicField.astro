@@ -230,6 +230,7 @@
       alpha: true,
       antialias: false,
       premultipliedAlpha: false,
+      preserveDrawingBuffer: true,
       powerPreference: "low-power",
     });
     if (!gl) return;
@@ -317,12 +318,10 @@
       gl.uniform3f(uniforms.resolution, width, height, width / height);
     };
 
-    resize();
-    field.dataset.planetReady = "true";
-
     let animationFrame = 0;
     let lastDraw = -Infinity;
     let visible = true;
+    let hasDrawn = false;
     const startedAt = performance.now();
 
     const draw = (now: number) => {
@@ -333,6 +332,10 @@
         gl.uniform1f(uniforms.time, (now - startedAt) / 1000);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+        if (!hasDrawn) {
+          hasDrawn = true;
+          field.dataset.planetReady = "true";
+        }
       }
 
       if (!reducedMotion) {
@@ -340,6 +343,16 @@
       }
     };
 
+    const handleContextLost = () => {
+      cancelAnimationFrame(animationFrame);
+      field.dataset.planetReady = "false";
+    };
+
+    canvas.addEventListener("webglcontextlost", handleContextLost, {
+      once: true,
+    });
+
+    resize();
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       cancelAnimationFrame(animationFrame);
@@ -365,6 +378,7 @@
         gl.deleteBuffer(buffer);
         gl.deleteShader(vertex);
         gl.deleteShader(fragment);
+        canvas.removeEventListener("webglcontextlost", handleContextLost);
       },
       { once: true },
     );
