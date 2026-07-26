@@ -41,7 +41,8 @@ const contactIcons: Record<string, string> = {
   <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
     <CosmicField />
 
-    <div class="home-hero__copy" data-intro-copy>
+    <div class="home-hero__inner">
+      <div class="home-hero__copy" data-intro-copy>
       <h1
         id="home-title"
         aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
@@ -102,93 +103,94 @@ const contactIcons: Record<string, string> = {
           )
         }
       </ul>
-    </div>
-
-    <div
-      class="artifact-stage"
-      aria-label="精选代码仓库、文档与灵感"
-      data-artifact-stage
-      data-active-artifact="none"
-    >
-      <div
-        class="repo-artifact"
-        aria-hidden="true"
-      >
-        <img
-          class="artifact-image"
-          src="/assets/artifact-github-720.jpg"
-          srcset="/assets/artifact-github-720.jpg 720w, /assets/artifact-github-1200.jpg 1200w"
-          sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
-          alt=""
-          width="1200"
-          height="956"
-          loading="lazy"
-          fetchpriority="low"
-          decoding="async"
-        />
       </div>
 
       <div
-        class="paper-artifact"
-        aria-hidden="true"
+        class="artifact-stage"
+        aria-label="精选代码仓库、文档与灵感"
+        data-artifact-stage
+        data-active-artifact="none"
       >
-        <img
-          class="artifact-image"
-          src="/assets/artifact-document-640.jpg"
-          srcset="/assets/artifact-document-640.jpg 640w, /assets/artifact-document-960.jpg 960w"
-          sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
-          alt=""
-          width="960"
-          height="1280"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
+        <div
+          class="repo-artifact"
+          aria-hidden="true"
+        >
+          <img
+            class="artifact-image"
+            src="/assets/artifact-github-720.jpg"
+            srcset="/assets/artifact-github-720.jpg 720w, /assets/artifact-github-1200.jpg 1200w"
+            sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
+            alt=""
+            width="1200"
+            height="956"
+            loading="lazy"
+            fetchpriority="low"
+            decoding="async"
+          />
+        </div>
 
-      <div
-        class="idea-artifact"
-        aria-hidden="true"
-      >
-        <img
-          class="artifact-image"
-          src="/assets/artifact-idea-480.jpg"
-          srcset="/assets/artifact-idea-480.jpg 480w, /assets/artifact-idea-720.jpg 720w"
-          sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
-          alt=""
-          width="720"
-          height="727"
-          loading="lazy"
-          fetchpriority="low"
-          decoding="async"
-        />
-      </div>
+        <div
+          class="paper-artifact"
+          aria-hidden="true"
+        >
+          <img
+            class="artifact-image"
+            src="/assets/artifact-document-640.jpg"
+            srcset="/assets/artifact-document-640.jpg 640w, /assets/artifact-document-960.jpg 960w"
+            sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
+            alt=""
+            width="960"
+            height="1280"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </div>
 
-      <a
-        class="artifact-hotspot artifact-hotspot--repo-side"
-        href="/projects"
-        aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
-        data-artifact="repo"
-      ></a>
-      <a
-        class="artifact-hotspot artifact-hotspot--repo-bottom"
-        href="/projects"
-        aria-hidden="true"
-        tabindex="-1"
-        data-artifact="repo"
-      ></a>
-      <a
-        class="artifact-hotspot artifact-hotspot--document"
-        href={`/docs/${featuredDoc.id}`}
-        aria-label={`打开文档：${featuredDoc.data.title}`}
-        data-artifact="document"
-      ></a>
-      <a
-        class="artifact-hotspot artifact-hotspot--idea"
-        href="/ideas"
-        aria-label={`打开灵感集：${featuredIdea.text}`}
-        data-artifact="idea"
-      ></a>
+        <div
+          class="idea-artifact"
+          aria-hidden="true"
+        >
+          <img
+            class="artifact-image"
+            src="/assets/artifact-idea-480.jpg"
+            srcset="/assets/artifact-idea-480.jpg 480w, /assets/artifact-idea-720.jpg 720w"
+            sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
+            alt=""
+            width="720"
+            height="727"
+            loading="lazy"
+            fetchpriority="low"
+            decoding="async"
+          />
+        </div>
+
+        <a
+          class="artifact-hotspot artifact-hotspot--repo-side"
+          href="/projects"
+          aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
+          data-artifact="repo"
+        ></a>
+        <a
+          class="artifact-hotspot artifact-hotspot--repo-bottom"
+          href="/projects"
+          aria-hidden="true"
+          tabindex="-1"
+          data-artifact="repo"
+        ></a>
+        <a
+          class="artifact-hotspot artifact-hotspot--document"
+          href={`/docs/${featuredDoc.id}`}
+          aria-label={`打开文档：${featuredDoc.data.title}`}
+          data-artifact="document"
+        ></a>
+        <a
+          class="artifact-hotspot artifact-hotspot--idea"
+          href="/ideas"
+          aria-label={`打开灵感集：${featuredIdea.text}`}
+          data-artifact="idea"
+        ></a>
+      </div>
     </div>
   </section>
 

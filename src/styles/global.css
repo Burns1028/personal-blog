@@ -74,6 +74,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+body[data-route="/"] {
+  background: #0d0d0b;
+}
+
 body::before {
   position: fixed;
   z-index: 100;
@@ -337,27 +341,25 @@ select {
 
 .home-hero {
   position: relative;
-  width: var(--page);
+  width: 100%;
   min-height: 790px;
-  margin: 0 auto;
+  margin: 0;
   overflow: hidden;
-  border: 1px solid var(--night-line);
-  display: grid;
-  grid-template-columns: 0.92fr 1.08fr;
+  border: 0;
   background:
-    radial-gradient(circle at 79% 62%, rgba(196, 154, 69, 0.07), transparent 34%),
-    #11110e;
+    radial-gradient(circle at 72% 66%, rgba(196, 154, 69, 0.1), transparent 36%),
+    #0d0d0b;
   isolation: isolate;
 }
 
-.home-hero::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 44%;
-  width: 1px;
-  content: "";
-  background: var(--night-line);
+.home-hero__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: var(--page);
+  min-height: 790px;
+  margin: 0 auto;
+  grid-template-columns: 0.92fr 1.08fr;
 }
 
 .cosmic-field {
@@ -382,11 +384,13 @@ select {
 }
 
 .cosmic-field__stars {
-  opacity: 0.66;
-  mask-image:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.92), #000 68%, transparent 100%),
-    radial-gradient(ellipse at 67% 36%, #000 0, #000 38%, transparent 92%);
-  mask-composite: intersect;
+  opacity: 0.9;
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.96),
+    #000 74%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
   animation: cosmic-breathe 8s ease-in-out infinite alternate;
 }
 
@@ -398,18 +402,18 @@ select {
 }
 
 .cosmic-field[data-planet-ready="true"] .cosmic-field__planet {
-  opacity: 0.76;
+  opacity: 0.94;
 }
 
 .cosmic-field__planet-fallback {
   position: absolute;
   z-index: 1;
-  right: -14%;
-  bottom: -6%;
-  width: 80%;
+  right: -5%;
+  bottom: 1%;
+  width: 66%;
   aspect-ratio: 2.8 / 1;
   border-radius: 50%;
-  opacity: 0.56;
+  opacity: 0.72;
   transform: rotate(4.5deg);
   background:
     radial-gradient(
@@ -456,19 +460,19 @@ select {
   z-index: 2;
   inset: 0;
   background:
-    radial-gradient(ellipse at 18% 44%, rgba(17, 17, 14, 0.92) 0, rgba(17, 17, 14, 0.64) 38%, transparent 68%),
-    radial-gradient(ellipse at 78% 64%, transparent 0, rgba(17, 17, 14, 0.08) 52%, rgba(17, 17, 14, 0.72) 100%),
-    linear-gradient(to bottom, rgba(17, 17, 14, 0.08), transparent 66%, rgba(17, 17, 14, 0.44));
+    radial-gradient(ellipse at 18% 44%, rgba(13, 13, 11, 0.76) 0, rgba(13, 13, 11, 0.38) 40%, transparent 68%),
+    radial-gradient(ellipse at 78% 64%, transparent 0, rgba(13, 13, 11, 0.03) 58%, rgba(13, 13, 11, 0.44) 100%),
+    linear-gradient(to bottom, rgba(13, 13, 11, 0.04), transparent 70%, rgba(13, 13, 11, 0.28));
 }
 
 @keyframes cosmic-breathe {
   from {
-    opacity: 0.52;
+    opacity: 0.78;
     transform: scale(1);
   }
 
   to {
-    opacity: 0.68;
+    opacity: 0.96;
     transform: scale(1.006);
   }
 }
@@ -1775,12 +1779,8 @@ select {
     padding-right: 18px;
   }
 
-  .home-hero {
+  .home-hero__inner {
     grid-template-columns: 1fr;
-  }
-
-  .home-hero::before {
-    display: none;
   }
 
   .home-hero__copy {
@@ -1929,7 +1929,7 @@ select {
   }
 
   .cosmic-field__stars {
-    opacity: 0.52;
+    opacity: 0.72;
   }
 
   .cosmic-field__planet-fallback {

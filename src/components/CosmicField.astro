@@ -36,15 +36,21 @@
 
     context.clearRect(0, 0, width, height);
     const random = seededRandom(26071996);
-    const count = Math.round(Math.min(190, Math.max(92, bounds.width / 7)));
+    const count = Math.round(
+      Math.min(
+        280,
+        Math.max(138, (bounds.width * bounds.height) / 6200),
+      ),
+    );
+    context.globalCompositeOperation = "lighter";
 
     for (let index = 0; index < count; index += 1) {
       const x = random() * width;
       const y = random() * height;
-      const depth = 0.34 + random() * 0.66;
-      const radius = (0.34 + random() * 0.92) * dpr * depth;
+      const depth = 0.4 + random() * 0.6;
+      const radius = (0.46 + random() * 1.18) * dpr * depth;
       const warmth = random();
-      const alpha = 0.14 + random() * 0.5;
+      const alpha = 0.3 + random() * 0.64;
 
       context.beginPath();
       context.arc(x, y, radius, 0, Math.PI * 2);
@@ -54,16 +60,16 @@
           : `rgba(236, 233, 218, ${alpha})`;
       context.fill();
 
-      if (radius > 1.05 * dpr && random() > 0.76) {
+      if (radius > 1.08 * dpr && random() > 0.67) {
         context.save();
         context.translate(x, y);
-        context.strokeStyle = `rgba(235, 223, 194, ${alpha * 0.38})`;
-        context.lineWidth = Math.max(0.45, dpr * 0.42);
+        context.strokeStyle = `rgba(239, 226, 197, ${alpha * 0.54})`;
+        context.lineWidth = Math.max(0.5, dpr * 0.48);
         context.beginPath();
-        context.moveTo(-radius * 3.2, 0);
-        context.lineTo(radius * 3.2, 0);
-        context.moveTo(0, -radius * 3.2);
-        context.lineTo(0, radius * 3.2);
+        context.moveTo(-radius * 3.8, 0);
+        context.lineTo(radius * 3.8, 0);
+        context.moveTo(0, -radius * 3.8);
+        context.lineTo(0, radius * 3.8);
         context.stroke();
         context.restore();
       }
@@ -145,10 +151,10 @@
       zoom: gl.getUniformLocation(program, "uZoom"),
     };
 
-    gl.uniform2f(uniforms.center, 0.72, -0.035);
+    gl.uniform2f(uniforms.center, 0.68, 0.115);
     gl.uniform1f(uniforms.roll, (4.5 * Math.PI) / 180);
     gl.uniform1f(uniforms.elevation, (18 * Math.PI) / 180);
-    gl.uniform1f(uniforms.zoom, 0.62);
+    gl.uniform1f(uniforms.zoom, 0.76);
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
