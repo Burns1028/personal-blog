@@ -58,20 +58,51 @@ const isCurrentRoute = (href: string) =>
           journey?.to === window.location.pathname &&
           Date.now() - journey.at < 10000
         ) {
-          document.documentElement.dataset.journeyEntry = "true";
+          const root = document.documentElement;
+          root.dataset.journeyEntry = "true";
           history.scrollRestoration = "manual";
 
           const resetJourneyScroll = () => window.scrollTo(0, 0);
+          const absorbArrivalScroll = (event) => event.preventDefault();
+          const absorbArrivalKey = (event) => {
+            if (
+              [" ", "ArrowDown", "PageDown", "End"].includes(event.key)
+            ) {
+              event.preventDefault();
+            }
+          };
+          let released = false;
+          const releaseJourneyArrival = () => {
+            if (released) return;
+            released = true;
+            resetJourneyScroll();
+            window.removeEventListener("wheel", absorbArrivalScroll);
+            window.removeEventListener("touchmove", absorbArrivalScroll);
+            window.removeEventListener("keydown", absorbArrivalKey);
+            delete root.dataset.journeyEntry;
+            history.scrollRestoration = "auto";
+            sessionStorage.removeItem("burns:journey");
+            requestAnimationFrame(resetJourneyScroll);
+          };
+
+          window.addEventListener("wheel", absorbArrivalScroll, {
+            passive: false,
+          });
+          window.addEventListener("touchmove", absorbArrivalScroll, {
+            passive: false,
+          });
+          window.addEventListener("keydown", absorbArrivalKey);
+
           resetJourneyScroll();
           document.addEventListener("DOMContentLoaded", resetJourneyScroll, {
             once: true,
           });
-          window.addEventListener("load", resetJourneyScroll, { once: true });
-          window.setTimeout(() => {
-            resetJourneyScroll();
-            history.scrollRestoration = "auto";
-            sessionStorage.removeItem("burns:journey");
-          }, 240);
+          window.addEventListener(
+            "load",
+            () => window.setTimeout(releaseJourneyArrival, 1100),
+            { once: true },
+          );
+          window.setTimeout(releaseJourneyArrival, 2600);
         }
       } catch {
         sessionStorage.removeItem("burns:journey");
