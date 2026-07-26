@@ -1,12 +1,12 @@
 ---
-title: "A knowledge base that does not depend on willpower"
-summary: "Shortening capture, synthesis, and publishing into one path so knowledge work does not become a second job."
+title: "不依赖意志力的知识库"
+summary: "把捕获、整理与发布缩短为同一条路径，让知识工作不再变成第二份工作。"
 publishedAt: 2026-06-28
-tags: ["Notes", "Workflow", "Knowledge"]
+tags: ["笔记", "工作流", "知识"]
 featured: false
 draft: false
 number: "WR—003"
-readingTime: "5 MIN"
+readingTime: "5 分钟"
 ---
 
 知识库最常见的失败，不是工具不够强，而是维护动作离真实工作太远。

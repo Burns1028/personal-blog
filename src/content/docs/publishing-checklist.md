@@ -1,14 +1,14 @@
 ---
-title: "A publishing checklist for technical writing"
-summary: "A short pre-publish pass over facts, code, links, and narrow-screen reading."
+title: "技术写作发布检查清单"
+summary: "发布前快速检查事实、代码、链接与窄屏阅读体验。"
 publishedAt: 2026-05-30
 updatedAt: 2026-07-12
-tags: ["Writing", "Publishing", "Checklist"]
+tags: ["写作", "发布", "检查清单"]
 featured: false
 draft: false
 number: "DOC—003"
 status: "stable"
-section: "PUBLISHING"
+section: "发布"
 ---
 
 ## 内容
@@ -27,8 +27,8 @@ section: "PUBLISHING"
 
 ## 发布
 
-- 描述、canonical URL、Open Graph 信息是否完整？
+- 描述、规范链接与社交分享信息是否完整？
 - 标题层级是否连续？
 - 链接是否可访问？
 - 移动端是否存在横向滚动？
-- RSS 与 sitemap 是否包含新文章？
+- 订阅源与站点地图是否包含新文章？

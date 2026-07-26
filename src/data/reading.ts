@@ -4,21 +4,21 @@
  */
 export const readingNow = [
   {
-    title: "Designing Data-Intensive Applications",
-    author: "Martin Kleppmann",
-    kind: "BOOK",
-    note: "Re-reading the chapters on streams, fault tolerance, and the cost of keeping state.",
+    title: "数据密集型应用系统设计",
+    author: "马丁·克莱普曼",
+    kind: "书",
+    note: "重读关于流、容错，以及维护状态所付出代价的章节。",
   },
   {
-    title: "A Philosophy of Software Design",
-    author: "John Ousterhout",
-    kind: "BOOK",
-    note: "Thinking about deep modules, interface pressure, and what those ideas mean for agent tools.",
+    title: "软件设计的哲学",
+    author: "约翰·奥斯特豪特",
+    kind: "书",
+    note: "继续理解深模块、接口压力，以及这些概念对智能体工具意味着什么。",
   },
   {
-    title: "The Staff Engineer’s Path",
-    author: "Tanya Reilly",
-    kind: "BOOK",
-    note: "Notes on leverage, technical judgment, and how long-running work stays legible to a team.",
+    title: "资深技术专家成长之路",
+    author: "坦娅·赖利",
+    kind: "书",
+    note: "关于杠杆、技术判断，以及如何让长期工作始终对团队清晰可见。",
   },
 ];

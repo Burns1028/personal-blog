@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import { documentStatusLabels } from "../../data/labels";
 
 export async function getStaticPaths() {
   const entries = await getCollection("docs", ({ data }) => !data.draft);
@@ -27,7 +28,7 @@ const { Content, headings } = await render(doc);
   tags={doc.data.tags}
   headings={headings}
   kind="文档"
-  status={doc.data.status.toUpperCase()}
+  status={documentStatusLabels[doc.data.status] ?? doc.data.status}
   backHref="/docs"
 >
   <Content />

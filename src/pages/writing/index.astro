@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const entries = (await getCollection("writing", ({ data }) => !data.draft))
@@ -12,19 +13,20 @@ const formatDate = (date: Date) =>
   }).format(date);
 ---
 
-<BaseLayout title="思考" description="长文、工作反思，以及那些值得被说完整的想法。" paper>
+<BaseLayout title="思考" description="长文、工作反思，以及那些值得被说完整的想法。" theme="stone">
   <header class="index-hero">
-    <span class="eyebrow">WRITING / 思考</span>
+    <Breadcrumbs current="WRITING" />
+    <span class="eyebrow">思考</span>
     <h1>把判断写到<br />足够清楚。</h1>
     <p>文章不是最终答案，而是一次判断在当时所能留下的最好版本。这里保留日期，也保留修订。</p>
   </header>
   <section class="index-shell" aria-label="文章列表">
     <div class="filter-rail">
-      <strong>{entries.length.toString().padStart(2, "0")} ENTRIES</strong>
-      <span>AGENT</span>
-      <span>INFRA</span>
-      <span>DESIGN</span>
-      <span>METHOD</span>
+      <strong>{entries.length.toString().padStart(2, "0")} 篇文章</strong>
+      <span>智能体</span>
+      <span>基础设施</span>
+      <span>设计</span>
+      <span>方法</span>
     </div>
     <ol class="writing-list">
       {

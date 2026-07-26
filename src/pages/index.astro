@@ -1,8 +1,10 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { ideas } from "../data/ideas";
 import { readingNow } from "../data/reading";
-import { site } from "../data/site";
+import { projectStatusLabels } from "../data/labels";
+import { contacts } from "../data/site";
 
 const writings = (await getCollection("writing", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
@@ -14,95 +16,190 @@ const projects = (await getCollection("projects", ({ data }) => !data.draft))
 const featuredWriting = writings.find(({ data }) => data.featured) ?? writings[0];
 const featuredDoc = documents.find(({ data }) => data.featured) ?? documents[0];
 const featuredProject = projects.find(({ data }) => data.featured) ?? projects[0];
+const featuredIdea = ideas[0];
 
 const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-GB", {
+  new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
-    month: "short",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
   }).format(date);
+
+// 联系方式图标（内联 SVG，currentColor 跟随文字色，契合暗色 + 品牌橙风格）
+const contactIcons: Record<string, string> = {
+  github:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.72-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 2.5-.35c.85 0 1.71.12 2.5.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.35 4.8-4.58 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>',
+  mail:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>',
+  wechat:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M9.2 3C5.2 3 2 5.72 2 9.06c0 1.9 1.06 3.6 2.72 4.72l-.6 1.94 2.28-1.2c.7.2 1.42.32 2.16.34a4.9 4.9 0 0 1-.2-1.38c0-2.9 2.72-5.2 6.06-5.2.2 0 .4 0 .6.03C14.5 4.86 12.1 3 9.2 3Zm-2.5 3.3a.94.94 0 1 1 0 1.88.94.94 0 0 1 0-1.88Zm5 0a.94.94 0 1 1 0 1.88.94.94 0 0 1 0-1.88Z"/><path d="M22 13.9c0-2.66-2.6-4.82-5.8-4.82s-5.8 2.16-5.8 4.82 2.6 4.82 5.8 4.82c.66 0 1.3-.1 1.9-.28l1.9 1-.5-1.62A4.66 4.66 0 0 0 22 13.9Zm-7.8-1.1a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Zm4 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z"/></svg>',
+};
 ---
 
 <BaseLayout>
   <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
-    <div class="home-hero__copy">
-      <span class="act-label">ACT I / INTRODUCTION</span>
-      <h1 id="home-title">
-        I’m Burns.
-        <span class="accent-line">I make complex systems easier to reason about.</span>
+    <div class="home-hero__copy" data-intro-copy>
+      <h1
+        id="home-title"
+        aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
+      >
+        <span class="term-line">
+          <span class="term-prompt" aria-hidden="true">&gt; whoami</span>
+        </span>
+        <span class="term-line">
+          <span class="term-name" data-typed data-text="Hello, I’m Burns">Hello, I’m Burns</span><span class="term-caret" aria-hidden="true"></span>
+        </span>
+        <span class="accent-line">AI System Builder, AI enthusiast.</span>
       </h1>
       <p>
-        I work on agent systems, LLM infrastructure, product design, and the craft
-        of turning uncertain ideas into things that run.
+        Born in Shanghai, graduated from Peking University, and now exploring
+        Agent infrastructure at ByteDance Seed.
+      </p>
+      <p>
+        I turn uncertain ideas into systems that actually run — always happy to
+        make new friends.
       </p>
       <div class="hero-actions">
         <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
-          Read the latest note <span aria-hidden="true">→</span>
+          Read latest writing <span aria-hidden="true">→</span>
         </a>
-        <a class="button" href="/docs">Browse documents</a>
+        <a class="button" href="/docs">Browse docs</a>
       </div>
+      <ul class="hero-contacts" aria-label="联系方式">
+        {
+          contacts.map((item) =>
+            item.kind === "copy" ? (
+              <li>
+                <button
+                  type="button"
+                  class="hero-contact"
+                  data-copy={item.value}
+                  aria-label={`${item.label}：${item.value}（点击复制）`}
+                  title={`${item.label}: ${item.value}`}
+                >
+                  <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
+                  <span class="hero-contact__label">{item.value}</span>
+                </button>
+              </li>
+            ) : (
+              <li>
+                <a
+                  class="hero-contact"
+                  href={item.href}
+                  target={item.icon === "mail" ? undefined : "_blank"}
+                  rel="noreferrer"
+                  aria-label={item.label}
+                  title={item.label}
+                >
+                  <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
+                  <span class="hero-contact__label">{item.label}</span>
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
     </div>
 
-    <div class="artifact-stage" aria-label="Featured document and project">
-      <a class="paper-artifact" href={`/docs/${featuredDoc.id}`}>
-        <div class="paper-artifact__mast">
-          <strong>{site.shortTitle}</strong>
-          <span>{featuredDoc.data.number}</span>
-        </div>
-        <div class="paper-artifact__category">
-          <span>{featuredDoc.data.section}</span>
-          <span>UPDATED {formatDate(featuredDoc.data.updatedAt ?? featuredDoc.data.publishedAt)}</span>
-        </div>
-        <h2>{featuredDoc.data.title}</h2>
-        <p class="paper-artifact__deck">{featuredDoc.data.summary}</p>
-        <div class="paper-artifact__columns" aria-hidden="true">
-          <p>
-            Start with a clear task contract. Inspect the trace, name the failure
-            mode, and keep the evidence that makes the next iteration possible.
-          </p>
-        </div>
-        <div class="paper-artifact__open">
-          <span>OPEN DOCUMENT</span>
-          <span>{featuredDoc.data.status.toUpperCase()} →</span>
-        </div>
-      </a>
+    <div
+      class="artifact-stage"
+      aria-label="精选代码仓库、文档与灵感"
+      data-artifact-stage
+      data-active-artifact="none"
+    >
+      <div
+        class="repo-artifact"
+        aria-hidden="true"
+      >
+        <img
+          class="artifact-image"
+          src="/assets/artifact-github-720.jpg"
+          srcset="/assets/artifact-github-720.jpg 720w, /assets/artifact-github-1200.jpg 1200w"
+          sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
+          alt=""
+          width="1200"
+          height="956"
+          loading="lazy"
+          fetchpriority="low"
+          decoding="async"
+        />
+      </div>
+
+      <div
+        class="paper-artifact"
+        aria-hidden="true"
+      >
+        <img
+          class="artifact-image"
+          src="/assets/artifact-document-640.jpg"
+          srcset="/assets/artifact-document-640.jpg 640w, /assets/artifact-document-960.jpg 960w"
+          sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
+          alt=""
+          width="960"
+          height="1280"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+
+      <div
+        class="idea-artifact"
+        aria-hidden="true"
+      >
+        <img
+          class="artifact-image"
+          src="/assets/artifact-idea-480.jpg"
+          srcset="/assets/artifact-idea-480.jpg 480w, /assets/artifact-idea-720.jpg 720w"
+          sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
+          alt=""
+          width="720"
+          height="727"
+          loading="lazy"
+          fetchpriority="low"
+          decoding="async"
+        />
+      </div>
 
       <a
-        class="code-docket"
-        href={featuredProject.data.repo}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={`Open ${featuredProject.data.title} on GitHub`}
-      >
-        <div class="code-docket__bar">
-          <span>FEATURED PROJECT</span>
-          <span>{featuredProject.data.number}</span>
-        </div>
-        <pre><span class="code-comment"># run the current build</span>
-<span class="code-accent">$</span> {featuredProject.data.command}
-
-<span class="code-comment"># {featuredProject.data.summary}</span></pre>
-        <div class="code-docket__footer">
-          <span>OPEN GITHUB</span>
-          <span>{featuredProject.data.language.toUpperCase()} ↗</span>
-        </div>
-      </a>
+        class="artifact-hotspot artifact-hotspot--repo-side"
+        href="/projects"
+        aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
+        data-artifact="repo"
+      ></a>
+      <a
+        class="artifact-hotspot artifact-hotspot--repo-bottom"
+        href="/projects"
+        aria-hidden="true"
+        tabindex="-1"
+        data-artifact="repo"
+      ></a>
+      <a
+        class="artifact-hotspot artifact-hotspot--document"
+        href={`/docs/${featuredDoc.id}`}
+        aria-label={`打开文档：${featuredDoc.data.title}`}
+        data-artifact="document"
+      ></a>
+      <a
+        class="artifact-hotspot artifact-hotspot--idea"
+        href="/ideas"
+        aria-label={`打开灵感集：${featuredIdea.text}`}
+        data-artifact="idea"
+      ></a>
     </div>
   </section>
 
   <section class="paper-world act act--thinking" id="thinking" aria-labelledby="thinking-title">
     <div class="editorial-section">
-      <header class="section-heading">
-        <span class="act-label act-label--ink">ACT II / THINKING</span>
-        <h2 id="thinking-title">What I’m thinking about.</h2>
-        <p>Working notes on systems, tools, reliability, and the choices hiding inside technical work.</p>
+      <header class="section-heading" data-reveal>
+        <h2 id="thinking-title">最近在想什么。</h2>
+        <p>关于系统、工具、可靠性，以及技术工作中那些不容易被看见的选择。</p>
       </header>
       <ol class="writing-list">
         {
           writings.slice(0, 3).map((entry) => (
-            <li>
+            <li data-reveal>
               <a class="writing-row" href={`/writing/${entry.id}`}>
-                <span class="writing-row__number">{entry.data.number}</span>
                 <div class="writing-row__main">
                   <h3>{entry.data.title}</h3>
                   <span class="writing-row__tags">
@@ -120,22 +217,20 @@ const formatDate = (date: Date) =>
           ))
         }
       </ol>
-      <a class="act-link act-link--ink" href="/writing">View all writing →</a>
+      <a class="act-link act-link--ink" href="/writing">查看全部思考 →</a>
     </div>
   </section>
 
   <section class="reading-act act" id="reading" aria-labelledby="reading-title">
     <div class="reading-act__inner">
-      <header class="section-heading">
-        <span class="act-label">ACT III / READING</span>
-        <h2 id="reading-title">What’s on my desk.</h2>
-        <p>Books and papers that are currently changing how I frame the work.</p>
+      <header class="section-heading" data-reveal>
+        <h2 id="reading-title">最近在读什么。</h2>
+        <p>这些书和论文，正在改变我理解问题与组织工作的方式。</p>
       </header>
       <ol class="reading-shelf">
         {
-          readingNow.map((item, index) => (
-            <li class="reading-entry">
-              <span class="reading-entry__number">{String(index + 1).padStart(2, "0")}</span>
+          readingNow.map((item) => (
+            <li class="reading-entry" data-reveal>
               <div class="reading-entry__title">
                 <span>{item.kind} / {item.author}</span>
                 <h3>{item.title}</h3>
@@ -150,32 +245,198 @@ const formatDate = (date: Date) =>
 
   <section class="project-dark act act--building" id="building" aria-labelledby="building-title">
     <div class="project-dark__inner">
-      <header class="section-heading section-heading--dark">
-        <span class="act-label">ACT IV / BUILDING</span>
-        <h2 id="building-title">What we’re building now.</h2>
-        <p>Small systems and experiments where an idea has to survive contact with code.</p>
+      <header class="section-heading section-heading--dark" data-reveal>
+        <h2 id="building-title">最近在做什么。</h2>
+        <p>一些小型系统与实验：想法必须先经过代码与现实约束的检验。</p>
       </header>
       <div class="project-cases">
         {
           projects.slice(0, 3).map((entry) => (
-            <a class="project-case" href={entry.data.repo} target="_blank" rel="noreferrer">
+            <a class="project-case" href={entry.data.repo} target="_blank" rel="noreferrer" data-reveal>
               <span class="project-case__top">
-                <span>{entry.data.number}</span>
-                <span>{entry.data.status.toUpperCase()}</span>
+                <span>{projectStatusLabels[entry.data.status] ?? entry.data.status}</span>
               </span>
-              <pre><span class="code-comment"># quick start</span>
+              <pre><span class="code-comment"># 快速开始</span>
 <span class="code-accent">$</span> {entry.data.command}</pre>
               <h3>{entry.data.title}</h3>
               <p>{entry.data.summary}</p>
               <span class="project-case__open">
                 <span>{entry.data.language}</span>
-                <span>OPEN REPOSITORY ↗</span>
+                <span>打开代码仓库 ↗</span>
               </span>
             </a>
           ))
         }
       </div>
-      <a class="act-link" href="/projects">View all projects →</a>
+      <a class="act-link" href="/projects">查看全部项目 →</a>
     </div>
   </section>
+
+  <script>
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const stage = document.querySelector<HTMLElement>("[data-artifact-stage]");
+    const artifacts = document.querySelectorAll<HTMLElement>("[data-artifact]");
+    const revealItems = document.querySelectorAll<HTMLElement>("[data-reveal]");
+
+    // 联系方式里的“复制”按钮（如微信号）：点击后写入剪贴板并短暂提示已复制。
+    document.querySelectorAll<HTMLButtonElement>(".hero-contact[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const value = btn.dataset.copy ?? "";
+        try {
+          await navigator.clipboard.writeText(value);
+          btn.dataset.copied = "true";
+          setTimeout(() => delete btn.dataset.copied, 1400);
+        } catch {
+          /* 剪贴板不可用时静默降级，tooltip 仍可读出号码 */
+        }
+      });
+    });
+
+    // 标题终端打字机：`> whoami` 之后逐字打出名字，尊重 reduce-motion。
+    const typed = document.querySelector<HTMLElement>("[data-typed]");
+    if (typed) {
+      const full = typed.dataset.text ?? typed.textContent ?? "";
+      if (reduceMotion.matches) {
+        // 尊重减少动效：直接显示全名，不循环。
+        typed.textContent = full;
+        typed.dataset.done = "true";
+      } else {
+        // 循环打字机：打出 → 停顿 → 逐字删除 → 停顿 → 再打，往复进行。
+        const TYPE_MS = 130; // 每个字符打出的间隔
+        const ERASE_MS = 80; // 每个字符删除的间隔
+        const HOLD_FULL_MS = 1900; // 打完后停留
+        const HOLD_EMPTY_MS = 600; // 清空后停留
+        typed.textContent = "";
+        let i = 0;
+        let erasing = false;
+
+        const tick = () => {
+          if (!erasing) {
+            i += 1;
+            typed.textContent = full.slice(0, i);
+            if (i >= full.length) {
+              erasing = true;
+              window.setTimeout(tick, HOLD_FULL_MS);
+            } else {
+              window.setTimeout(tick, TYPE_MS);
+            }
+          } else {
+            i -= 1;
+            typed.textContent = full.slice(0, i);
+            if (i <= 0) {
+              erasing = false;
+              window.setTimeout(tick, HOLD_EMPTY_MS);
+            } else {
+              window.setTimeout(tick, ERASE_MS);
+            }
+          }
+        };
+
+        window.setTimeout(tick, 500);
+      }
+    }
+
+    const clamp = (value: number, min = 0, max = 1) =>
+      Math.min(max, Math.max(min, value));
+
+    const setReady = () => {
+      requestAnimationFrame(() => root.classList.add("motion-ready"));
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setReady, { once: true });
+    } else {
+      setReady();
+    }
+
+    if (stage && !reduceMotion.matches) {
+      let frame = 0;
+
+      const updatePointer = (event: PointerEvent) => {
+        if (frame) cancelAnimationFrame(frame);
+
+        frame = requestAnimationFrame(() => {
+          const bounds = stage.getBoundingClientRect();
+          const x = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
+          const y = clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
+
+          stage.style.setProperty("--stage-pointer-x", `${(x - 0.5).toFixed(3)}`);
+          stage.style.setProperty("--stage-pointer-y", `${(y - 0.5).toFixed(3)}`);
+        });
+      };
+
+      const resetPointer = () => {
+        stage.style.setProperty("--stage-pointer-x", "0");
+        stage.style.setProperty("--stage-pointer-y", "0");
+      };
+
+      stage.addEventListener("pointermove", updatePointer, { passive: true });
+      stage.addEventListener("pointerleave", resetPointer);
+    }
+
+    if (stage) {
+      const setActiveArtifact = (artifact = "none") => {
+        stage.dataset.activeArtifact = artifact;
+      };
+
+      artifacts.forEach((artifact) => {
+        const kind = artifact.dataset.artifact;
+        if (!kind) return;
+        artifact.addEventListener("pointerenter", () => setActiveArtifact(kind));
+        artifact.addEventListener("focusin", () => setActiveArtifact(kind));
+        artifact.addEventListener("click", () => {
+          sessionStorage.setItem("burns:last-artifact", kind);
+        });
+      });
+
+      stage.addEventListener("pointerleave", () => setActiveArtifact());
+      stage.addEventListener("focusout", (event) => {
+        const next = event.relatedTarget;
+        if (!(next instanceof Node) || !stage.contains(next)) setActiveArtifact();
+      });
+    }
+
+    if ("IntersectionObserver" in window && !reduceMotion.matches) {
+      const revealObserver = new IntersectionObserver(
+        (entries, observer) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            (entry.target as HTMLElement).classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.16, rootMargin: "0px 0px -8% 0px" },
+      );
+
+      revealItems.forEach((item) => revealObserver.observe(item));
+
+    } else {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+    }
+
+    if (stage && !reduceMotion.matches) {
+      let scrollFrame = 0;
+
+      const updateScroll = () => {
+        scrollFrame = 0;
+        const bounds = stage.getBoundingClientRect();
+        const progress = clamp(-bounds.top / Math.max(1, bounds.height * 0.72));
+        root.style.setProperty("--intro-exit", progress.toFixed(3));
+        root.style.setProperty("--intro-exit-y", `${(progress * 34).toFixed(2)}px`);
+        root.style.setProperty("--intro-exit-x", `${(progress * -8).toFixed(2)}px`);
+        root.style.setProperty("--intro-code-x", `${(progress * 4).toFixed(2)}px`);
+        root.style.setProperty("--intro-code-y", `${(progress * 15).toFixed(2)}px`);
+        root.style.setProperty("--intro-shadow-opacity", `${(1 - progress * 0.24).toFixed(3)}`);
+      };
+
+      const requestScrollUpdate = () => {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+      };
+
+      updateScroll();
+      window.addEventListener("scroll", requestScrollUpdate, { passive: true });
+      window.addEventListener("resize", requestScrollUpdate, { passive: true });
+    }
+  </script>
 </BaseLayout>

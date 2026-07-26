@@ -1,12 +1,12 @@
 ---
-title: "Designing with restraint"
-summary: "Why fewer borders, cards, and animations can give the content a stronger point of view."
+title: "克制地设计"
+summary: "为什么更少的边框、卡片和动画，反而能让内容表达出更明确的立场。"
 publishedAt: 2026-07-10
-tags: ["Design", "Interface", "Taste"]
+tags: ["设计", "界面", "品味"]
 featured: false
 draft: false
 number: "WR—002"
-readingTime: "6 MIN"
+readingTime: "6 分钟"
 ---
 
 界面变得平庸，通常不是因为它不够“设计”，而是因为每个元素都在争取同样的注意力。

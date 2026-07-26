@@ -1,0 +1,27 @@
+---
+interface Parent {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  current: string;
+  parent?: Parent;
+}
+
+const { current, parent } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="面包屑导航">
+  <a href="/">HOME</a>
+  <span aria-hidden="true">/</span>
+  {
+    parent && (
+      <>
+        <a href={parent.href}>{parent.label}</a>
+        <span aria-hidden="true">/</span>
+      </>
+    )
+  }
+  <span aria-current="page">{current}</span>
+</nav>

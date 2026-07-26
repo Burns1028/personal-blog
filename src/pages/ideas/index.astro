@@ -1,0 +1,70 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ideas } from "../../data/ideas";
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const featuredIdea = ideas[0]!;
+const collectedIdeas = ideas.slice(1);
+---
+
+<BaseLayout
+  title="灵感"
+  description="在它们变成文章、文档或代码之前，先保留那些值得记住的小观察。"
+  theme="ochre"
+>
+  <div class="idea-collection-world">
+    <header class="idea-collection-hero">
+      <div class="idea-collection-hero__intro">
+        <h1>值得留下的<br />灵感。</h1>
+        <p>在一句话长成文章、文档或代码之前，先把它记下来。</p>
+      </div>
+
+      <article
+        class="idea-featured artifact-destination artifact-destination--idea"
+        id={featuredIdea.id}
+      >
+        <time datetime={featuredIdea.capturedAt.toISOString()}>
+          {formatDate(featuredIdea.capturedAt)}
+        </time>
+        <blockquote>{featuredIdea.text}</blockquote>
+        <footer>
+          <span>{featuredIdea.theme}</span>
+          <a href="#collection">打开灵感集 ↓</a>
+        </footer>
+      </article>
+    </header>
+
+    <section class="idea-archive" id="collection" aria-labelledby="idea-archive-title">
+      <header>
+        <h2 id="idea-archive-title">收集起来的想法。</h2>
+        <p>短到足以记住，也有用到值得回来重看。</p>
+      </header>
+      <div class="idea-deck">
+        {
+          collectedIdeas.map((idea, index) => (
+            <article
+              class="idea-card"
+              id={idea.id}
+              style={`--idea-index: ${index}`}
+            >
+              <time datetime={idea.capturedAt.toISOString()}>
+                {formatDate(idea.capturedAt)}
+              </time>
+              <blockquote>{idea.text}</blockquote>
+              <footer>
+                <span>{idea.theme}</span>
+                <a href={`#${idea.id}`} aria-label={`链接到灵感：${idea.text}`}>↗</a>
+              </footer>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</BaseLayout>

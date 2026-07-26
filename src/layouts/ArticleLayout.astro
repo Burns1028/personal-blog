@@ -1,4 +1,5 @@
 ---
+import Breadcrumbs from "../components/Breadcrumbs.astro";
 import BaseLayout from "./BaseLayout.astro";
 
 interface Heading {
@@ -47,28 +48,52 @@ const updated = updatedAt
       day: "2-digit",
     }).format(updatedAt)
   : null;
+const sectionLabel = kind;
+const sectionNavLabel =
+  kind === "文档" ? "DOCUMENTS" : kind === "思考" ? "WRITING" : "PROJECTS";
+const theme =
+  kind === "文档" ? "document" : kind === "思考" ? "stone" : "code";
+const articleKind =
+  kind === "文档" ? "document" : kind === "思考" ? "writing" : "project";
 ---
 
-<BaseLayout title={title} description={summary} paper>
-  <article class="article-shell">
-    <header class="article-hero">
+<BaseLayout title={title} description={summary} theme={theme}>
+  <article
+    class:list={[
+      "article-shell",
+      `article-shell--${articleKind}`,
+    ]}
+  >
+    <Breadcrumbs
+      current={number}
+      parent={{ label: sectionNavLabel, href: backHref }}
+    />
+    <header
+      class:list={[
+        "article-hero",
+        { "artifact-destination artifact-destination--document": kind === "文档" },
+      ]}
+    >
       <div class="article-hero__rail">
-        <a href={backHref}>← 返回{kind}</a>
-        <span>{kind.toUpperCase()} / {number}</span>
+        <div class="article-hero__rail-links">
+          <a href="/">← HOME</a>
+          <a href={backHref}>ALL {sectionNavLabel}</a>
+        </div>
+        <span>{sectionNavLabel} / {number}</span>
       </div>
       <div class="article-hero__title">
-        <span class="eyebrow">{kind} · {date}</span>
+        <span class="eyebrow">{sectionLabel} · {date}</span>
         <h1>{title}</h1>
         <p>{summary}</p>
       </div>
       <dl class="article-hero__meta">
         <div>
-          <dt>发布日期</dt>
+          <dt>发布于</dt>
           <dd>{date}</dd>
         </div>
         {updated && (
           <div>
-            <dt>最后修订</dt>
+            <dt>修订于</dt>
             <dd>{updated}</dd>
           </div>
         )}
@@ -80,7 +105,7 @@ const updated = updatedAt
         )}
         {status && (
           <div>
-            <dt>文档状态</dt>
+            <dt>状态</dt>
             <dd>{status}</dd>
           </div>
         )}
@@ -90,7 +115,7 @@ const updated = updatedAt
     <div class="article-grid">
       <aside class="article-aside">
         <div class="article-aside__sticky">
-          <span class="eyebrow">ON THIS PAGE</span>
+          <span class="eyebrow">本页目录</span>
           {
             headings.length > 0 ? (
               <ol>
@@ -103,7 +128,7 @@ const updated = updatedAt
                   ))}
               </ol>
             ) : (
-              <p class="muted">一页短笺，无需目录。</p>
+              <p class="muted">这是一篇没有目录的短笔记。</p>
             )
           }
           <div class="article-aside__tags">
@@ -118,13 +143,16 @@ const updated = updatedAt
 
       <aside class="margin-note" aria-label="页边说明">
         <span class="margin-note__mark">※</span>
-        <p>这是一份持续修订的个人记录。观点会随着实践更新，链接比结论更长寿。</p>
+        <p>这是一份持续工作的记录，会随着实践改变结论而不断修订。</p>
       </aside>
     </div>
 
     <footer class="article-end">
-      <span>END OF FILE / {number}</span>
-      <a href={backHref}>继续翻阅 →</a>
+      <span>正文结束 / {number}</span>
+      <div class="article-end__links">
+        <a href="/">HOME</a>
+        <a href={backHref}>ALL {sectionNavLabel} →</a>
+      </div>
     </footer>
   </article>
 </BaseLayout>

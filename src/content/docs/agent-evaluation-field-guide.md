@@ -1,17 +1,17 @@
 ---
-title: "A field guide to agent evaluation"
-summary: "From task contracts and trace evidence to a failure taxonomy that can actually drive iteration."
+title: "智能体评估实用手册"
+summary: "从任务合同、轨迹证据到真正能够推动迭代的失败分类。"
 publishedAt: 2026-07-01
 updatedAt: 2026-07-24
-tags: ["Agent", "Evaluation", "Checklist"]
+tags: ["智能体", "评估", "检查清单"]
 featured: true
 draft: false
 number: "DOC—001"
 status: "living"
-section: "EVALUATION"
+section: "智能体评估"
 ---
 
-这份手册用于评估会调用工具、读取外部状态并执行多步任务的 Agent。它不试图给出一个万能分数，而是帮助团队得到可以行动的失败分类。
+这份手册用于评估会调用工具、读取外部状态并执行多步任务的智能体。它不试图给出一个万能分数，而是帮助团队得到可以行动的失败分类。
 
 ## 先写清楚任务合同
 

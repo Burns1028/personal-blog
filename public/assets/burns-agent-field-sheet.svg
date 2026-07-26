@@ -1,0 +1,136 @@
+<svg width="800" height="1200" viewBox="0 0 800 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="paper-grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.78" numOctaves="4" seed="37" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.18"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="soft-ink" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="0.12"/>
+    </filter>
+    <linearGradient id="paper-wash" x1="60" y1="0" x2="740" y2="1200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5EFE4"/>
+      <stop offset="0.48" stop-color="#EDE4D5"/>
+      <stop offset="1" stop-color="#E5DAC8"/>
+    </linearGradient>
+    <linearGradient id="crease" x1="310" y1="0" x2="515" y2="1200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.38" stop-color="#FFFDF7" stop-opacity="0.42"/>
+      <stop offset="0.52" stop-color="#846E4C" stop-opacity="0.08"/>
+      <stop offset="0.68" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <style>
+      .sans { font-family: Arial, Helvetica, sans-serif; }
+      .serif { font-family: Georgia, "Times New Roman", serif; }
+      .mono { font-family: Menlo, Monaco, monospace; }
+      .ink { fill: #211E18; }
+      .soft { fill: #6B6358; }
+      .faint { fill: #918677; }
+      .accent { fill: #957027; }
+      .rule { stroke: #3A342B; }
+      .hair { stroke: #8E8475; stroke-opacity: 0.48; }
+    </style>
+  </defs>
+
+  <rect width="800" height="1200" fill="url(#paper-wash)"/>
+  <rect width="800" height="1200" filter="url(#paper-grain)" opacity="0.55" style="mix-blend-mode:multiply"/>
+  <rect width="800" height="1200" fill="url(#crease)"/>
+  <path d="M50 0C73 172 54 326 66 489C78 662 95 827 72 1200" stroke="#806E53" stroke-opacity="0.05" stroke-width="8"/>
+  <path d="M718 0C694 211 724 379 704 558C686 727 709 941 688 1200" stroke="white" stroke-opacity="0.16" stroke-width="11"/>
+
+  <g filter="url(#soft-ink)">
+    <text x="58" y="69" class="sans ink" font-size="30" font-weight="700" letter-spacing="-1.4">BURNS’ FIELD NOTES</text>
+    <text x="742" y="66" class="mono ink" font-size="12" letter-spacing="1.2" text-anchor="end">DOC—001</text>
+    <line x1="58" y1="91" x2="742" y2="91" class="rule" stroke-width="2"/>
+    <line x1="58" y1="97" x2="742" y2="97" class="rule" stroke-width="1"/>
+
+    <text x="58" y="132" class="mono faint" font-size="11" letter-spacing="1.8">AGENT EVALUATION / FIELD GUIDE</text>
+    <text x="742" y="132" class="mono faint" font-size="11" letter-spacing="1.4" text-anchor="end">REVISED 24 JUL 2026</text>
+
+    <text x="58" y="210" class="mono accent" font-size="12" letter-spacing="2">A PRACTICAL SYSTEM FOR</text>
+    <text x="55" y="286" class="serif ink" font-size="70" letter-spacing="-3.3">Evaluating agents</text>
+    <text x="58" y="350" class="serif ink" font-size="55" font-style="italic" letter-spacing="-2">through evidence.</text>
+
+    <text x="58" y="402" class="sans ink" font-size="17" font-weight="600">Start with the task contract. Preserve the trace. Name the failure.</text>
+    <text x="58" y="430" class="sans soft" font-size="15">A reusable loop for turning uncertain behaviour into repairable systems.</text>
+
+    <line x1="58" y1="470" x2="742" y2="470" class="hair"/>
+    <text x="58" y="503" class="mono faint" font-size="10" letter-spacing="1.6">THE MINIMUM LOOP</text>
+
+    <rect x="58" y="526" width="150" height="130" stroke="#756B5D" stroke-opacity="0.48"/>
+    <text x="76" y="552" class="mono accent" font-size="10" letter-spacing="1.2">01 / CONTRACT</text>
+    <text x="76" y="591" class="serif ink" font-size="23">Define the</text>
+    <text x="76" y="619" class="serif ink" font-size="23">expected result.</text>
+    <text x="76" y="642" class="mono faint" font-size="8.5">GOAL · LIMITS · PROOF</text>
+
+    <path d="M208 591H230" class="hair"/>
+    <path d="M225 586L231 591L225 596" class="hair"/>
+
+    <rect x="230" y="526" width="150" height="130" stroke="#756B5D" stroke-opacity="0.48"/>
+    <text x="248" y="552" class="mono accent" font-size="10" letter-spacing="1.2">02 / TRACE</text>
+    <text x="248" y="591" class="serif ink" font-size="23">Keep every</text>
+    <text x="248" y="619" class="serif ink" font-size="23">meaningful step.</text>
+    <text x="248" y="642" class="mono faint" font-size="8.5">TOOLS · STATE · CHOICES</text>
+
+    <path d="M380 591H402" class="hair"/>
+    <path d="M397 586L403 591L397 596" class="hair"/>
+
+    <rect x="402" y="526" width="150" height="130" stroke="#756B5D" stroke-opacity="0.48"/>
+    <text x="420" y="552" class="mono accent" font-size="10" letter-spacing="1.2">03 / CLASSIFY</text>
+    <text x="420" y="591" class="serif ink" font-size="23">Name the</text>
+    <text x="420" y="619" class="serif ink" font-size="23">failure mode.</text>
+    <text x="420" y="642" class="mono faint" font-size="8.5">CAUSE · CLUSTER · IMPACT</text>
+
+    <path d="M552 591H574" class="hair"/>
+    <path d="M569 586L575 591L569 596" class="hair"/>
+
+    <rect x="574" y="526" width="168" height="130" stroke="#756B5D" stroke-opacity="0.48"/>
+    <text x="592" y="552" class="mono accent" font-size="10" letter-spacing="1.2">04 / REPAIR</text>
+    <text x="592" y="591" class="serif ink" font-size="23">Change one</text>
+    <text x="592" y="619" class="serif ink" font-size="23">variable.</text>
+    <text x="592" y="642" class="mono faint" font-size="8.5">REPLAY · CHECK · RECORD</text>
+
+    <text x="58" y="714" class="mono faint" font-size="10" letter-spacing="1.6">FAILURE TAXONOMY / START SMALL</text>
+    <line x1="58" y1="733" x2="742" y2="733" class="rule"/>
+
+    <text x="58" y="768" class="mono faint" font-size="9">F—01</text>
+    <text x="120" y="768" class="sans ink" font-size="16" font-weight="600">UNDERSTANDING</text>
+    <text x="353" y="768" class="serif soft" font-size="14">Goal or constraint was misread.</text>
+    <text x="742" y="768" class="mono accent" font-size="9" text-anchor="end">INTENT</text>
+    <line x1="58" y1="789" x2="742" y2="789" class="hair"/>
+
+    <text x="58" y="824" class="mono faint" font-size="9">F—02</text>
+    <text x="120" y="824" class="sans ink" font-size="16" font-weight="600">PLANNING</text>
+    <text x="353" y="824" class="serif soft" font-size="14">The path was incomplete or ordered badly.</text>
+    <text x="742" y="824" class="mono accent" font-size="9" text-anchor="end">ROUTE</text>
+    <line x1="58" y1="845" x2="742" y2="845" class="hair"/>
+
+    <text x="58" y="880" class="mono faint" font-size="9">F—03</text>
+    <text x="120" y="880" class="sans ink" font-size="16" font-weight="600">TOOL USE</text>
+    <text x="353" y="880" class="serif soft" font-size="14">Selection, arguments, or results went wrong.</text>
+    <text x="742" y="880" class="mono accent" font-size="9" text-anchor="end">ACTION</text>
+    <line x1="58" y1="901" x2="742" y2="901" class="hair"/>
+
+    <text x="58" y="936" class="mono faint" font-size="9">F—04</text>
+    <text x="120" y="936" class="sans ink" font-size="16" font-weight="600">VERIFICATION</text>
+    <text x="353" y="936" class="serif soft" font-size="14">The work happened without proof.</text>
+    <text x="742" y="936" class="mono accent" font-size="9" text-anchor="end">EVIDENCE</text>
+    <line x1="58" y1="957" x2="742" y2="957" class="hair"/>
+
+    <text x="58" y="992" class="mono faint" font-size="9">F—05</text>
+    <text x="120" y="992" class="sans ink" font-size="16" font-weight="600">STOP CONDITION</text>
+    <text x="353" y="992" class="serif soft" font-size="14">The run ended too early or continued uselessly.</text>
+    <text x="742" y="992" class="mono accent" font-size="9" text-anchor="end">CONTROL</text>
+
+    <rect x="58" y="1040" width="684" height="82" stroke="#756B5D" stroke-opacity="0.48"/>
+    <text x="78" y="1067" class="mono accent" font-size="9" letter-spacing="1.4">WORKING RULE</text>
+    <text x="78" y="1097" class="serif ink" font-size="20">If the next iteration cannot use the evidence, the evaluation is incomplete.</text>
+
+    <line x1="58" y1="1151" x2="742" y2="1151" class="rule"/>
+    <text x="58" y="1180" class="mono ink" font-size="10" letter-spacing="1.4">OPEN DOCUMENT</text>
+    <text x="742" y="1180" class="mono ink" font-size="10" letter-spacing="1.4" text-anchor="end">LIVING EDITION →</text>
+  </g>
+</svg>

@@ -1,14 +1,14 @@
 ---
-title: "Notes on debugging remote training jobs"
-summary: "Separate environment, resources, processes, and logs before spending another run on a blind retry."
+title: "远程训练任务排障笔记"
+summary: "先分清环境、资源、进程与日志，再决定是否值得盲目重跑一次。"
 publishedAt: 2026-06-18
 updatedAt: 2026-07-20
-tags: ["Infra", "Training", "Debug"]
+tags: ["基础设施", "训练", "排障"]
 featured: false
 draft: false
 number: "DOC—002"
 status: "living"
-section: "LLM INFRA"
+section: "大模型基础设施"
 ---
 
 远程训练任务失败时，最昂贵的动作往往是立刻重跑。先判断故障属于环境、资源、进程还是代码，可以显著缩短排查路径。
@@ -21,11 +21,11 @@ section: "LLM INFRA"
 
 ### 资源
 
-确认 GPU 数量、显存、磁盘空间、网络和调度状态。
+确认显卡数量、显存、磁盘空间、网络和调度状态。
 
 ### 进程
 
-确认主进程、worker、端口占用和分布式通信状态。
+确认主进程、工作进程、端口占用和分布式通信状态。
 
 ### 日志
 
@@ -40,7 +40,7 @@ ps aux | grep -E "torchrun|python"
 
 ## 重跑之前
 
-- 是否会覆盖已有 checkpoint？
+- 是否会覆盖已有检查点？
 - 是否需要清理僵尸进程？
 - 失败是否可以用更小的样本复现？
 - 新一轮运行会留下哪些额外证据？

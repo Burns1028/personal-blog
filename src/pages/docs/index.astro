@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { documentStatusLabels } from "../../data/labels";
 
 const entries = (await getCollection("docs", ({ data }) => !data.draft))
   .sort((a, b) => {
@@ -11,47 +12,49 @@ const entries = (await getCollection("docs", ({ data }) => !data.draft))
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
   }).format(date);
 ---
 
-<BaseLayout title="文档" description="从真实工作中生长出来的操作手册、检查表和技术笔记。" paper>
-  <header class="index-hero">
-    <span class="eyebrow">DOCUMENTS / 文档</span>
-    <h1>不是归档，<br />是工作台。</h1>
-    <p>这些文档会继续更新。每一页都尽量说明适用范围、关键步骤和已知边界。</p>
-  </header>
-  <section class="index-shell" aria-label="文档列表">
-    <div class="filter-rail">
-      <strong>{entries.length.toString().padStart(2, "0")} DOCUMENTS</strong>
-      <span>LIVING</span>
-      <span>STABLE</span>
-      <span>ARCHIVED</span>
-    </div>
-    <ol class="writing-list">
-      {
-        entries.map((entry) => (
-          <li>
-            <a class="writing-row" href={`/docs/${entry.id}`}>
-              <span class="writing-row__number">{entry.data.number}</span>
-              <div class="writing-row__main">
-                <h3>{entry.data.title}</h3>
-                <span class="writing-row__tags">
+<BaseLayout
+  title="文档"
+  description="持续修订的工作手记、检查清单与技术备忘录。"
+  theme="document"
+>
+  <div class="document-index-world">
+    <header class="document-index-hero artifact-destination artifact-destination--document">
+      <a href="/" class="document-index-hero__home">← HOME</a>
+      <div>
+        <h1>持续工作的<br />文档。</h1>
+        <p>
+          现场笔记、检查清单和技术备忘录。它们持续有用，是因为会随着工作本身一起改变。
+        </p>
+      </div>
+    </header>
+
+    <section class="document-ledger" aria-label="文档集合">
+      <ol>
+        {
+          entries.map((entry) => (
+            <li>
+              <a class="document-record" href={`/docs/${entry.id}`}>
+                <div class="document-record__title">
+                  <h2>{entry.data.title}</h2>
+                  <p>{entry.data.summary}</p>
+                </div>
+                <footer>
                   <span>{entry.data.section}</span>
-                  <span>{entry.data.status.toUpperCase()}</span>
-                </span>
-              </div>
-              <div class="writing-row__summary">
-                <time datetime={entry.data.publishedAt.toISOString()}>
-                  UPDATED {formatDate(entry.data.updatedAt ?? entry.data.publishedAt)}
-                </time>
-                {entry.data.summary}
-              </div>
-            </a>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
+                  <time datetime={(entry.data.updatedAt ?? entry.data.publishedAt).toISOString()}>
+                    修订于 {formatDate(entry.data.updatedAt ?? entry.data.publishedAt)}
+                  </time>
+                  <span>{documentStatusLabels[entry.data.status] ?? entry.data.status}</span>
+                </footer>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </div>
 </BaseLayout>

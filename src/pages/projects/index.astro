@@ -1,58 +1,112 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { projectStatusLabels } from "../../data/labels";
 
 const entries = (await getCollection("projects", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+
+const configFile = (language: string) =>
+  language === "TypeScript"
+    ? "package.json"
+    : language === "Python"
+      ? "pyproject.toml"
+      : "project.config";
 ---
 
-<BaseLayout title="项目" description="开源项目与可以运行的个人实验。">
-  <div class="project-index">
-    <header class="index-hero">
-      <span class="eyebrow">SOURCE / 项目</span>
-      <h1>可以运行的<br />判断。</h1>
-      <p>代码不会让一个观点自动成立，但它会暴露观点必须面对的约束。这里收录公开仓库、实验和工具。</p>
+<BaseLayout title="项目" description="可以打开、运行和验证的代码仓库与实验。" theme="code">
+  <div class="repository-world">
+    <header class="repository-world__hero">
+      <div class="repository-world__rail">
+        <a href="/">← HOME</a>
+        <span>{entries.length} 个公开代码仓库</span>
+      </div>
+      <h1>必须回应现实的<br />代码。</h1>
+      <p>
+        在这些实验里，想法会遇到运行约束、可观察的失败，以及一份让别人也能照着做的 README。
+      </p>
     </header>
 
-    <section class="project-list-page" aria-label="项目列表">
+    <section class="repository-browser" aria-label="代码仓库">
       {
-        entries.map((entry) => (
-          <article class="project-list-item">
-            <div class="project-list-item__number">{entry.data.number}</div>
-            <div class="project-list-item__main">
-              <span class="eyebrow">{entry.data.status} / {entry.data.language}</span>
-              <h2>{entry.data.title}</h2>
-              <p>{entry.data.summary}</p>
-              <div class="project-list-item__actions">
-                <a class="button button--accent" href={entry.data.repo} target="_blank" rel="noreferrer">
-                  打开 GitHub ↗
-                </a>
-                {entry.data.demo && (
-                  <a class="button" href={entry.data.demo} target="_blank" rel="noreferrer">
-                    查看 Demo ↗
-                  </a>
-                )}
-              </div>
-            </div>
-            <div class="project-list-item__code">
-              <pre><span class="code-comment"># quick start</span>
-<span class="code-accent">$</span> {entry.data.command}
+        entries.map((entry, index) => {
+          const repoName = entry.id;
+          const runtimeFile = configFile(entry.data.language);
 
-<span class="code-comment"># source is the documentation</span>
-<span class="code-accent">→</span> open README.md</pre>
-              <dl>
-                <div>
-                  <dt>LANGUAGE</dt>
-                  <dd>{entry.data.language}</dd>
+          return (
+            <article
+              class:list={[
+                "repository-record",
+                {
+                  "repository-record--featured artifact-destination artifact-destination--repo":
+                    index === 0,
+                },
+              ]}
+              id={repoName}
+            >
+              <header class="repository-record__header">
+                <div class="repository-record__identity">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7Zm10 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7ZM7 10.5v2.25A4.25 4.25 0 0 0 11.25 17H13.5M17 13.5V11A4 4 0 0 0 13 7h-2.5" />
+                  </svg>
+                  <span>burns</span>
+                  <span>/</span>
+                  <strong>{repoName}</strong>
                 </div>
-                <div>
-                  <dt>STATUS</dt>
-                  <dd>{entry.data.status.toUpperCase()}</dd>
+                <a href={entry.data.repo} target="_blank" rel="noreferrer">
+                  打开代码仓库 ↗
+                </a>
+              </header>
+
+              <div class="repository-record__tabs" aria-hidden="true">
+                <span class="is-current">代码</span>
+                <span>README</span>
+                <span class="repository-record__branch">⑂ 主分支</span>
+              </div>
+
+              <div class="repository-record__body">
+                <div class="repository-record__files">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>名称</th>
+                        <th>最近提交</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="repo-folder">■</span> src/</td>
+                        <td>构建当前实验</td>
+                      </tr>
+                      <tr>
+                        <td><span>≡</span> README.md</td>
+                        <td>记录约束与决策</td>
+                      </tr>
+                      <tr>
+                        <td><span>{`{}`}</span> {runtimeFile}</td>
+                        <td>定义运行环境与依赖</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              </dl>
-            </div>
-          </article>
-        ))
+
+                <section class="repository-record__readme" aria-labelledby={`${repoName}-title`}>
+                  <span>README.md</span>
+                  <h2 id={`${repoName}-title`}>{entry.data.title}</h2>
+                  <p>{entry.data.summary}</p>
+                  <pre><code><span>$</span> {entry.data.command}</code></pre>
+                  <div class="repository-record__actions">
+                    <span><i></i>{entry.data.language}</span>
+                    <span>{projectStatusLabels[entry.data.status] ?? entry.data.status}</span>
+                    {entry.data.demo && (
+                      <a href={entry.data.demo} target="_blank" rel="noreferrer">在线演示 ↗</a>
+                    )}
+                  </div>
+                </section>
+              </div>
+            </article>
+          );
+        })
       }
     </section>
   </div>

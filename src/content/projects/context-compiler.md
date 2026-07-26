@@ -1,8 +1,8 @@
 ---
-title: "Context Compiler"
-summary: "Compile project context from documents, discussions, and code while preserving where each claim came from."
+title: "上下文编译器"
+summary: "从文档、讨论与代码中编译项目上下文，同时保留每一条判断的来源。"
 publishedAt: 2026-06-14
-tags: ["Context", "Knowledge", "Tools"]
+tags: ["上下文", "知识", "工具"]
 featured: false
 draft: false
 number: "SRC—003"

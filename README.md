@@ -45,6 +45,17 @@ readingTime: "6 MIN"
 文档放在 `src/content/docs/`，项目放在 `src/content/projects/`。字段约束位于
 `src/content.config.ts`。
 
+## 首页视觉素材
+
+首页三张档案原图保存在 `design-source/hero/`，不会进入发布产物。实际页面使用
+`public/assets/` 中按显示尺寸生成的两档 JPEG，并通过 `srcset` 让浏览器按视口选择：
+
+- 文档：640px / 960px；
+- 代码仓库：720px / 1200px；
+- 灵感纸片：480px / 720px。
+
+替换原图时保留相同比例并重新生成这两档资源，避免直接把高分辨率设计源文件放进首屏。
+
 ## 本地运行
 
 ```bash

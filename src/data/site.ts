@@ -4,17 +4,29 @@
  */
 export const site = {
   title: "Burns’ Blog",
-  shortTitle: "BURNS’ BLOG",
+  shortTitle: "Burns’ Blog",
   author: "Burns",
   description:
-    "Notes on agent systems, LLM infrastructure, product design, and the work of making complex systems legible.",
+    "关于智能体系统、大模型基础设施、产品设计，以及如何把复杂系统讲明白的思考与记录。",
   email: "hello@example.com",
   github: "https://github.com/",
+  wechat: "rance_gao",
 };
 
+/**
+ * 首页问候区的一圈联系方式。
+ * kind 决定渲染方式：link 直接跳转，copy 点击复制文本（如微信号）。
+ */
+export const contacts = [
+  { label: "GitHub", kind: "link", href: site.github, icon: "github" },
+  { label: "Email", kind: "link", href: `mailto:${site.email}`, icon: "mail" },
+  { label: "WeChat", kind: "copy", value: site.wechat, icon: "wechat" },
+] as const;
+
 export const nav = [
-  { href: "/#thinking", label: "Thinking" },
-  { href: "/#reading", label: "Reading" },
-  { href: "/#building", label: "Building" },
+  { href: "/", label: "Home" },
+  { href: "/ideas", label: "Ideas" },
+  { href: "/docs", label: "Documents" },
+  { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
 ];

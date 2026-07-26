@@ -1,25 +1,25 @@
 ---
-title: "Reliable agent systems are not a longer prompt"
-summary: "Rethinking agent reliability through state, evidence, and recovery."
-deck: "Once a model starts using tools, reliability is no longer just about the answer—it is about whether every step leaves evidence you can inspect."
+title: "可靠的智能体系统，不是一条更长的提示词"
+summary: "从状态、证据与恢复能力，重新理解智能体的可靠性。"
+deck: "当模型开始调用工具，可靠性就不再只关乎答案，而在于每一步是否留下了可以检查的证据。"
 publishedAt: 2026-07-24
 updatedAt: 2026-07-24
-tags: ["Agent", "Reliability", "Infra"]
+tags: ["智能体", "可靠性", "基础设施"]
 featured: true
 draft: false
 number: "WR—001"
-readingTime: "8 MIN"
+readingTime: "8 分钟"
 ---
 
-很多 Agent 应用的第一版都从一条 Prompt 开始。这很合理：Prompt 是最短的反馈回路，能让我们快速确认模型是否理解任务。
+很多智能体应用的第一版都从一条提示词开始。这很合理：提示词是最短的反馈回路，能让我们快速确认模型是否理解任务。
 
-问题在于，当系统开始读取外部信息、调用工具、修改状态，Prompt 就不再是系统本身。它只是系统里一个会变化、会失败、也会被上下文影响的决策节点。
+问题在于，当系统开始读取外部信息、调用工具、修改状态，提示词就不再是系统本身。它只是系统里一个会变化、会失败、也会被上下文影响的决策节点。
 
 > 可靠性不是让模型永远不犯错，而是让错误可见、可定位、可恢复。
 
 ## 从“回答正确”转向“过程有证据”
 
-传统接口通常有明确的输入和输出。Agent 的输出却来自一条更长的路径：
+传统接口通常有明确的输入和输出。智能体的输出却来自一条更长的路径：
 
 1. 理解意图；
 2. 拆分任务；
@@ -54,7 +54,7 @@ type AgentEvent =
 - 已经产生了哪些外部影响？
 - 继续执行会不会重复写入或发送？
 
-对于会修改外部状态的工具，幂等键、动作前检查和动作后验证比更聪明的 Prompt 更重要。
+对于会修改外部状态的工具，幂等键、动作前检查和动作后验证比更聪明的提示词更重要。
 
 ```python
 result = create_document(
@@ -69,7 +69,7 @@ assert result.status == "created"
 
 ## 让停止条件比继续条件更清楚
 
-Agent 很容易继续：再搜索一次、再换一个工具、再组织一版答案。系统真正缺少的是明确的停止条件。
+智能体很容易继续：再搜索一次、再换一个工具、再组织一版答案。系统真正缺少的是明确的停止条件。
 
 一个可操作的停止条件通常来自以下几类：
 
@@ -82,6 +82,6 @@ Agent 很容易继续：再搜索一次、再换一个工具、再组织一版�
 
 ## 最后
 
-Prompt 当然重要，但可靠的 Agent 产品最终会长成一套系统：它保存状态，要求证据，识别副作用，并且知道什么时候应该停下来。
+提示词当然重要，但可靠的智能体产品最终会长成一套系统：它保存状态，要求证据，识别副作用，并且知道什么时候应该停下来。
 
-更长的 Prompt 也许能让演示更顺滑；更好的系统边界才能让它走进真实工作。
+更长的提示词也许能让演示更顺滑；更好的系统边界才能让它走进真实工作。

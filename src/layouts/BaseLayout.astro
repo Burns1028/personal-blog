@@ -5,27 +5,41 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
-  paper?: boolean;
+  theme?: "night" | "ochre" | "paper" | "document" | "code" | "stone";
 }
 
 const {
   title,
   description = site.description,
-  paper = false,
+  theme = "night",
 } = Astro.props;
+const isLight = theme === "ochre" || theme === "paper" || theme === "stone";
+const themeColor = {
+  night: "#171713",
+  ochre: "#d2a44b",
+  paper: "#e9e0cf",
+  document: "#171713",
+  code: "#0d1117",
+  stone: "#d8d6ce",
+}[theme];
 const pageTitle = title ? `${title} — ${site.shortTitle}` : site.title;
 const path = Astro.url.pathname;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const isCurrentRoute = (href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
 ---
 
 <!doctype html>
-<html lang="zh-CN" class:list={{ "paper-page": paper }}>
+<html
+  lang="zh-CN"
+  class:list={[`theme-${theme}`, { "paper-page": isLight }]}
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="theme-color" content={paper ? "#e9e0cf" : "#171713"} />
+    <meta name="theme-color" content={themeColor} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
@@ -33,14 +47,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
     <title>{pageTitle}</title>
   </head>
-  <body class:list={{ "is-paper": paper }}>
+  <body class:list={[`theme-${theme}`, { "is-paper": isLight }]} data-route={path}>
     <a class="skip-link" href="#content">跳到正文</a>
 
     <header class="site-header">
       <a class="wordmark" href="/" aria-label={`${site.title} 首页`}>
-        <span class="wordmark__main">{site.shortTitle}</span>
+        <pre class="wordmark__ascii" aria-hidden="true">{`    ____
+   / __ )__  ___________  _____
+  / __  / / / / ___/ __ \\/ ___/
+ / /_/ / /_/ / /  / / / (__  )
+/_____/\\__,_/_/  /_/ /_/____/`}</pre>
       </a>
 
       <nav class="site-nav" aria-label="主导航">
@@ -48,7 +69,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
           nav.map((item) => (
             <a
               href={item.href}
-              aria-current={path.startsWith(item.href) ? "page" : undefined}
+              aria-current={isCurrentRoute(item.href) ? "page" : undefined}
             >
               {item.label}
             </a>
@@ -68,15 +89,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 
     <footer class="site-footer">
       <div class="site-footer__statement">
-        <span class="eyebrow">COLOPHON</span>
-        <p>Make complex systems legible.<br />Keep the unfinished thinking visible.</p>
+        <span class="eyebrow">站点说明</span>
+        <p>把复杂系统讲明白。<br />也让尚未完成的思考保持可见。</p>
       </div>
       <div class="site-footer__links">
         <a href={site.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
         <a href="/rss.xml">RSS ↗</a>
       </div>
       <div class="site-footer__meta">
-        <span>© 2026 {site.author}</span>
+        <span>© 2026</span>
       </div>
     </footer>
   </body>
