@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import CosmicField from "../components/CosmicField.astro";
 import { ideas } from "../data/ideas";
 import { readingNow } from "../data/reading";
 import { projectStatusLabels } from "../data/labels";
@@ -38,6 +39,8 @@ const contactIcons: Record<string, string> = {
 
 <BaseLayout>
   <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
+    <CosmicField />
+
     <div class="home-hero__copy" data-intro-copy>
       <h1
         id="home-title"

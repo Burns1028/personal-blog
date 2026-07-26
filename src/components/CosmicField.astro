@@ -1,0 +1,249 @@
+---
+---
+
+<div class="cosmic-field" aria-hidden="true" data-cosmic-field>
+  <canvas class="cosmic-field__stars" data-cosmic-stars></canvas>
+  <div class="cosmic-field__planet-fallback"></div>
+  <canvas class="cosmic-field__planet" data-cosmic-planet></canvas>
+  <div class="cosmic-field__atmosphere"></div>
+</div>
+
+<script>
+  import {
+    PLANET_FRAGMENT_SHADER,
+    PLANET_VERTEX_SHADER,
+  } from "./cosmic-shaders";
+
+  const seededRandom = (seed: number) => {
+    let state = seed >>> 0;
+    return () => {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  };
+
+  const drawStarMap = (canvas: HTMLCanvasElement) => {
+    const bounds = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.4);
+    const width = Math.max(1, Math.round(bounds.width * dpr));
+    const height = Math.max(1, Math.round(bounds.height * dpr));
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    context.clearRect(0, 0, width, height);
+    const random = seededRandom(26071996);
+    const count = Math.round(Math.min(190, Math.max(92, bounds.width / 7)));
+
+    for (let index = 0; index < count; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const depth = 0.34 + random() * 0.66;
+      const radius = (0.34 + random() * 0.92) * dpr * depth;
+      const warmth = random();
+      const alpha = 0.14 + random() * 0.5;
+
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fillStyle =
+        warmth > 0.84
+          ? `rgba(224, 188, 112, ${alpha})`
+          : `rgba(236, 233, 218, ${alpha})`;
+      context.fill();
+
+      if (radius > 1.05 * dpr && random() > 0.76) {
+        context.save();
+        context.translate(x, y);
+        context.strokeStyle = `rgba(235, 223, 194, ${alpha * 0.38})`;
+        context.lineWidth = Math.max(0.45, dpr * 0.42);
+        context.beginPath();
+        context.moveTo(-radius * 3.2, 0);
+        context.lineTo(radius * 3.2, 0);
+        context.moveTo(0, -radius * 3.2);
+        context.lineTo(0, radius * 3.2);
+        context.stroke();
+        context.restore();
+      }
+    }
+  };
+
+  const initPlanet = (
+    field: HTMLElement,
+    canvas: HTMLCanvasElement,
+    reducedMotion: boolean,
+  ) => {
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      premultipliedAlpha: false,
+      powerPreference: "low-power",
+    });
+    if (!gl) return;
+
+    const compile = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.warn("Cosmic shader could not compile:", gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vertex = compile(gl.VERTEX_SHADER, PLANET_VERTEX_SHADER);
+    const fragment = compile(gl.FRAGMENT_SHADER, PLANET_FRAGMENT_SHADER);
+    if (!vertex || !fragment) return;
+
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.bindAttribLocation(program, 0, "position");
+    gl.bindAttribLocation(program, 1, "uv");
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn("Cosmic shader could not link:", gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1, 0, 0,
+        1, -1, 1, 0,
+        -1, 1, 0, 1,
+        -1, 1, 0, 1,
+        1, -1, 1, 0,
+        1, 1, 1, 1,
+      ]),
+      gl.STATIC_DRAW,
+    );
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
+
+    const uniforms = {
+      time: gl.getUniformLocation(program, "uTime"),
+      resolution: gl.getUniformLocation(program, "uResolution"),
+      center: gl.getUniformLocation(program, "uCenter"),
+      roll: gl.getUniformLocation(program, "uRoll"),
+      elevation: gl.getUniformLocation(program, "uElevation"),
+      zoom: gl.getUniformLocation(program, "uZoom"),
+    };
+
+    gl.uniform2f(uniforms.center, 0.72, -0.035);
+    gl.uniform1f(uniforms.roll, (4.5 * Math.PI) / 180);
+    gl.uniform1f(uniforms.elevation, (18 * Math.PI) / 180);
+    gl.uniform1f(uniforms.zoom, 0.62);
+
+    const resize = () => {
+      const bounds = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      const renderScale = 0.66;
+      const width = Math.max(1, Math.round(bounds.width * dpr * renderScale));
+      const height = Math.max(1, Math.round(bounds.height * dpr * renderScale));
+
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      gl.viewport(0, 0, width, height);
+      gl.uniform3f(uniforms.resolution, width, height, width / height);
+    };
+
+    resize();
+    field.dataset.planetReady = "true";
+
+    let animationFrame = 0;
+    let lastDraw = -Infinity;
+    let visible = true;
+    const startedAt = performance.now();
+
+    const draw = (now: number) => {
+      if (!visible) return;
+
+      if (now - lastDraw >= 42 || reducedMotion) {
+        lastDraw = now;
+        gl.uniform1f(uniforms.time, (now - startedAt) / 1000);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+
+      if (!reducedMotion) {
+        animationFrame = requestAnimationFrame(draw);
+      }
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      cancelAnimationFrame(animationFrame);
+      if (visible) animationFrame = requestAnimationFrame(draw);
+    });
+    observer.observe(field);
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (reducedMotion) draw(performance.now());
+    });
+    resizeObserver.observe(canvas);
+
+    draw(performance.now());
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        cancelAnimationFrame(animationFrame);
+        observer.disconnect();
+        resizeObserver.disconnect();
+        gl.deleteProgram(program);
+        gl.deleteBuffer(buffer);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+      },
+      { once: true },
+    );
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-cosmic-field]").forEach((field) => {
+    if (field.dataset.cosmicReady === "true") return;
+    field.dataset.cosmicReady = "true";
+
+    const stars = field.querySelector<HTMLCanvasElement>("[data-cosmic-stars]");
+    const planet = field.querySelector<HTMLCanvasElement>("[data-cosmic-planet]");
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const compactViewport = window.matchMedia("(max-width: 700px)").matches;
+    const connection = (
+      navigator as Navigator & { connection?: { saveData?: boolean } }
+    ).connection;
+
+    if (stars) {
+      drawStarMap(stars);
+      const starResize = new ResizeObserver(() => drawStarMap(stars));
+      starResize.observe(stars);
+      window.addEventListener("pagehide", () => starResize.disconnect(), {
+        once: true,
+      });
+    }
+
+    if (planet && !compactViewport && !connection?.saveData) {
+      initPlanet(field, planet, reducedMotion);
+    }
+  });
+</script>

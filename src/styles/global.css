@@ -340,12 +340,14 @@ select {
   width: var(--page);
   min-height: 790px;
   margin: 0 auto;
+  overflow: hidden;
   border: 1px solid var(--night-line);
   display: grid;
   grid-template-columns: 0.92fr 1.08fr;
   background:
-    radial-gradient(circle at 76% 45%, rgba(196, 154, 69, 0.055), transparent 35%),
-    var(--night);
+    radial-gradient(circle at 79% 62%, rgba(196, 154, 69, 0.07), transparent 34%),
+    #11110e;
+  isolation: isolate;
 }
 
 .home-hero::before {
@@ -358,9 +360,122 @@ select {
   background: var(--night-line);
 }
 
+.cosmic-field {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: calc(1 - var(--intro-exit) * 0.92);
+  transform: translate3d(0, calc(var(--intro-exit) * 28px), 0);
+  transform-origin: center bottom;
+  transition: opacity 80ms linear;
+}
+
+.cosmic-field__stars,
+.cosmic-field__planet {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.cosmic-field__stars {
+  opacity: 0.66;
+  mask-image:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.92), #000 68%, transparent 100%),
+    radial-gradient(ellipse at 67% 36%, #000 0, #000 38%, transparent 92%);
+  mask-composite: intersect;
+  animation: cosmic-breathe 8s ease-in-out infinite alternate;
+}
+
+.cosmic-field__planet {
+  z-index: 1;
+  opacity: 0;
+  filter: saturate(0.78) contrast(0.96);
+  transition: opacity 1.2s var(--ease-paper);
+}
+
+.cosmic-field[data-planet-ready="true"] .cosmic-field__planet {
+  opacity: 0.76;
+}
+
+.cosmic-field__planet-fallback {
+  position: absolute;
+  z-index: 1;
+  right: -14%;
+  bottom: -6%;
+  width: 80%;
+  aspect-ratio: 2.8 / 1;
+  border-radius: 50%;
+  opacity: 0.56;
+  transform: rotate(4.5deg);
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 0 10%,
+      rgba(216, 171, 82, 0.86) 10.4% 11%,
+      transparent 11.4% 15%,
+      rgba(168, 124, 54, 0.58) 15.3% 16.1%,
+      transparent 16.5% 22%,
+      rgba(202, 158, 77, 0.34) 22.3% 24.2%,
+      transparent 24.7% 31%,
+      rgba(108, 101, 88, 0.25) 31.4% 34%,
+      transparent 34.5% 100%
+    );
+  filter: blur(0.15px);
+}
+
+.cosmic-field__planet-fallback::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 17%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  content: "";
+  transform: translate(-50%, -50%);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(71, 49, 30, 0.92) 0 7%,
+      rgba(136, 91, 48, 0.88) 7% 14%
+    );
+  box-shadow:
+    inset 18px -14px 22px rgba(0, 0, 0, 0.72),
+    0 0 32px rgba(196, 136, 57, 0.12);
+}
+
+.cosmic-field[data-planet-ready="true"] .cosmic-field__planet-fallback {
+  opacity: 0;
+}
+
+.cosmic-field__atmosphere {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 18% 44%, rgba(17, 17, 14, 0.92) 0, rgba(17, 17, 14, 0.64) 38%, transparent 68%),
+    radial-gradient(ellipse at 78% 64%, transparent 0, rgba(17, 17, 14, 0.08) 52%, rgba(17, 17, 14, 0.72) 100%),
+    linear-gradient(to bottom, rgba(17, 17, 14, 0.08), transparent 66%, rgba(17, 17, 14, 0.44));
+}
+
+@keyframes cosmic-breathe {
+  from {
+    opacity: 0.52;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.68;
+    transform: scale(1.006);
+  }
+}
+
 .home-hero__copy {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   padding: 92px 38px 72px 32px;
   flex-direction: column;
@@ -597,6 +712,7 @@ select {
   background:
     linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(65, 55, 40, 0.08) 50%, transparent calc(50% + 0.5px)),
     var(--paper);
+  box-shadow: 0 -28px 72px rgba(196, 154, 69, 0.1);
   clip-path: polygon(0 72%, 8% 66%, 19% 74%, 31% 64%, 43% 70%, 56% 63%, 69% 71%, 82% 65%, 100% 70%, 100% 100%, 0 100%);
 }
 
@@ -1812,6 +1928,23 @@ select {
     font-size: 16px;
   }
 
+  .cosmic-field__stars {
+    opacity: 0.52;
+  }
+
+  .cosmic-field__planet-fallback {
+    right: -26%;
+    bottom: 18px;
+    width: 132%;
+    opacity: 0.48;
+  }
+
+  .cosmic-field__atmosphere {
+    background:
+      radial-gradient(ellipse at 25% 28%, rgba(17, 17, 14, 0.88) 0, rgba(17, 17, 14, 0.56) 42%, transparent 74%),
+      linear-gradient(to bottom, rgba(17, 17, 14, 0.08), transparent 70%, rgba(17, 17, 14, 0.52));
+  }
+
   .hero-actions {
     align-items: stretch;
     flex-direction: column;
@@ -2219,6 +2352,7 @@ select {
   --stage-pointer-x: 0;
   --stage-pointer-y: 0;
   position: relative;
+  z-index: 2;
   min-height: 800px;
   overflow: visible;
   isolation: isolate;
@@ -2239,10 +2373,9 @@ select {
 
 .artifact-stage::after {
   background:
-    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.018) 50%, transparent 50.2%),
-    linear-gradient(0deg, transparent 49.8%, rgba(255, 255, 255, 0.014) 50%, transparent 50.2%);
-  background-size: 136px 136px;
-  opacity: 0.7;
+    radial-gradient(circle at 78% 74%, rgba(196, 154, 69, 0.1), transparent 28%),
+    radial-gradient(circle at 46% 46%, rgba(255, 255, 255, 0.02), transparent 52%);
+  opacity: 0.84;
 }
 
 .idea-artifact,
@@ -2324,6 +2457,7 @@ select {
   background: #060a10;
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.55),
+    0 12px 44px rgba(196, 137, 52, 0.07),
     8px 10px 0 rgba(0, 0, 0, 0.13);
 }
 
@@ -2346,6 +2480,7 @@ select {
 .paper-artifact .artifact-image {
   box-shadow:
     0 34px 82px rgba(0, 0, 0, 0.5),
+    -10px 16px 60px rgba(196, 137, 52, 0.1),
     7px 8px 0 rgba(0, 0, 0, 0.12);
 }
 
