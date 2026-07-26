@@ -49,6 +49,33 @@ const isCurrentRoute = (href: string) =>
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       document.documentElement.classList.add("js");
+
+      try {
+        const journey = JSON.parse(
+          sessionStorage.getItem("burns:journey") ?? "null",
+        );
+        if (
+          journey?.to === window.location.pathname &&
+          Date.now() - journey.at < 10000
+        ) {
+          document.documentElement.dataset.journeyEntry = "true";
+          history.scrollRestoration = "manual";
+
+          const resetJourneyScroll = () => window.scrollTo(0, 0);
+          resetJourneyScroll();
+          document.addEventListener("DOMContentLoaded", resetJourneyScroll, {
+            once: true,
+          });
+          window.addEventListener("load", resetJourneyScroll, { once: true });
+          window.setTimeout(() => {
+            resetJourneyScroll();
+            history.scrollRestoration = "auto";
+            sessionStorage.removeItem("burns:journey");
+          }, 240);
+        }
+      } catch {
+        sessionStorage.removeItem("burns:journey");
+      }
     </script>
     <title>{pageTitle}</title>
   </head>

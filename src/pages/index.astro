@@ -2,9 +2,8 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CosmicField from "../components/CosmicField.astro";
+import JourneyGate from "../components/JourneyGate.astro";
 import { ideas } from "../data/ideas";
-import { readingNow } from "../data/reading";
-import { projectStatusLabels } from "../data/labels";
 import { contacts } from "../data/site";
 
 const writings = (await getCollection("writing", ({ data }) => !data.draft))
@@ -19,13 +18,6 @@ const featuredDoc = documents.find(({ data }) => data.featured) ?? documents[0];
 const featuredProject = projects.find(({ data }) => data.featured) ?? projects[0];
 const featuredIdea = ideas[0];
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
-
 // 联系方式图标（内联 SVG，currentColor 跟随文字色，契合暗色 + 品牌橙风格）
 const contactIcons: Record<string, string> = {
   github:
@@ -38,251 +30,177 @@ const contactIcons: Record<string, string> = {
 ---
 
 <BaseLayout>
-  <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
-    <CosmicField />
+  <div class="home-journey">
+    <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
+      <CosmicField />
 
-    <div class="home-hero__inner">
-      <div class="home-hero__copy" data-intro-copy>
-      <h1
-        id="home-title"
-        aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
-      >
-        <span class="term-line">
-          <span class="term-prompt" aria-hidden="true">&gt; whoami</span>
-        </span>
-        <span class="term-line">
-          <span class="term-name" data-typed data-text="Hello, I’m Burns">Hello, I’m Burns</span><span class="term-caret" aria-hidden="true"></span>
-        </span>
-        <span class="accent-line">AI System Builder, AI enthusiast.</span>
-      </h1>
-      <p>
-        Born in Shanghai, graduated from Peking University, and now exploring
-        Agent infrastructure at ByteDance Seed.
-      </p>
-      <p>
-        I’m a curious carbon-based life form, always eager to explore the
-        unknown.
-      </p>
-      <div class="hero-actions">
-        <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
-          Read latest writing <span aria-hidden="true">→</span>
-        </a>
-        <a class="button" href="/docs">Browse docs</a>
-      </div>
-      <ul class="hero-contacts" aria-label="联系方式">
-        {
-          contacts.map((item) =>
-            item.kind === "copy" ? (
-              <li>
-                <button
-                  type="button"
-                  class="hero-contact"
-                  data-copy={item.value}
-                  aria-label={`${item.label}：${item.value}（点击复制）`}
-                  title={`${item.label}: ${item.value}`}
-                >
-                  <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
-                  <span class="hero-contact__label">{item.value}</span>
-                </button>
-              </li>
-            ) : (
-              <li>
-                <a
-                  class="hero-contact"
-                  href={item.href}
-                  target={item.icon === "mail" ? undefined : "_blank"}
-                  rel="noreferrer"
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
-                  <span class="hero-contact__label">{item.label}</span>
-                </a>
-              </li>
-            ),
-          )
-        }
-      </ul>
-      </div>
-
-      <div
-        class="artifact-stage"
-        aria-label="精选代码仓库、文档与灵感"
-        data-artifact-stage
-        data-active-artifact="none"
-      >
-        <div
-          class="repo-artifact"
-          aria-hidden="true"
-        >
-          <img
-            class="artifact-image"
-            src="/assets/artifact-github-cosmic-720.webp"
-            srcset="/assets/artifact-github-cosmic-720.webp 720w, /assets/artifact-github-cosmic-1200.webp 1200w"
-            sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
-            alt=""
-            width="1200"
-            height="936"
-            loading="lazy"
-            fetchpriority="low"
-            decoding="async"
-          />
-        </div>
-
-        <div
-          class="paper-artifact"
-          aria-hidden="true"
-        >
-          <img
-            class="artifact-image"
-            src="/assets/artifact-document-cosmic-640.webp"
-            srcset="/assets/artifact-document-cosmic-640.webp 640w, /assets/artifact-document-cosmic-960.webp 960w"
-            sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
-            alt=""
-            width="960"
-            height="1300"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </div>
-
-        <div
-          class="idea-artifact"
-          aria-hidden="true"
-        >
-          <img
-            class="artifact-image"
-            src="/assets/artifact-idea-cosmic-480.webp"
-            srcset="/assets/artifact-idea-cosmic-480.webp 480w, /assets/artifact-idea-cosmic-720.webp 720w"
-            sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
-            alt=""
-            width="720"
-            height="878"
-            loading="lazy"
-            fetchpriority="low"
-            decoding="async"
-          />
-        </div>
-
-        <a
-          class="artifact-hotspot artifact-hotspot--repo-side"
-          href="/projects"
-          aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
-          data-artifact="repo"
-        ></a>
-        <a
-          class="artifact-hotspot artifact-hotspot--repo-bottom"
-          href="/projects"
-          aria-hidden="true"
-          tabindex="-1"
-          data-artifact="repo"
-        ></a>
-        <a
-          class="artifact-hotspot artifact-hotspot--document"
-          href={`/docs/${featuredDoc.id}`}
-          aria-label={`打开文档：${featuredDoc.data.title}`}
-          data-artifact="document"
-        ></a>
-        <a
-          class="artifact-hotspot artifact-hotspot--idea"
-          href="/ideas"
-          aria-label={`打开灵感集：${featuredIdea.text}`}
-          data-artifact="idea"
-        ></a>
-      </div>
-    </div>
-  </section>
-
-  <section class="paper-world act act--thinking" id="thinking" aria-labelledby="thinking-title">
-    <div class="editorial-section">
-      <header class="section-heading" data-reveal>
-        <h2 id="thinking-title">最近在想什么。</h2>
-        <p>关于系统、工具、可靠性，以及技术工作中那些不容易被看见的选择。</p>
-      </header>
-      <ol class="writing-list">
-        {
-          writings.slice(0, 3).map((entry) => (
-            <li data-reveal>
-              <a class="writing-row" href={`/writing/${entry.id}`}>
-                <div class="writing-row__main">
-                  <h3>{entry.data.title}</h3>
-                  <span class="writing-row__tags">
-                    {entry.data.tags.map((tag) => <span>#{tag}</span>)}
-                  </span>
-                </div>
-                <div class="writing-row__summary">
-                  <time datetime={entry.data.publishedAt.toISOString()}>
-                    {formatDate(entry.data.publishedAt)} · {entry.data.readingTime}
-                  </time>
-                  {entry.data.summary}
-                </div>
-              </a>
-            </li>
-          ))
-        }
-      </ol>
-      <a class="act-link act-link--ink" href="/writing">查看全部思考 →</a>
-    </div>
-  </section>
-
-  <section class="reading-act act" id="reading" aria-labelledby="reading-title">
-    <div class="reading-act__inner">
-      <header class="section-heading" data-reveal>
-        <h2 id="reading-title">最近在读什么。</h2>
-        <p>这些书和论文，正在改变我理解问题与组织工作的方式。</p>
-      </header>
-      <ol class="reading-shelf">
-        {
-          readingNow.map((item) => (
-            <li class="reading-entry" data-reveal>
-              <div class="reading-entry__title">
-                <span>{item.kind} / {item.author}</span>
-                <h3>{item.title}</h3>
-              </div>
-              <p>{item.note}</p>
-            </li>
-          ))
-        }
-      </ol>
-    </div>
-  </section>
-
-  <section class="project-dark act act--building" id="building" aria-labelledby="building-title">
-    <div class="project-dark__inner">
-      <header class="section-heading section-heading--dark" data-reveal>
-        <h2 id="building-title">最近在做什么。</h2>
-        <p>一些小型系统与实验：想法必须先经过代码与现实约束的检验。</p>
-      </header>
-      <div class="project-cases">
-        {
-          projects.slice(0, 3).map((entry) => (
-            <a class="project-case" href={entry.data.repo} target="_blank" rel="noreferrer" data-reveal>
-              <span class="project-case__top">
-                <span>{projectStatusLabels[entry.data.status] ?? entry.data.status}</span>
-              </span>
-              <pre><span class="code-comment"># 快速开始</span>
-<span class="code-accent">$</span> {entry.data.command}</pre>
-              <h3>{entry.data.title}</h3>
-              <p>{entry.data.summary}</p>
-              <span class="project-case__open">
-                <span>{entry.data.language}</span>
-                <span>打开代码仓库 ↗</span>
-              </span>
+      <div class="home-hero__inner">
+        <div class="home-hero__copy" data-intro-copy>
+          <h1
+            id="home-title"
+            aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
+          >
+            <span class="term-line">
+              <span class="term-prompt" aria-hidden="true">&gt; whoami</span>
+            </span>
+            <span class="term-line">
+              <span class="term-name" data-typed data-text="Hello, I’m Burns">Hello, I’m Burns</span><span class="term-caret" aria-hidden="true"></span>
+            </span>
+            <span class="accent-line">AI System Builder, AI enthusiast.</span>
+          </h1>
+          <p>
+            Born in Shanghai, graduated from Peking University, and now exploring
+            Agent infrastructure at ByteDance Seed.
+          </p>
+          <p>
+            I’m a curious carbon-based life form, always eager to explore the
+            unknown.
+          </p>
+          <div class="hero-actions">
+            <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
+              Read latest writing <span aria-hidden="true">→</span>
             </a>
-          ))
-        }
+            <a class="button" href="/docs">Browse docs</a>
+          </div>
+          <ul class="hero-contacts" aria-label="联系方式">
+            {
+              contacts.map((item) =>
+                item.kind === "copy" ? (
+                  <li>
+                    <button
+                      type="button"
+                      class="hero-contact"
+                      data-copy={item.value}
+                      aria-label={`${item.label}：${item.value}（点击复制）`}
+                      title={`${item.label}: ${item.value}`}
+                    >
+                      <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
+                      <span class="hero-contact__label">{item.value}</span>
+                    </button>
+                  </li>
+                ) : (
+                  <li>
+                    <a
+                      class="hero-contact"
+                      href={item.href}
+                      target={item.icon === "mail" ? undefined : "_blank"}
+                      rel="noreferrer"
+                      aria-label={item.label}
+                      title={item.label}
+                    >
+                      <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
+                      <span class="hero-contact__label">{item.label}</span>
+                    </a>
+                  </li>
+                ),
+              )
+            }
+          </ul>
+        </div>
+
+        <div
+          class="artifact-stage"
+          aria-label="精选代码仓库、文档与灵感"
+          data-artifact-stage
+          data-active-artifact="none"
+        >
+          <div
+            class="repo-artifact"
+            aria-hidden="true"
+          >
+            <img
+              class="artifact-image"
+              src="/assets/artifact-github-cosmic-720.webp"
+              srcset="/assets/artifact-github-cosmic-720.webp 720w, /assets/artifact-github-cosmic-1200.webp 1200w"
+              sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
+              alt=""
+              width="1200"
+              height="936"
+              loading="lazy"
+              fetchpriority="low"
+              decoding="async"
+            />
+          </div>
+
+          <div
+            class="paper-artifact"
+            aria-hidden="true"
+          >
+            <img
+              class="artifact-image"
+              src="/assets/artifact-document-cosmic-640.webp"
+              srcset="/assets/artifact-document-cosmic-640.webp 640w, /assets/artifact-document-cosmic-960.webp 960w"
+              sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
+              alt=""
+              width="960"
+              height="1300"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </div>
+
+          <div
+            class="idea-artifact"
+            aria-hidden="true"
+          >
+            <img
+              class="artifact-image"
+              src="/assets/artifact-idea-cosmic-480.webp"
+              srcset="/assets/artifact-idea-cosmic-480.webp 480w, /assets/artifact-idea-cosmic-720.webp 720w"
+              sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
+              alt=""
+              width="720"
+              height="878"
+              loading="lazy"
+              fetchpriority="low"
+              decoding="async"
+            />
+          </div>
+
+          <a
+            class="artifact-hotspot artifact-hotspot--repo-side"
+            href="/projects"
+            aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
+            data-artifact="repo"
+          ></a>
+          <a
+            class="artifact-hotspot artifact-hotspot--repo-bottom"
+            href="/projects"
+            aria-hidden="true"
+            tabindex="-1"
+            data-artifact="repo"
+          ></a>
+          <a
+            class="artifact-hotspot artifact-hotspot--document"
+            href={`/docs/${featuredDoc.id}`}
+            aria-label={`打开文档：${featuredDoc.data.title}`}
+            data-artifact="document"
+          ></a>
+          <a
+            class="artifact-hotspot artifact-hotspot--idea"
+            href="/ideas"
+            aria-label={`打开灵感集：${featuredIdea.text}`}
+            data-artifact="idea"
+          ></a>
+        </div>
       </div>
-      <a class="act-link" href="/projects">查看全部项目 →</a>
-    </div>
-  </section>
+    </section>
+
+    <JourneyGate
+      nextHref="/docs"
+      eyebrow="A LETTER FROM THE UNKNOWN"
+      title="继续下拉，打开 Documents。"
+      linkLabel="Open Documents"
+      tone="home-document"
+    />
+  </div>
 
   <script>
     const root = document.documentElement;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stage = document.querySelector<HTMLElement>("[data-artifact-stage]");
     const artifacts = document.querySelectorAll<HTMLElement>("[data-artifact]");
-    const revealItems = document.querySelectorAll<HTMLElement>("[data-reveal]");
 
     // 联系方式里的“复制”按钮（如微信号）：点击后写入剪贴板并短暂提示已复制。
     document.querySelectorAll<HTMLButtonElement>(".hero-contact[data-copy]").forEach((btn) => {
@@ -402,46 +320,5 @@ const contactIcons: Record<string, string> = {
       });
     }
 
-    if ("IntersectionObserver" in window && !reduceMotion.matches) {
-      const revealObserver = new IntersectionObserver(
-        (entries, observer) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            (entry.target as HTMLElement).classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        },
-        { threshold: 0.16, rootMargin: "0px 0px -8% 0px" },
-      );
-
-      revealItems.forEach((item) => revealObserver.observe(item));
-
-    } else {
-      revealItems.forEach((item) => item.classList.add("is-visible"));
-    }
-
-    if (stage && !reduceMotion.matches) {
-      let scrollFrame = 0;
-
-      const updateScroll = () => {
-        scrollFrame = 0;
-        const bounds = stage.getBoundingClientRect();
-        const progress = clamp(-bounds.top / Math.max(1, bounds.height * 0.72));
-        root.style.setProperty("--intro-exit", progress.toFixed(3));
-        root.style.setProperty("--intro-exit-y", `${(progress * 34).toFixed(2)}px`);
-        root.style.setProperty("--intro-exit-x", `${(progress * -8).toFixed(2)}px`);
-        root.style.setProperty("--intro-code-x", `${(progress * 4).toFixed(2)}px`);
-        root.style.setProperty("--intro-code-y", `${(progress * 15).toFixed(2)}px`);
-        root.style.setProperty("--intro-shadow-opacity", `${(1 - progress * 0.24).toFixed(3)}`);
-      };
-
-      const requestScrollUpdate = () => {
-        if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
-      };
-
-      updateScroll();
-      window.addEventListener("scroll", requestScrollUpdate, { passive: true });
-      window.addEventListener("resize", requestScrollUpdate, { passive: true });
-    }
   </script>
 </BaseLayout>
