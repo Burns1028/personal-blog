@@ -91,8 +91,16 @@ vec4 shadeRing(vec3 position) {
   );
   float density = ringDensity(radius);
   float angle = atan(position.z, position.x);
-  float grain = 0.82 + 0.18 * noise1(radius * 53.0 + angle * 17.0);
-  density *= grain;
+  float ringRotation = uTime * 0.012;
+  float rotatingAngle = angle - ringRotation;
+  float angularSeed =
+    sin(rotatingAngle * 3.0) * 3.7 +
+    cos(rotatingAngle * 5.0) * 2.1;
+  float grain = 0.84 + 0.16 * noise1(radius * 53.0 + angularSeed);
+  float dustArc = 0.97 + 0.03 * sin(
+    rotatingAngle * 9.0 + radius * 19.0 + noise1(radius * 4.0) * 3.0
+  );
+  density *= grain * dustArc;
 
   vec3 warm = vec3(1.0, 0.72, 0.34);
   vec3 parchment = vec3(0.66, 0.50, 0.31);
@@ -104,8 +112,8 @@ vec4 shadeRing(vec3 position) {
   float nearSide = 0.68 + 0.42 * smoothstep(-RING_OUTER, RING_OUTER, position.z);
   float sideLight = 0.84 + 0.24 * smoothstep(-RING_OUTER, RING_OUTER, position.x);
   float brightness = (0.34 + innerLight) * nearSide * sideLight;
-  float shimmer = 0.96 + 0.04 * sin(
-    uTime * 0.34 + angle * 5.0 + radius * 12.0
+  float shimmer = 0.98 + 0.02 * sin(
+    rotatingAngle * 5.0 + radius * 12.0
   );
 
   vec3 emission = color * density * brightness * shimmer;

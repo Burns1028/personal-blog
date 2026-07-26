@@ -22,58 +22,203 @@
     };
   };
 
-  const drawStarMap = (canvas: HTMLCanvasElement) => {
-    const bounds = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.4);
-    const width = Math.max(1, Math.round(bounds.width * dpr));
-    const height = Math.max(1, Math.round(bounds.height * dpr));
+  interface Star {
+    x: number;
+    y: number;
+    depth: number;
+    radius: number;
+    alpha: number;
+    phase: number;
+    speed: number;
+    twinkle: number;
+    warm: boolean;
+    sparkle: boolean;
+  }
 
-    canvas.width = width;
-    canvas.height = height;
-
+  const initStarMap = (
+    field: HTMLElement,
+    canvas: HTMLCanvasElement,
+    reducedMotion: boolean,
+    saveData: boolean,
+  ) => {
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    context.clearRect(0, 0, width, height);
-    const random = seededRandom(26071996);
-    const count = Math.round(
-      Math.min(
-        280,
-        Math.max(138, (bounds.width * bounds.height) / 6200),
-      ),
-    );
-    context.globalCompositeOperation = "lighter";
+    const pointerSurface = field.closest<HTMLElement>(".home-hero") ?? field;
+    const animated = !reducedMotion && !saveData;
+    let stars: Star[] = [];
+    let width = 1;
+    let height = 1;
+    let dpr = 1;
+    let animationFrame = 0;
+    let lastDraw = -Infinity;
+    let visible = true;
+    let pointerX = 0;
+    let pointerY = 0;
+    let pointerTargetX = 0;
+    let pointerTargetY = 0;
 
-    for (let index = 0; index < count; index += 1) {
-      const x = random() * width;
-      const y = random() * height;
-      const depth = 0.4 + random() * 0.6;
-      const radius = (0.46 + random() * 1.18) * dpr * depth;
-      const warmth = random();
-      const alpha = 0.3 + random() * 0.64;
+    const buildMap = () => {
+      const bounds = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 1.4);
+      width = Math.max(1, Math.round(bounds.width * dpr));
+      height = Math.max(1, Math.round(bounds.height * dpr));
 
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.fillStyle =
-        warmth > 0.84
-          ? `rgba(224, 188, 112, ${alpha})`
-          : `rgba(236, 233, 218, ${alpha})`;
-      context.fill();
-
-      if (radius > 1.08 * dpr && random() > 0.67) {
-        context.save();
-        context.translate(x, y);
-        context.strokeStyle = `rgba(239, 226, 197, ${alpha * 0.54})`;
-        context.lineWidth = Math.max(0.5, dpr * 0.48);
-        context.beginPath();
-        context.moveTo(-radius * 3.8, 0);
-        context.lineTo(radius * 3.8, 0);
-        context.moveTo(0, -radius * 3.8);
-        context.lineTo(0, radius * 3.8);
-        context.stroke();
-        context.restore();
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
       }
+
+      const random = seededRandom(26071996);
+      const motionRandom = seededRandom(27072026);
+      const count = Math.round(
+        Math.min(
+          280,
+          Math.max(138, (bounds.width * bounds.height) / 6200),
+        ),
+      );
+
+      stars = Array.from({ length: count }, () => {
+        const x = random();
+        const y = random();
+        const depth = 0.4 + random() * 0.6;
+        const radius = (0.46 + random() * 1.18) * depth;
+        const warm = random() > 0.84;
+        const alpha = 0.3 + random() * 0.64;
+        return {
+          x,
+          y,
+          depth,
+          radius,
+          alpha,
+          phase: motionRandom() * Math.PI * 2,
+          speed: 0.72 + motionRandom() * 0.68,
+          twinkle: 0.025 + motionRandom() * 0.045,
+          warm,
+          sparkle: radius > 1.08 && random() > 0.67,
+        };
+      });
+    };
+
+    const draw = (now: number) => {
+      const seconds = now / 1000;
+      const interpolation = 0.085;
+      pointerX += (pointerTargetX - pointerX) * interpolation;
+      pointerY += (pointerTargetY - pointerY) * interpolation;
+
+      context.clearRect(0, 0, width, height);
+      context.globalCompositeOperation = "lighter";
+
+      for (const star of stars) {
+        const pulse = animated
+          ? Math.sin(seconds * star.speed + star.phase)
+          : 0;
+        const alpha = Math.min(
+          1,
+          star.alpha * (0.95 + pulse * star.twinkle),
+        );
+        const radius = star.radius * dpr * (
+          1 + (star.sparkle ? pulse * 0.035 : 0)
+        );
+        const parallax = (0.8 + star.depth * 3.2) * dpr;
+        const x = star.x * width + pointerX * parallax;
+        const y = star.y * height + pointerY * parallax * 0.72;
+        const [red, green, blue] = star.warm
+          ? [224, 188, 112]
+          : [236, 233, 218];
+
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+        context.fill();
+
+        if (star.sparkle) {
+          context.save();
+          context.translate(x, y);
+          context.strokeStyle = `rgba(239, 226, 197, ${alpha * 0.5})`;
+          context.lineWidth = Math.max(0.5, dpr * 0.48);
+          context.beginPath();
+          context.moveTo(-radius * 3.8, 0);
+          context.lineTo(radius * 3.8, 0);
+          context.moveTo(0, -radius * 3.8);
+          context.lineTo(0, radius * 3.8);
+          context.stroke();
+          context.restore();
+        }
+      }
+    };
+
+    const scheduleDraw = () => {
+      if (!animated || !visible || animationFrame) return;
+      animationFrame = requestAnimationFrame(tick);
+    };
+
+    const tick = (now: number) => {
+      animationFrame = 0;
+
+      if (now - lastDraw >= 42) {
+        lastDraw = now;
+        draw(now);
+      }
+
+      scheduleDraw();
+    };
+
+    const updatePointer = (event: PointerEvent) => {
+      if (event.pointerType === "touch" || event.pointerType === "pen") return;
+      const bounds = pointerSurface.getBoundingClientRect();
+      const normalizedX = (event.clientX - bounds.left) / bounds.width;
+      const normalizedY = (event.clientY - bounds.top) / bounds.height;
+      pointerTargetX = Math.min(1, Math.max(-1, normalizedX * 2 - 1));
+      pointerTargetY = Math.min(1, Math.max(-1, normalizedY * 2 - 1));
+    };
+
+    const resetPointer = () => {
+      pointerTargetX = 0;
+      pointerTargetY = 0;
+    };
+
+    buildMap();
+    draw(performance.now());
+
+    const resizeObserver = new ResizeObserver(() => {
+      buildMap();
+      draw(performance.now());
+      scheduleDraw();
+    });
+    resizeObserver.observe(canvas);
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (!visible) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+        return;
+      }
+      scheduleDraw();
+    });
+    intersectionObserver.observe(field);
+
+    if (animated) {
+      pointerSurface.addEventListener("pointermove", updatePointer, {
+        passive: true,
+      });
+      pointerSurface.addEventListener("pointerleave", resetPointer);
     }
+
+    scheduleDraw();
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        cancelAnimationFrame(animationFrame);
+        resizeObserver.disconnect();
+        intersectionObserver.disconnect();
+        pointerSurface.removeEventListener("pointermove", updatePointer);
+        pointerSurface.removeEventListener("pointerleave", resetPointer);
+      },
+      { once: true },
+    );
   };
 
   const initPlanet = (
@@ -240,12 +385,7 @@
     ).connection;
 
     if (stars) {
-      drawStarMap(stars);
-      const starResize = new ResizeObserver(() => drawStarMap(stars));
-      starResize.observe(stars);
-      window.addEventListener("pagehide", () => starResize.disconnect(), {
-        once: true,
-      });
+      initStarMap(field, stars, reducedMotion, Boolean(connection?.saveData));
     }
 
     if (planet && !compactViewport && !connection?.saveData) {
