@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import JourneyGate from "../../components/JourneyGate.astro";
+import JourneyReturn from "../../components/JourneyReturn.astro";
 import { documentStatusLabels } from "../../data/labels";
 
 const entries = (await getCollection("docs", ({ data }) => !data.draft))
@@ -23,6 +24,8 @@ const formatDate = (date: Date) =>
   description="持续修订的工作手记、检查清单与技术备忘录。"
   theme="document"
 >
+  <JourneyReturn previousHref="/" previousLabel="HOME" />
+
   <div class="document-index-world">
     <header class="document-index-hero artifact-destination artifact-destination--document">
       <a href="/" class="document-index-hero__home">← HOME</a>

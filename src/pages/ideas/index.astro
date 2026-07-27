@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import JourneyReturn from "../../components/JourneyReturn.astro";
 import { ideas } from "../../data/ideas";
 
 const formatDate = (date: Date) =>
@@ -18,6 +19,8 @@ const collectedIdeas = ideas.slice(1);
   description="在它们变成文章、文档或代码之前，先保留那些值得记住的小观察。"
   theme="ochre"
 >
+  <JourneyReturn previousHref="/projects" previousLabel="PROJECTS" />
+
   <div class="idea-collection-world">
     <header class="idea-collection-hero">
       <div class="idea-collection-hero__intro">

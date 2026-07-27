@@ -1,0 +1,187 @@
+---
+interface Props {
+  previousHref: string;
+  previousLabel: string;
+}
+
+const { previousHref, previousLabel } = Astro.props;
+---
+
+<div
+  class="journey-return"
+  data-journey-return
+  data-previous-href={previousHref}
+  aria-hidden="true"
+>
+  <div class="journey-return__cue">
+    <span>↑</span>
+    <p>
+      <small>RETURN TO</small>
+      <strong>{previousLabel}</strong>
+    </p>
+  </div>
+</div>
+
+<script>
+  const clampReturn = (value: number, min = 0, max = 1) =>
+    Math.min(max, Math.max(min, value));
+
+  document
+    .querySelectorAll<HTMLElement>("[data-journey-return]")
+    .forEach((returnCue) => {
+      if (returnCue.dataset.journeyReady === "true") return;
+      returnCue.dataset.journeyReady = "true";
+
+      const root = document.documentElement;
+      const previousHref = returnCue.dataset.previousHref;
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
+      const compact = window.matchMedia("(max-width: 680px)");
+      let pullDistance = 0;
+      let touchY: number | null = null;
+      let resetTimer = 0;
+      let committed = false;
+
+      if (!previousHref) return;
+
+      const threshold = () => (compact.matches ? 180 : 220);
+
+      const rememberJourney = () => {
+        sessionStorage.setItem(
+          "burns:journey",
+          JSON.stringify({
+            from: window.location.pathname,
+            to: previousHref,
+            direction: "back",
+            at: Date.now(),
+          }),
+        );
+      };
+
+      const navigateBack = () => {
+        if (committed) return;
+        committed = true;
+        root.dataset.journeyBackLeaving = "true";
+        rememberJourney();
+
+        window.setTimeout(
+          () => window.location.assign(previousHref),
+          reducedMotion.matches ? 0 : 180,
+        );
+      };
+
+      const renderPull = () => {
+        const progress = clampReturn(pullDistance / threshold());
+        const offset = progress * (compact.matches ? 18 : 24);
+
+        root.style.setProperty(
+          "--journey-return-progress",
+          progress.toFixed(4),
+        );
+        root.style.setProperty(
+          "--journey-return-offset",
+          `${offset.toFixed(2)}px`,
+        );
+
+        if (progress > 0.01) {
+          root.dataset.journeyReturnActive = "true";
+        } else {
+          delete root.dataset.journeyReturnActive;
+        }
+
+        if (progress >= 1) navigateBack();
+      };
+
+      const resetPull = () => {
+        window.clearTimeout(resetTimer);
+        pullDistance = 0;
+        renderPull();
+      };
+
+      const scheduleReset = () => {
+        window.clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(resetPull, 560);
+      };
+
+      const addPull = (distance: number) => {
+        if (committed || window.scrollY > 2 || distance <= 0) return;
+        pullDistance += Math.min(distance, 140);
+        renderPull();
+        scheduleReset();
+      };
+
+      const handleWheel = (event: WheelEvent) => {
+        if (window.scrollY > 2) {
+          if (pullDistance > 0) resetPull();
+          return;
+        }
+
+        if (event.deltaY < 0) {
+          addPull(Math.abs(event.deltaY));
+        } else if (event.deltaY > 0 && pullDistance > 0) {
+          resetPull();
+        }
+      };
+
+      const handleTouchStart = (event: TouchEvent) => {
+        touchY =
+          window.scrollY <= 2 ? (event.touches[0]?.clientY ?? null) : null;
+      };
+
+      const handleTouchMove = (event: TouchEvent) => {
+        const nextY = event.touches[0]?.clientY;
+        if (touchY === null || nextY === undefined || window.scrollY > 2) {
+          touchY = nextY ?? null;
+          return;
+        }
+
+        const distance = nextY - touchY;
+        touchY = nextY;
+        if (distance > 0) {
+          event.preventDefault();
+          addPull(distance);
+        }
+      };
+
+      const handleTouchEnd = () => {
+        touchY = null;
+        scheduleReset();
+      };
+
+      const handleKey = (event: KeyboardEvent) => {
+        if (window.scrollY > 2) return;
+        if (event.key === "ArrowUp") addPull(110);
+        if (event.key === "PageUp" || event.key === "Home") addPull(140);
+      };
+
+      const handleScroll = () => {
+        if (window.scrollY > 2 && pullDistance > 0) resetPull();
+      };
+
+      window.addEventListener("wheel", handleWheel, { passive: true });
+      window.addEventListener("touchstart", handleTouchStart, {
+        passive: true,
+      });
+      window.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      window.addEventListener("touchend", handleTouchEnd, { passive: true });
+      window.addEventListener("keydown", handleKey);
+      window.addEventListener("scroll", handleScroll, { passive: true });
+
+      window.addEventListener(
+        "pagehide",
+        () => {
+          window.clearTimeout(resetTimer);
+          window.removeEventListener("wheel", handleWheel);
+          window.removeEventListener("touchstart", handleTouchStart);
+          window.removeEventListener("touchmove", handleTouchMove);
+          window.removeEventListener("touchend", handleTouchEnd);
+          window.removeEventListener("keydown", handleKey);
+          window.removeEventListener("scroll", handleScroll);
+        },
+        { once: true },
+      );
+    });
+</script>

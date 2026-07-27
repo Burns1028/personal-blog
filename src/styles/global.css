@@ -3127,6 +3127,79 @@ html[data-journey-entry="true"] {
   scroll-behavior: auto;
 }
 
+.journey-return {
+  position: fixed;
+  z-index: 14;
+  top: 108px;
+  left: 50%;
+  display: grid;
+  width: var(--page);
+  height: 72px;
+  pointer-events: none;
+  transform:
+    translate3d(-50%, calc(var(--journey-return-offset, 0px) - 22px), 0);
+  place-items: start center;
+  color: currentColor;
+  opacity: var(--journey-return-progress, 0);
+}
+
+.journey-return::before {
+  position: absolute;
+  z-index: -1;
+  top: -76px;
+  right: 0;
+  left: 0;
+  height: 148px;
+  content: "";
+  background: radial-gradient(
+    ellipse at 50% 0,
+    color-mix(in srgb, currentColor 10%, transparent),
+    transparent 68%
+  );
+}
+
+.journey-return__cue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+}
+
+.journey-return__cue > span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.journey-return__cue p {
+  display: flex;
+  margin: 0;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.journey-return__cue small {
+  font: 8px/1 var(--mono);
+  letter-spacing: 0.14em;
+  opacity: 0.52;
+}
+
+.journey-return__cue strong {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+}
+
+html[data-journey-return-active="true"] main > :not(.journey-return) {
+  transform: translate3d(0, var(--journey-return-offset, 0px), 0);
+}
+
+html[data-journey-back-leaving="true"] main > :not(.journey-return) {
+  opacity: 0.72;
+  transform: translate3d(0, 34px, 0);
+  transition:
+    opacity 180ms ease,
+    transform 180ms var(--ease-paper);
+}
+
 body[data-route="/"] .site-footer,
 body[data-route="/docs"] .site-footer,
 body[data-route="/projects"] .site-footer {
@@ -3467,6 +3540,15 @@ html[data-home-journey-active="true"]
 }
 
 @media (max-width: 680px) {
+  .journey-return {
+    top: 94px;
+    height: 58px;
+  }
+
+  .journey-return__cue small {
+    display: none;
+  }
+
   .journey-gate,
   .journey-gate__surface,
   .journey-gate--home-document,
@@ -3567,7 +3649,9 @@ html[data-home-journey-active="true"]
   }
 
   .journey-gate__copy,
-  .journey-gate__artifact {
+  .journey-gate__artifact,
+  html[data-journey-return-active="true"] main > :not(.journey-return),
+  html[data-journey-back-leaving="true"] main > :not(.journey-return) {
     transition: none;
   }
 }

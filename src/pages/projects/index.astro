@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import JourneyGate from "../../components/JourneyGate.astro";
+import JourneyReturn from "../../components/JourneyReturn.astro";
 import { projectStatusLabels } from "../../data/labels";
 
 const entries = (await getCollection("projects", ({ data }) => !data.draft))
@@ -16,6 +17,8 @@ const configFile = (language: string) =>
 ---
 
 <BaseLayout title="项目" description="可以打开、运行和验证的代码仓库与实验。" theme="code">
+  <JourneyReturn previousHref="/docs" previousLabel="DOCUMENTS" />
+
   <div class="repository-world">
     <header class="repository-world__hero">
       <div class="repository-world__rail">

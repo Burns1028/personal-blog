@@ -59,15 +59,26 @@ const isCurrentRoute = (href: string) =>
           Date.now() - journey.at < 10000
         ) {
           const root = document.documentElement;
+          const isBackwardJourney = journey.direction === "back";
           root.dataset.journeyEntry = "true";
+          root.dataset.journeyDirection = isBackwardJourney
+            ? "back"
+            : "forward";
           history.scrollRestoration = "manual";
 
-          const resetJourneyScroll = () => window.scrollTo(0, 0);
+          const resetJourneyScroll = () =>
+            window.scrollTo(
+              0,
+              isBackwardJourney
+                ? document.documentElement.scrollHeight
+                : 0,
+            );
           const absorbArrivalScroll = (event) => event.preventDefault();
           const absorbArrivalKey = (event) => {
-            if (
-              [" ", "ArrowDown", "PageDown", "End"].includes(event.key)
-            ) {
+            const blockedKeys = isBackwardJourney
+              ? ["ArrowUp", "PageUp", "Home"]
+              : [" ", "ArrowDown", "PageDown", "End"];
+            if (blockedKeys.includes(event.key)) {
               event.preventDefault();
             }
           };
@@ -80,6 +91,7 @@ const isCurrentRoute = (href: string) =>
             window.removeEventListener("touchmove", absorbArrivalScroll);
             window.removeEventListener("keydown", absorbArrivalKey);
             delete root.dataset.journeyEntry;
+            delete root.dataset.journeyDirection;
             history.scrollRestoration = "auto";
             sessionStorage.removeItem("burns:journey");
             requestAnimationFrame(resetJourneyScroll);

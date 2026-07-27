@@ -104,6 +104,7 @@ const artifactAsset = artifact ? artifactAssets[artifact] : undefined;
         JSON.stringify({
           from: window.location.pathname,
           to: nextHref,
+          direction: "forward",
           at: Date.now(),
         }),
       );
