@@ -2,7 +2,6 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CosmicField from "../components/CosmicField.astro";
-import JourneyGate from "../components/JourneyGate.astro";
 import { ideas } from "../data/ideas";
 import { contacts } from "../data/site";
 
@@ -30,12 +29,11 @@ const contactIcons: Record<string, string> = {
 ---
 
 <BaseLayout>
-  <div class="home-journey">
-    <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
-      <CosmicField />
+  <section class="home-hero act act--intro" id="intro" aria-labelledby="home-title">
+    <CosmicField />
 
-      <div class="home-hero__inner">
-        <div class="home-hero__copy" data-intro-copy>
+    <div class="home-hero__inner">
+      <div class="home-hero__copy" data-intro-copy>
           <h1
             id="home-title"
             aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
@@ -98,12 +96,12 @@ const contactIcons: Record<string, string> = {
           </ul>
         </div>
 
-        <div
-          class="artifact-stage"
-          aria-label="精选代码仓库、文档与灵感"
-          data-artifact-stage
-          data-active-artifact="none"
-        >
+      <div
+        class="artifact-stage"
+        aria-label="精选代码仓库、文档与灵感"
+        data-artifact-stage
+        data-active-artifact="none"
+      >
           <div
             class="repo-artifact"
             aria-hidden="true"
@@ -183,52 +181,15 @@ const contactIcons: Record<string, string> = {
             aria-label={`打开灵感集：${featuredIdea.text}`}
             data-artifact="idea"
           ></a>
-        </div>
       </div>
-
-      <a
-        class="home-scroll-cue"
-        href="/docs"
-        data-home-journey-cue
-        aria-label="继续向下探索并打开 Documents"
-      >
-        <span>SCROLL TO OPEN DOCUMENTS</span>
-        <span class="home-scroll-cue__chevrons" aria-hidden="true">
-          <i></i>
-          <i></i>
-        </span>
-      </a>
-    </section>
-
-    <JourneyGate
-      nextHref="/docs"
-      eyebrow="A LETTER FROM THE UNKNOWN"
-      title="继续下拉，打开 Documents。"
-      linkLabel="Open Documents"
-      tone="home-document"
-    />
-  </div>
+    </div>
+  </section>
 
   <script>
     const root = document.documentElement;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stage = document.querySelector<HTMLElement>("[data-artifact-stage]");
     const artifacts = document.querySelectorAll<HTMLElement>("[data-artifact]");
-    const journeyCue = document.querySelector<HTMLAnchorElement>(
-      "[data-home-journey-cue]",
-    );
-
-    journeyCue?.addEventListener("click", () => {
-      sessionStorage.setItem(
-        "burns:journey",
-        JSON.stringify({
-          from: window.location.pathname,
-          to: "/docs",
-          direction: "forward",
-          at: Date.now(),
-        }),
-      );
-    });
 
     // 联系方式里的“复制”按钮（如微信号）：点击后写入剪贴板并短暂提示已复制。
     document.querySelectorAll<HTMLButtonElement>(".hero-contact[data-copy]").forEach((btn) => {
