@@ -218,9 +218,7 @@ select {
   color: #b9b1a3;
   font-size: 12px;
   letter-spacing: 0.08em;
-  transition:
-    color 180ms ease,
-    background-color 180ms ease;
+  transition: color 180ms ease;
 }
 
 .site-nav a::before {
@@ -240,18 +238,12 @@ select {
   color: var(--ink-soft);
 }
 
-.site-nav a:hover,
-.site-nav a[aria-current="page"],
-.site-nav a[data-active] {
+.site-nav a:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.045);
 }
 
-.is-paper .site-nav a:hover,
-.is-paper .site-nav a[aria-current="page"],
-.is-paper .site-nav a[data-active] {
+.is-paper .site-nav a:hover {
   color: var(--ink);
-  background: rgba(71, 59, 36, 0.06);
 }
 
 .site-nav a:hover::before,
