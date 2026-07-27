@@ -91,16 +91,16 @@ vec4 shadeRing(vec3 position) {
   );
   float density = ringDensity(radius);
   float angle = atan(position.z, position.x);
-  float ringRotation = uTime * 0.14;
+  float ringRotation = uTime * 0.2;
   float rotatingAngle = angle - ringRotation;
   float angularSeed =
     sin(rotatingAngle * 3.0) * 3.7 +
     cos(rotatingAngle * 5.0) * 2.1;
-  float grain = 0.76 + 0.24 * noise1(radius * 53.0 + angularSeed);
-  float dustArc = 0.9 + 0.1 * sin(
+  float grain = 0.7 + 0.3 * noise1(radius * 53.0 + angularSeed);
+  float dustArc = 0.84 + 0.16 * sin(
     rotatingAngle * 9.0 + radius * 19.0 + noise1(radius * 4.0) * 3.0
   );
-  float longArc = 0.88 + 0.12 * smoothstep(
+  float longArc = 0.82 + 0.18 * smoothstep(
     -0.45,
     0.72,
     sin(rotatingAngle * 2.0 + radius * 1.65)
@@ -118,20 +118,32 @@ vec4 shadeRing(vec3 position) {
   float sideLight = 0.84 + 0.24 * smoothstep(-RING_OUTER, RING_OUTER, position.x);
   float leadingArc = pow(
     0.5 + 0.5 * cos(rotatingAngle - 0.42 + normalized * 2.2),
-    12.0
+    10.0
   );
   float trailingArc = pow(
     0.5 + 0.5 * cos(rotatingAngle + 2.35 - normalized * 1.4),
-    18.0
+    15.0
   );
-  float orbitalSignal = 0.82 + leadingArc * 0.46 + trailingArc * 0.24;
+  float fineGlint = pow(
+    0.5 + 0.5 * cos(rotatingAngle - 1.18 + normalized * 4.8),
+    34.0
+  );
+  fineGlint *=
+    smoothstep(0.08, 0.2, normalized) *
+    (1.0 - smoothstep(0.58, 0.76, normalized));
+  float orbitalSignal =
+    0.7 +
+    leadingArc * 0.64 +
+    trailingArc * 0.36 +
+    fineGlint * 0.72;
   float brightness =
     (0.34 + innerLight) * nearSide * sideLight * orbitalSignal;
-  float shimmer = 0.94 + 0.06 * sin(
+  float shimmer = 0.9 + 0.1 * sin(
     rotatingAngle * 5.0 + radius * 12.0
   );
 
   vec3 emission = color * density * brightness * shimmer;
+  emission += warm * density * fineGlint * (0.24 + innerLight * 0.08);
   float alpha = clamp(density * 1.58, 0.0, 0.88);
   return vec4(emission, alpha);
 }
