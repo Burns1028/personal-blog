@@ -1,55 +1,77 @@
 ---
 import { getCollection } from "astro:content";
-import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { site } from "../../data/site";
 
 const entries = (await getCollection("writing", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
   }).format(date);
 ---
 
-<BaseLayout title="思考" description="长文、工作反思，以及那些值得被说完整的想法。" theme="stone">
-  <header class="index-hero">
-    <Breadcrumbs current="WRITING" />
-    <span class="eyebrow">思考</span>
-    <h1>把判断写到<br />足够清楚。</h1>
-    <p>文章不是最终答案，而是一次判断在当时所能留下的最好版本。这里保留日期，也保留修订。</p>
-  </header>
-  <section class="index-shell" aria-label="文章列表">
-    <div class="filter-rail">
-      <strong>{entries.length.toString().padStart(2, "0")} 篇文章</strong>
-      <span>智能体</span>
-      <span>基础设施</span>
-      <span>设计</span>
-      <span>方法</span>
+<BaseLayout
+  title="Writing"
+  description="长文、工作反思，以及那些值得被说完整的想法。"
+  theme="paper"
+>
+  <div class="writing-archive">
+    <div class="writing-archive__inner">
+      <div
+        class="writing-archive__watermark artifact-destination artifact-destination--document"
+        aria-hidden="true"
+      >
+        <img
+          src="/assets/artifact-document-cosmic-640.webp"
+          srcset="/assets/artifact-document-cosmic-640.webp 640w, /assets/artifact-document-cosmic-960.webp 960w"
+          sizes="(max-width: 680px) 220px, 420px"
+          alt=""
+          width="960"
+          height="1300"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+
+      <section class="writing-index" aria-label="文章列表">
+        <ol class="writing-list">
+          {
+            entries.map((entry, index) => (
+              <li>
+                <a
+                  class:list={[
+                    "writing-entry",
+                    { "writing-entry--lead": index === 0 },
+                  ]}
+                  href={`/writing/${entry.id}`}
+                >
+                  <div class="writing-entry__body">
+                    {
+                      index === 0
+                        ? <h1>{entry.data.title}</h1>
+                        : <h2>{entry.data.title}</h2>
+                    }
+                    <p>{entry.data.summary}</p>
+                  </div>
+
+                  <p class="writing-entry__meta">
+                    <time datetime={entry.data.publishedAt.toISOString()}>
+                      {formatDate(entry.data.publishedAt)}
+                    </time>
+                    <span aria-hidden="true">·</span>
+                    <span>{entry.data.readingTime}阅读</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{site.author}</span>
+                  </p>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
     </div>
-    <ol class="writing-list">
-      {
-        entries.map((entry) => (
-          <li>
-            <a class="writing-row" href={`/writing/${entry.id}`}>
-              <span class="writing-row__number">{entry.data.number}</span>
-              <div class="writing-row__main">
-                <h3>{entry.data.title}</h3>
-                <span class="writing-row__tags">
-                  {entry.data.tags.map((tag) => <span>#{tag}</span>)}
-                </span>
-              </div>
-              <div class="writing-row__summary">
-                <time datetime={entry.data.publishedAt.toISOString()}>
-                  {formatDate(entry.data.publishedAt)} · {entry.data.readingTime}
-                </time>
-                {entry.data.summary}
-              </div>
-            </a>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
+  </div>
 </BaseLayout>
