@@ -276,6 +276,15 @@ const contactIcons: Record<string, string> = {
     if (stage && !reduceMotion.matches) {
       let frame = 0;
 
+      const setStageParallax = (x: number, y: number) => {
+        stage.style.setProperty("--stage-near-x", `${(x * 18).toFixed(2)}px`);
+        stage.style.setProperty("--stage-near-y", `${(y * 12).toFixed(2)}px`);
+        stage.style.setProperty("--stage-mid-x", `${(x * 12).toFixed(2)}px`);
+        stage.style.setProperty("--stage-mid-y", `${(y * 8).toFixed(2)}px`);
+        stage.style.setProperty("--stage-far-x", `${(x * 8).toFixed(2)}px`);
+        stage.style.setProperty("--stage-far-y", `${(y * 5).toFixed(2)}px`);
+      };
+
       const updatePointer = (event: PointerEvent) => {
         if (frame) cancelAnimationFrame(frame);
 
@@ -284,14 +293,18 @@ const contactIcons: Record<string, string> = {
           const x = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
           const y = clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
 
-          stage.style.setProperty("--stage-pointer-x", `${(x - 0.5).toFixed(3)}`);
-          stage.style.setProperty("--stage-pointer-y", `${(y - 0.5).toFixed(3)}`);
+          const pointerX = x - 0.5;
+          const pointerY = y - 0.5;
+          stage.style.setProperty("--stage-pointer-x", pointerX.toFixed(3));
+          stage.style.setProperty("--stage-pointer-y", pointerY.toFixed(3));
+          setStageParallax(pointerX, pointerY);
         });
       };
 
       const resetPointer = () => {
         stage.style.setProperty("--stage-pointer-x", "0");
         stage.style.setProperty("--stage-pointer-y", "0");
+        setStageParallax(0, 0);
       };
 
       stage.addEventListener("pointermove", updatePointer, { passive: true });

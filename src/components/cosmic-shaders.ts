@@ -91,16 +91,21 @@ vec4 shadeRing(vec3 position) {
   );
   float density = ringDensity(radius);
   float angle = atan(position.z, position.x);
-  float ringRotation = uTime * 0.012;
+  float ringRotation = uTime * 0.14;
   float rotatingAngle = angle - ringRotation;
   float angularSeed =
     sin(rotatingAngle * 3.0) * 3.7 +
     cos(rotatingAngle * 5.0) * 2.1;
-  float grain = 0.84 + 0.16 * noise1(radius * 53.0 + angularSeed);
-  float dustArc = 0.97 + 0.03 * sin(
+  float grain = 0.76 + 0.24 * noise1(radius * 53.0 + angularSeed);
+  float dustArc = 0.9 + 0.1 * sin(
     rotatingAngle * 9.0 + radius * 19.0 + noise1(radius * 4.0) * 3.0
   );
-  density *= grain * dustArc;
+  float longArc = 0.88 + 0.12 * smoothstep(
+    -0.45,
+    0.72,
+    sin(rotatingAngle * 2.0 + radius * 1.65)
+  );
+  density *= grain * dustArc * longArc;
 
   vec3 warm = vec3(1.0, 0.72, 0.34);
   vec3 parchment = vec3(0.66, 0.50, 0.31);
@@ -111,8 +116,18 @@ vec4 shadeRing(vec3 position) {
   float innerLight = 1.9 * exp(-(radius - RING_INNER) * 0.82);
   float nearSide = 0.68 + 0.42 * smoothstep(-RING_OUTER, RING_OUTER, position.z);
   float sideLight = 0.84 + 0.24 * smoothstep(-RING_OUTER, RING_OUTER, position.x);
-  float brightness = (0.34 + innerLight) * nearSide * sideLight;
-  float shimmer = 0.98 + 0.02 * sin(
+  float leadingArc = pow(
+    0.5 + 0.5 * cos(rotatingAngle - 0.42 + normalized * 2.2),
+    12.0
+  );
+  float trailingArc = pow(
+    0.5 + 0.5 * cos(rotatingAngle + 2.35 - normalized * 1.4),
+    18.0
+  );
+  float orbitalSignal = 0.82 + leadingArc * 0.46 + trailingArc * 0.24;
+  float brightness =
+    (0.34 + innerLight) * nearSide * sideLight * orbitalSignal;
+  float shimmer = 0.94 + 0.06 * sin(
     rotatingAngle * 5.0 + radius * 12.0
   );
 
@@ -122,7 +137,7 @@ vec4 shadeRing(vec3 position) {
 }
 
 vec3 shadePlanet(vec3 normal, vec3 rayDirection) {
-  float rotation = uTime * 0.035;
+  float rotation = uTime * 0.055;
   float cosine = cos(rotation);
   float sine = sin(rotation);
   vec3 sampleNormal = normal;

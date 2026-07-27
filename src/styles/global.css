@@ -449,6 +449,41 @@ select {
     0 0 32px rgba(196, 136, 57, 0.12);
 }
 
+.cosmic-field__planet-fallback::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  content: "";
+  background: conic-gradient(
+    from 18deg,
+    transparent 0 8%,
+    rgba(241, 207, 139, 0.34) 12%,
+    transparent 20% 42%,
+    rgba(148, 169, 196, 0.24) 49%,
+    transparent 58% 78%,
+    rgba(219, 171, 86, 0.28) 86%,
+    transparent 96%
+  );
+  mask: radial-gradient(
+    circle at center,
+    transparent 0 14%,
+    #000 18% 72%,
+    transparent 78%
+  );
+  mix-blend-mode: screen;
+  transform: translateY(-50%) scaleY(0.357) rotate(0deg);
+  animation: cosmic-ring-orbit 58s linear infinite;
+}
+
+@keyframes cosmic-ring-orbit {
+  to {
+    transform: translateY(-50%) scaleY(0.357) rotate(360deg);
+  }
+}
+
 .cosmic-field[data-planet-ready="true"] .cosmic-field__planet-fallback {
   opacity: 0;
 }
@@ -1919,6 +1954,12 @@ select {
 .artifact-stage {
   --stage-pointer-x: 0;
   --stage-pointer-y: 0;
+  --stage-near-x: 0px;
+  --stage-near-y: 0px;
+  --stage-mid-x: 0px;
+  --stage-mid-y: 0px;
+  --stage-far-x: 0px;
+  --stage-far-y: 0px;
   position: relative;
   z-index: 2;
   min-height: 800px;
@@ -2009,12 +2050,18 @@ select {
   bottom: 70px;
   left: 3%;
   width: min(540px, calc(100% - 54px));
-  transform: translate3d(0, var(--intro-code-y), -24px) rotate(-4.2deg);
+  transform:
+    translate3d(
+      var(--stage-far-x),
+      calc(var(--intro-code-y) + var(--stage-far-y)),
+      -24px
+    )
+    rotate(-4.2deg);
   transform-origin: center bottom;
   opacity: 0.88;
   filter: saturate(0.82) brightness(0.76);
   transition:
-    transform 620ms var(--ease-paper),
+    transform 360ms var(--ease-paper),
     opacity 360ms ease,
     filter 360ms ease;
 }
@@ -2032,12 +2079,18 @@ select {
   right: 7%;
   width: min(410px, calc(100% - 76px));
   height: auto;
-  transform: translate3d(var(--intro-exit-x), var(--intro-exit-y), 12px) rotate(1.1deg);
+  transform:
+    translate3d(
+      calc(var(--intro-exit-x) + var(--stage-near-x)),
+      calc(var(--intro-exit-y) + var(--stage-near-y)),
+      12px
+    )
+    rotate(1.1deg);
   transform-origin: 52% 8%;
   opacity: 0.98;
   filter: saturate(0.9) contrast(0.98);
   transition:
-    transform 640ms var(--ease-paper),
+    transform 380ms var(--ease-paper),
     opacity 360ms ease,
     filter 360ms ease;
 }
@@ -2054,12 +2107,15 @@ select {
   top: 78px;
   right: -4%;
   width: 270px;
-  transform: translate3d(0, 0, -8px) rotate(6deg) scale(0.86);
+  transform:
+    translate3d(var(--stage-mid-x), var(--stage-mid-y), -8px)
+    rotate(6deg)
+    scale(0.86);
   transform-origin: top right;
   opacity: 0.86;
   filter: saturate(0.82) brightness(0.8);
   transition:
-    transform 640ms var(--ease-paper),
+    transform 360ms var(--ease-paper),
     opacity 360ms ease,
     filter 360ms ease;
 }

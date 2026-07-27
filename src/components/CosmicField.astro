@@ -85,6 +85,7 @@
         const radius = (0.46 + random() * 1.18) * depth;
         const warm = random() > 0.84;
         const alpha = 0.3 + random() * 0.64;
+        const sparkle = radius > 1.02 && random() > 0.62;
         return {
           x,
           y,
@@ -92,10 +93,12 @@
           radius,
           alpha,
           phase: motionRandom() * Math.PI * 2,
-          speed: 0.72 + motionRandom() * 0.68,
-          twinkle: 0.025 + motionRandom() * 0.045,
+          speed: 0.58 + motionRandom() * 0.72,
+          twinkle: sparkle
+            ? 0.28 + motionRandom() * 0.14
+            : 0.1 + motionRandom() * 0.12,
           warm,
-          sparkle: radius > 1.08 && random() > 0.67,
+          sparkle,
         };
       });
     };
@@ -115,12 +118,12 @@
           : 0;
         const alpha = Math.min(
           1,
-          star.alpha * (0.95 + pulse * star.twinkle),
+          star.alpha * (0.9 + pulse * star.twinkle),
         );
         const radius = star.radius * dpr * (
-          1 + (star.sparkle ? pulse * 0.035 : 0)
+          1 + (star.sparkle ? pulse * 0.12 : 0)
         );
-        const parallax = (0.8 + star.depth * 3.2) * dpr;
+        const parallax = (2.4 + star.depth * 12.6) * dpr;
         const x = star.x * width + pointerX * parallax;
         const y = star.y * height + pointerY * parallax * 0.72;
         const [red, green, blue] = star.warm
@@ -135,7 +138,8 @@
         if (star.sparkle) {
           context.save();
           context.translate(x, y);
-          context.strokeStyle = `rgba(239, 226, 197, ${alpha * 0.5})`;
+          const flare = 0.26 + Math.max(0, pulse) * 0.34;
+          context.strokeStyle = `rgba(239, 226, 197, ${alpha * flare})`;
           context.lineWidth = Math.max(0.5, dpr * 0.48);
           context.beginPath();
           context.moveTo(-radius * 3.8, 0);
