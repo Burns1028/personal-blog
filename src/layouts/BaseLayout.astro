@@ -86,5 +86,14 @@ const isCurrentRoute = (href: string) =>
     <main id="content">
       <slot />
     </main>
+
+    <footer class="site-footer">
+      <p>
+        © 2026{" "}
+        <a href="/">{site.shortTitle}</a>
+        {" · Powered by "}
+        <a href="https://astro.build/" target="_blank" rel="noreferrer">Astro</a>
+      </p>
+    </footer>
   </body>
 </html>
