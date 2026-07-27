@@ -73,48 +73,26 @@ const isCurrentRoute = (href: string) =>
                 ? document.documentElement.scrollHeight
                 : 0,
             );
-          const absorbArrivalScroll = (event) => event.preventDefault();
-          const absorbArrivalKey = (event) => {
-            const blockedKeys = isBackwardJourney
-              ? ["ArrowUp", "PageUp", "Home"]
-              : [" ", "ArrowDown", "PageDown", "End"];
-            if (blockedKeys.includes(event.key)) {
-              event.preventDefault();
-            }
-          };
           let released = false;
           const releaseJourneyArrival = () => {
             if (released) return;
             released = true;
-            resetJourneyScroll();
-            window.removeEventListener("wheel", absorbArrivalScroll);
-            window.removeEventListener("touchmove", absorbArrivalScroll);
-            window.removeEventListener("keydown", absorbArrivalKey);
             delete root.dataset.journeyEntry;
             delete root.dataset.journeyDirection;
             history.scrollRestoration = "auto";
             sessionStorage.removeItem("burns:journey");
-            requestAnimationFrame(resetJourneyScroll);
           };
 
-          window.addEventListener("wheel", absorbArrivalScroll, {
-            passive: false,
-          });
-          window.addEventListener("touchmove", absorbArrivalScroll, {
-            passive: false,
-          });
-          window.addEventListener("keydown", absorbArrivalKey);
-
           resetJourneyScroll();
-          document.addEventListener("DOMContentLoaded", resetJourneyScroll, {
-            once: true,
-          });
-          window.addEventListener(
-            "load",
-            () => window.setTimeout(releaseJourneyArrival, 1100),
+          document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+              resetJourneyScroll();
+              requestAnimationFrame(releaseJourneyArrival);
+            },
             { once: true },
           );
-          window.setTimeout(releaseJourneyArrival, 2600);
+          window.setTimeout(releaseJourneyArrival, 420);
         }
       } catch {
         sessionStorage.removeItem("burns:journey");

@@ -45,7 +45,7 @@ const { previousHref, previousLabel } = Astro.props;
 
       if (!previousHref) return;
 
-      const threshold = () => (compact.matches ? 180 : 220);
+      const threshold = () => (compact.matches ? 132 : 150);
 
       const rememberJourney = () => {
         sessionStorage.setItem(
@@ -67,7 +67,7 @@ const { previousHref, previousLabel } = Astro.props;
 
         window.setTimeout(
           () => window.location.assign(previousHref),
-          reducedMotion.matches ? 0 : 180,
+          reducedMotion.matches ? 0 : 90,
         );
       };
 
@@ -101,12 +101,12 @@ const { previousHref, previousLabel } = Astro.props;
 
       const scheduleReset = () => {
         window.clearTimeout(resetTimer);
-        resetTimer = window.setTimeout(resetPull, 560);
+        resetTimer = window.setTimeout(resetPull, 460);
       };
 
       const addPull = (distance: number) => {
         if (committed || window.scrollY > 2 || distance <= 0) return;
-        pullDistance += Math.min(distance, 140);
+        pullDistance += Math.min(distance, 90);
         renderPull();
         scheduleReset();
       };

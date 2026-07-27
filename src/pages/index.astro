@@ -185,6 +185,19 @@ const contactIcons: Record<string, string> = {
           ></a>
         </div>
       </div>
+
+      <a
+        class="home-scroll-cue"
+        href="/docs"
+        data-home-journey-cue
+        aria-label="继续向下探索并打开 Documents"
+      >
+        <span>SCROLL TO OPEN DOCUMENTS</span>
+        <span class="home-scroll-cue__chevrons" aria-hidden="true">
+          <i></i>
+          <i></i>
+        </span>
+      </a>
     </section>
 
     <JourneyGate
@@ -201,6 +214,21 @@ const contactIcons: Record<string, string> = {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stage = document.querySelector<HTMLElement>("[data-artifact-stage]");
     const artifacts = document.querySelectorAll<HTMLElement>("[data-artifact]");
+    const journeyCue = document.querySelector<HTMLAnchorElement>(
+      "[data-home-journey-cue]",
+    );
+
+    journeyCue?.addEventListener("click", () => {
+      sessionStorage.setItem(
+        "burns:journey",
+        JSON.stringify({
+          from: window.location.pathname,
+          to: "/docs",
+          direction: "forward",
+          at: Date.now(),
+        }),
+      );
+    });
 
     // 联系方式里的“复制”按钮（如微信号）：点击后写入剪贴板并短暂提示已复制。
     document.querySelectorAll<HTMLButtonElement>(".hero-contact[data-copy]").forEach((btn) => {

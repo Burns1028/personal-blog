@@ -1895,7 +1895,7 @@ select {
 ::view-transition-group(artifact-document),
 ::view-transition-group(artifact-idea) {
   z-index: 110;
-  animation-duration: 720ms;
+  animation-duration: 460ms;
   animation-timing-function: var(--ease-paper);
 }
 
@@ -1913,17 +1913,17 @@ select {
 ::view-transition-old(artifact-repo),
 ::view-transition-old(artifact-document),
 ::view-transition-old(artifact-idea) {
-  animation: artifact-leave 620ms var(--ease-paper) both;
+  animation: artifact-leave 360ms var(--ease-paper) both;
 }
 
 ::view-transition-new(artifact-repo),
 ::view-transition-new(artifact-document),
 ::view-transition-new(artifact-idea) {
-  animation: artifact-arrive 720ms var(--ease-paper) both;
+  animation: artifact-arrive 460ms var(--ease-paper) both;
 }
 
 ::view-transition-group(root) {
-  animation-duration: 520ms;
+  animation-duration: 340ms;
   animation-timing-function: var(--ease-paper);
 }
 
@@ -3179,7 +3179,6 @@ body.theme-document {
 /* -------------------------------------------------------------------------- */
 
 html[data-journey-entry="true"] {
-  overflow: hidden;
   scroll-behavior: auto;
 }
 
@@ -3290,6 +3289,72 @@ body[data-route="/projects"] .repository-world {
   transform: translate3d(0, var(--home-copy-y, 0px), 0);
 }
 
+.home-scroll-cue {
+  position: fixed;
+  z-index: 15;
+  top: auto;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  min-width: 220px;
+  padding: 10px 18px 6px;
+  align-items: center;
+  flex-direction: column;
+  gap: 7px;
+  color: rgba(232, 222, 202, 0.72);
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.28em;
+  opacity: var(--home-scroll-cue-opacity, 1);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.72);
+  transform: translate3d(-50%, 0, 0);
+  transition:
+    color 180ms ease,
+    opacity 120ms linear;
+}
+
+.home-scroll-cue:hover,
+.home-scroll-cue:focus-visible {
+  color: #f0dfb6;
+}
+
+.home-scroll-cue__chevrons {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 13px;
+}
+
+.home-scroll-cue__chevrons i {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateX(-50%) rotate(45deg);
+  animation: home-scroll-cue 2.4s ease-in-out infinite;
+}
+
+.home-scroll-cue__chevrons i + i {
+  top: 5px;
+  animation-delay: 120ms;
+}
+
+@keyframes home-scroll-cue {
+  0%,
+  72%,
+  100% {
+    opacity: 0.42;
+    transform: translate3d(-50%, -1px, 0) rotate(45deg);
+  }
+
+  84% {
+    opacity: 1;
+    transform: translate3d(-50%, 2px, 0) rotate(45deg);
+  }
+}
+
 html[data-home-journey-active="true"]
   body[data-route="/"]
   .artifact-hotspot {
@@ -3379,9 +3444,7 @@ html[data-home-journey-active="true"]
   z-index: 3;
   opacity: var(--journey-reveal);
   transform: translate3d(0, var(--journey-copy-y), 0);
-  transition:
-    opacity 160ms linear,
-    transform 160ms linear;
+  will-change: opacity, transform;
 }
 
 .journey-gate__copy > span {
@@ -3431,9 +3494,7 @@ html[data-home-journey-active="true"]
     translate3d(0, var(--journey-artifact-y), 0)
     scale(var(--journey-artifact-scale));
   transform-origin: center bottom;
-  transition:
-    opacity 160ms linear,
-    transform 160ms linear;
+  will-change: opacity, transform;
 }
 
 .journey-gate__artifact img {
@@ -3494,7 +3555,7 @@ html[data-home-journey-active="true"]
 }
 
 .journey-gate--home-document {
-  min-height: 76svh;
+  min-height: clamp(260px, 34svh, 360px);
   margin-top: -1px;
   color: #e8deca;
   background: transparent;
@@ -3507,20 +3568,14 @@ html[data-home-journey-active="true"]
 }
 
 .journey-gate--home-document .journey-gate__surface {
-  min-height: 76svh;
+  min-height: clamp(260px, 34svh, 360px);
   grid-template-columns: 1fr;
-  place-items: end center;
-  padding-bottom: clamp(58px, 9vh, 100px);
+  padding: 0;
 }
 
-.journey-gate--home-document .journey-gate__copy {
-  max-width: 720px;
-  text-align: center;
-}
-
-.journey-gate--home-document .journey-gate__copy h2 {
-  margin-right: auto;
-  margin-left: auto;
+.journey-gate--home-document .journey-gate__copy,
+.journey-gate--home-document .journey-gate__meter {
+  display: none;
 }
 
 .journey-gate--document-code {
@@ -3558,11 +3613,15 @@ html[data-home-journey-active="true"]
 .journey-gate[data-committed="true"] .journey-gate__copy {
   opacity: 0;
   transform: translate3d(0, -22px, 0);
+  transition:
+    opacity 90ms linear,
+    transform 90ms ease-out;
 }
 
 .journey-gate[data-committed="true"] .journey-gate__artifact {
   opacity: 1;
   transform: translate3d(0, -18px, 0) scale(1.045);
+  transition: transform 90ms ease-out;
 }
 
 ::view-transition-old(root),
@@ -3583,9 +3642,20 @@ html[data-home-journey-active="true"]
 }
 
 @media (max-width: 980px) {
+  .home-scroll-cue {
+    position: absolute;
+    top: 596px;
+    bottom: auto;
+  }
+
   .journey-gate,
   .journey-gate__surface {
     min-height: 68svh;
+  }
+
+  .journey-gate--home-document,
+  .journey-gate--home-document .journey-gate__surface {
+    min-height: 240px;
   }
 
   .journey-gate__surface {
@@ -3606,10 +3676,13 @@ html[data-home-journey-active="true"]
   }
 
   .journey-gate,
-  .journey-gate__surface,
+  .journey-gate__surface {
+    min-height: 72svh;
+  }
+
   .journey-gate--home-document,
   .journey-gate--home-document .journey-gate__surface {
-    min-height: 72svh;
+    min-height: 220px;
   }
 
   .journey-gate__surface {
@@ -3659,16 +3732,13 @@ html[data-home-journey-active="true"]
     padding-bottom: 50%;
   }
 
-  .journey-gate--home-document .journey-gate__surface {
-    padding-bottom: 54px;
-  }
-
-  .journey-gate--home-document .journey-gate__copy {
-    text-align: left;
-  }
-
-  .journey-gate--home-document .journey-gate__copy h2 {
-    margin-left: 0;
+  .home-scroll-cue {
+    min-width: 0;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    padding-right: 12px;
+    padding-left: 12px;
+    font-size: 8.5px;
   }
 
   .journey-gate__meter {
@@ -3679,6 +3749,10 @@ html[data-home-journey-active="true"]
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-scroll-cue__chevrons i {
+    animation: none;
+  }
+
   .home-hero__copy {
     opacity: 1;
     transform: none;

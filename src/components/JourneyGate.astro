@@ -119,7 +119,7 @@ const artifactAsset = artifact ? artifactAssets[artifact] : undefined;
 
       window.setTimeout(
         () => window.location.assign(nextHref),
-        reducedMotion.matches ? 0 : 180,
+        reducedMotion.matches ? 0 : 90,
       );
     };
 
@@ -129,10 +129,11 @@ const artifactAsset = artifact ? artifactAssets[artifact] : undefined;
       const compact = window.matchMedia("(max-width: 680px)").matches;
       const copyOpacity = clampJourney(1 - progress * 1.35);
       const secondaryOpacity = clampJourney(1 - progress * 1.6);
-      const paperScale = 1 + progress * (compact ? 0.16 : 0.29);
-      const paperX = progress * (compact ? -24 : -96);
-      const paperY = progress * (compact ? -18 : -132);
-      const veilOpacity = progress * 0.64;
+      const paperScale = 1 + progress * (compact ? 0.12 : 0.18);
+      const paperX = progress * (compact ? -18 : -64);
+      const paperY = progress * (compact ? -14 : -96);
+      const veilOpacity = progress * 0.52;
+      const cueOpacity = clampJourney(1 - progress * 1.7);
 
       root.style.setProperty("--home-journey-progress", progress.toFixed(4));
       root.style.setProperty("--home-copy-opacity", copyOpacity.toFixed(4));
@@ -148,6 +149,10 @@ const artifactAsset = artifact ? artifactAssets[artifact] : undefined;
       root.style.setProperty("--home-paper-x", `${paperX.toFixed(2)}px`);
       root.style.setProperty("--home-paper-y", `${paperY.toFixed(2)}px`);
       root.style.setProperty("--home-veil-opacity", veilOpacity.toFixed(4));
+      root.style.setProperty(
+        "--home-scroll-cue-opacity",
+        cueOpacity.toFixed(4),
+      );
       root.dataset.homeJourneyActive = progress > 0.015 ? "true" : "false";
     };
 
@@ -190,8 +195,8 @@ const artifactAsset = artifact ? artifactAssets[artifact] : undefined;
       setHomeProgress(progress);
 
       const travelThreshold = Math.min(
-        360,
-        Math.max(180, bounds.height * 0.5),
+        240,
+        Math.max(128, bounds.height * 0.32),
       );
       if (
         userIntent &&
