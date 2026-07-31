@@ -1,0 +1,179 @@
+# Quiet Route Transitions and Lunar Sections Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Remove the persistent archive artifact stacks, preserve a selected-artifact opening transition from the homepage, and render six centered lunar chapter ornaments in Writing articles.
+
+**Architecture:** The three archive templates stop rendering `ArtifactRouteStage`, while their content grids receive route-specific one-column overrides. The existing cross-document View Transition system captures only the clicked homepage artifact and animates its outgoing snapshot. The Writing asset builder crops six phase icons from the established moon strip, and CSS counters pair them with article h2 headings.
+
+**Tech Stack:** Astro 7, TypeScript, native View Transition CSS, Sharp, Node test runner, SQLite-backed Markdown.
+
+## Global Constraints
+
+- Do not add an animation or client-router dependency.
+- Do not change article prose, images, or the restored single-moon article background.
+- Render six h2 chapters and no h3 chapters in `ai-aesthetics`.
+- Honor `prefers-reduced-motion: reduce`.
+- Preserve unrelated dirty-worktree changes.
+
+---
+
+### Task 1: Presentation contract tests
+
+**Files:**
+- Create: `tests/presentation-contract.test.ts`
+- Modify: `tests/published-content.test.ts`
+
+**Interfaces:**
+- Consumes: archive page source files, `public/assets`, and `renderArticleMarkdown(markdown)`.
+- Produces: regression coverage for clean archive templates and six article chapters.
+
+- [ ] **Step 1: Write the failing archive and asset contract test**
+
+```ts
+for (const page of archivePages) {
+  const source = readFileSync(page, "utf8");
+  assert.doesNotMatch(source, /ArtifactRouteStage/);
+}
+for (let phase = 1; phase <= 6; phase += 1) {
+  assert.ok(existsSync(`public/assets/article-section-phase-${phase}.webp`));
+}
+```
+
+- [ ] **Step 2: Tighten the published-content assertion**
+
+```ts
+assert.equal(rendered.headings.filter(({ depth }) => depth === 2).length, 6);
+assert.equal(rendered.headings.filter(({ depth }) => depth === 3).length, 0);
+```
+
+- [ ] **Step 3: Run `npm run test:content` and verify RED**
+
+Expected failures: archive templates still contain `ArtifactRouteStage`, and the six section phase assets do not exist.
+
+### Task 2: Remove destination artifact stacks
+
+**Files:**
+- Modify: `src/pages/writing/index.astro`
+- Modify: `src/pages/projects/index.astro`
+- Modify: `src/pages/ideas/index.astro`
+- Modify: `src/styles/global.css`
+
+**Interfaces:**
+- Consumes: existing archive content components and route-specific CSS classes.
+- Produces: archive HTML with no `data-route-artifacts` element and content-only destination layouts.
+
+- [ ] **Step 1: Remove the component import and invocation from all three pages**
+
+```astro
+<!-- Delete the ArtifactRouteStage import and its rendered component only. -->
+```
+
+- [ ] **Step 2: Add final route-specific layout overrides**
+
+```css
+body[data-route="/writing"] .writing-spread {
+  grid-template-areas: "lead" "history";
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-route="/projects"] .projects-scene__inner,
+body[data-route="/ideas"] .ideas-signals__inner {
+  grid-template-columns: minmax(0, 1fr);
+}
+```
+
+- [ ] **Step 3: Run the presentation test and verify the archive assertions pass**
+
+### Task 3: Selected-artifact outgoing transition
+
+**Files:**
+- Modify: `src/layouts/BaseLayout.astro`
+- Modify: `src/styles/global.css`
+
+**Interfaces:**
+- Consumes: homepage anchors carrying `data-artifact="repo|document|idea"`.
+- Produces: `html[data-artifact-intent]` before navigation and one outgoing View Transition snapshot.
+
+- [ ] **Step 1: Expand the intercepted-link selector**
+
+```ts
+document.querySelectorAll("a[data-route-artifact], a[data-artifact]");
+```
+
+- [ ] **Step 2: Disable transition names for unselected homepage artifacts**
+
+```css
+html[data-artifact-intent="repo"] :is(.paper-artifact, .idea-artifact) {
+  view-transition-name: none;
+}
+```
+
+- [ ] **Step 3: Add object-specific outgoing keyframes and reduced-motion fallback**
+
+The selected snapshot scales by no more than `1.1`, moves by no more than `2vh`, and reaches opacity `0` by `720ms`. Reduced-motion rules remove the transform animation.
+
+### Task 4: Lunar chapter assets and centered heading system
+
+**Files:**
+- Modify: `scripts/build-writing-assets.mjs`
+- Create: `public/assets/article-section-phase-1.webp`
+- Create: `public/assets/article-section-phase-2.webp`
+- Create: `public/assets/article-section-phase-3.webp`
+- Create: `public/assets/article-section-phase-4.webp`
+- Create: `public/assets/article-section-phase-5.webp`
+- Create: `public/assets/article-section-phase-6.webp`
+- Modify: `src/styles/global.css`
+
+**Interfaces:**
+- Consumes: `design-source/writing/moon-phases-cutout.png` generated by the current Writing asset pipeline.
+- Produces: six `64×64` transparent WebP phase icons and h2 CSS variables `--chapter-phase`.
+
+- [ ] **Step 1: Extend `buildMoonPhases()` with nine-cell extraction and six selected cells**
+
+```js
+const selectedPhaseIndexes = [0, 2, 3, 4, 6, 8];
+await sharp(masterPath)
+  .extract({ left, top: 0, width, height: metadata.height })
+  .resize(64, 64, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .webp({ quality: 92, effort: 6 })
+  .toFile(destination);
+```
+
+- [ ] **Step 2: Run `npm run assets:writing`**
+
+Expected: the six phase files exist with transparent backgrounds.
+
+- [ ] **Step 3: Center the h2 ornament and title**
+
+Use two linear-gradient rule backgrounds plus `var(--chapter-phase)` inside `h2::before`. Select phase assets with `h2:nth-of-type(6n + N)`, show the decimal counter, and center the h2 text.
+
+- [ ] **Step 4: Run `npm run test:content` and verify GREEN**
+
+### Task 5: Build and visual verification
+
+**Files:**
+- Verify only.
+
+**Interfaces:**
+- Consumes: completed implementation.
+- Produces: verified local deployment at `http://localhost:4321/`.
+
+- [ ] **Step 1: Run `npm run check`**
+
+Expected: zero errors, warnings, and hints.
+
+- [ ] **Step 2: Run `npm run build`**
+
+Expected: successful SSR build.
+
+- [ ] **Step 3: Restart the existing local Node service on port 4321**
+
+- [ ] **Step 4: Verify HTTP output**
+
+Confirm `/writing`, `/projects`, and `/ideas` return 200 without `data-route-artifacts`; confirm `/writing/ai-aesthetics` contains six h2 ids.
+
+- [ ] **Step 5: Capture desktop and mobile screenshots**
+
+Check chapter ornament balance, readable title spacing, clean archive negative space, and absence of the right-hand artifact stack.
+
