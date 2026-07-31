@@ -85,7 +85,7 @@ body[data-route="/ideas"] .ideas-signals__inner {
 
 - [ ] **Step 3: Run the presentation test and verify the archive assertions pass**
 
-### Task 3: Selected-artifact outgoing transition
+### Task 3: Selected-artifact opening transition
 
 **Files:**
 - Modify: `src/layouts/BaseLayout.astro`
@@ -93,7 +93,7 @@ body[data-route="/ideas"] .ideas-signals__inner {
 
 **Interfaces:**
 - Consumes: homepage anchors carrying `data-artifact="repo|document|idea"`.
-- Produces: `html[data-artifact-intent]` before navigation and one outgoing View Transition snapshot.
+- Produces: `html[data-artifact-intent]` before navigation and one strongly opening View Transition snapshot.
 
 - [ ] **Step 1: Expand the intercepted-link selector**
 
@@ -109,9 +109,34 @@ html[data-artifact-intent="repo"] :is(.paper-artifact, .idea-artifact) {
 }
 ```
 
-- [ ] **Step 3: Add object-specific outgoing keyframes and reduced-motion fallback**
+- [ ] **Step 3: Add object-specific opening keyframes and reduced-motion fallback**
 
-The selected snapshot scales by no more than `1.1`, moves by no more than `2vh`, and reaches opacity `0` by `720ms`. Reduced-motion rules remove the transform animation.
+Use a shared `960ms` transition window with object-specific motion:
+
+```css
+::view-transition-old(artifact-document) {
+  transform-origin: left center;
+  animation: artifact-open-document 980ms var(--ease-paper) both;
+}
+
+::view-transition-old(artifact-repo) {
+  transform-origin: center;
+  animation: artifact-open-repo 920ms var(--ease-paper) both;
+}
+
+::view-transition-old(artifact-idea) {
+  transform-origin: 18% 50%;
+  animation: artifact-open-idea 1020ms var(--ease-paper) both;
+}
+```
+
+The manuscript turns around its binding edge with `perspective()` and `rotateY()`, the repository screen expands toward `1.45×`, and the sketch unfolds with a shallower 3D rotation toward `1.5×`. The destination root remains subdued until the final third. Reduced-motion rules remove all transforms and navigate immediately.
+
+- [ ] **Step 4: Add a presentation contract for the stronger opening motion**
+
+Assert that the stylesheet contains three separate opening keyframes, a transition duration of at least `900ms`, and 3D transforms (`perspective` plus `rotateY`) for the paper-like artifacts.
+
+- [ ] **Step 5: Run the focused presentation test and verify GREEN**
 
 ### Task 4: Lunar chapter assets and centered heading system
 
@@ -176,4 +201,3 @@ Confirm `/writing`, `/projects`, and `/ideas` return 200 without `data-route-art
 - [ ] **Step 5: Capture desktop and mobile screenshots**
 
 Check chapter ornament balance, readable title spacing, clean archive negative space, and absence of the right-hand artifact stack.
-

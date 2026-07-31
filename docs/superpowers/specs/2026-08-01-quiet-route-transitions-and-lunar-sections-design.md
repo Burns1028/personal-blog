@@ -10,7 +10,10 @@ Make the three archive destinations quieter while preserving the homepage artifa
 
 - The repository, manuscript, and sketch remain visible and clickable on the homepage.
 - Only the selected artifact participates in the outgoing transition.
-- The selected artifact lifts, opens slightly, and dissolves while the destination page appears.
+- The selected artifact first lifts away from the desk, then opens decisively and expands across the viewport before the destination page appears.
+- Each object keeps its own physical gesture: the Writing manuscript turns around its left binding edge, the Projects screen expands outward like an opened workspace, and the Ideas sketch unfolds from a slightly tilted sheet.
+- The outgoing motion lasts roughly `900–1050ms` and reaches about `1.35–1.55×` scale. It must read as an opening action, not as a hover-scale effect.
+- The destination page fades in during the final third of the artifact motion so the object feels like the threshold into the next page.
 - `/projects`, `/writing`, and `/ideas` do not render the persistent three-artifact stack.
 - Destination layouts keep their existing background worlds and content hierarchy, with deliberate quiet negative space to the right of the content column.
 - With reduced motion enabled, navigation happens immediately without the opening animation.
@@ -27,6 +30,7 @@ Make the three archive destinations quieter while preserving the homepage artifa
 
 - Keep `ArtifactRouteStage.astro` available for now, but remove it from the three archive pages. This minimizes unrelated cleanup in a heavily edited stylesheet.
 - Extend the existing native cross-document View Transition behavior; do not introduce a client router or animation dependency.
+- Keep the three object-specific keyframes separate so their transform origins and 3D rotations remain legible and independently tunable.
 - Generate six small WebP phase assets through `scripts/build-writing-assets.mjs` from the existing source artwork.
 - Add final, route-specific CSS overrides after the existing archive styles so legacy artifact rules become inert without a risky stylesheet rewrite.
 
