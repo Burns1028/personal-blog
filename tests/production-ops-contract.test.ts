@@ -14,6 +14,14 @@ test("Nginx protects publishing routes and serves persistent media", () => {
   assert.match(nginx, /limit_req_zone .* zone=burns_publish:10m rate=10r\/m/);
   assert.match(nginx, /limit_req zone=burns_publish burst=5 nodelay/);
   assert.doesNotMatch(nginx, /Access-Control-Allow-Origin/);
+
+  const mediaLocation = nginx.match(/location \^~ \/media\/articles\/ \{([\s\S]*?)\n    \}/)?.[1];
+  assert.ok(mediaLocation, "persistent media location must exist");
+  assert.doesNotMatch(
+    mediaLocation,
+    /try_files\s+\$uri/,
+    "an alias location must not re-append the public URI to the filesystem path",
+  );
 });
 
 test("systemd runs the app as an unprivileged persistent service", () => {
