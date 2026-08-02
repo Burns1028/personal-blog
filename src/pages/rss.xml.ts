@@ -1,10 +1,11 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
 import { site } from "../data/site";
+import { getWritingCatalog } from "../lib/server/writing-catalog";
+
+export const prerender = false;
 
 export async function GET(context: { site?: URL }) {
-  const entries = (await getCollection("writing", ({ data }) => !data.draft))
-    .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+  const entries = await getWritingCatalog();
 
   return rss({
     title: site.title,

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish the current Burns Blog through a private GitHub repository to `https://burnsgao.me`, expose signed remote-only article and idea publishing APIs, and migrate every real local article and idea into the production SQLite database.
+**Goal:** Publish the current Burns Blog through a private GitHub repository to `https://burnsgao.me`, expose signed remote-only article and idea publishing APIs, and migrate the explicitly selected real article and ideas into the production SQLite database.
 
 **Architecture:** GitHub is the code synchronization source; ECS checks out an explicit commit into a versioned release and runs Astro behind Nginx and systemd. Production SQLite and article media live outside releases. The two upload Skills construct Edits locally but only write through an HTTPS HMAC-signed API; no Skill may write a local SQLite database.
 
@@ -20,7 +20,7 @@
 - `burns-upload-article` and `burns-upload-idea` are remote-only; missing production URL or credentials is a hard failure.
 - All private writes require HTTPS, signed timestamps, unique nonces, body hashes, constant-time comparison, and rate limiting.
 - Production data paths are `/var/lib/burns-blog/blog.sqlite` and `/var/lib/burns-blog/media/articles`.
-- Current migration source contains 5 published articles and 3 published ideas. Projects and Activities are empty and are not synthesized.
+- Git contains code only. The ignored migration selection contains exactly 1 real article (`taste-is-all-you-need`) and 3 current ideas. The other 4 local article rows are historical/test data and are excluded without being deleted.
 - Do not commit or print credentials. Store the local signing secret in macOS Keychain and the server copy in `/etc/burns-blog/app.env`.
 - Existing unrelated working-tree changes belong to the user and must be preserved.
 
@@ -38,7 +38,7 @@
 - `skills/_shared/publish-client.mjs`: Keychain lookup, request hashing, signing and HTTP transport.
 - `skills/burns-upload-article/scripts/upload.mjs`: remote article package creation and response verification.
 - `skills/burns-upload-idea/scripts/upload.mjs`: remote idea CRUD and response verification.
-- `scripts/migrate-local-content.ts`: read-only local export and remote migration orchestration.
+- `scripts/migrate-local-content.ts`: selection-driven, read-only local export and remote migration orchestration.
 - `ops/nginx/burnsgao.me.conf`: HTTPS reverse proxy, persistent media alias, limits and redirects.
 - `ops/systemd/burns-blog.service`: application process contract.
 - `ops/systemd/burns-blog-backup.service`: one-shot SQLite backup.
@@ -630,12 +630,12 @@ Expected: operations contracts and build pass.
 - Modify: `package.json`
 
 **Interfaces:**
-- Consumes: read-only local `data/blog.sqlite`, local `public/media`, and the two remote Skill wrappers.
-- Produces: a deterministic migration plan and explicit `--execute` path for all current articles and ideas.
+- Consumes: ignored `.content-backup/selection.json`, the one selected Markdown article, read-only local `data/blog.sqlite` for the selected idea rows, local `public/media`, and the two remote Skill wrappers.
+- Produces: a deterministic migration plan and explicit `--execute` path for only the selected article and ideas.
 
 - [ ] **Step 1: Write failing export and dry-run tests**
 
-Build a temporary SQLite database with an article whose Markdown references `/media/articles/source/moon.webp`, create that local media file, and assert the exporter rewrites it to `assets/moon.webp` in a temporary Markdown package. Assert default invocation prints counts and does not perform HTTP.
+Build a temporary selection file containing one article and one idea. Provide one Markdown article whose body references `/media/articles/source/moon.webp`, create that local media file, and assert the exporter rewrites it to `assets/moon.webp` in a temporary Markdown package. Assert default invocation prints counts and does not perform HTTP. Add four unselected article rows to the fixture and assert none of them appears in the plan.
 
 Expected plan shape:
 
@@ -656,9 +656,9 @@ Expected: FAIL because the migration script is missing.
 
 - [ ] **Step 3: Implement read-only export**
 
-Open SQLite with `{ readOnly: true }`. Query all articles and ideas, preserving status, number, tags, feature flag, published dates, body Markdown and source keys. For every `/media/articles/...` reference, require the matching `public/media/articles/...` file, copy it to a task-owned temporary package directory, and rewrite the Markdown to a relative asset reference.
+Read `.content-backup/selection.json` first and reject duplicate or missing identities. Read the selected article from `.content-backup/articles/taste-is-all-you-need.md`. Open SQLite with `{ readOnly: true }` only to read the selected idea source keys and any selected article metadata fallback. Never enumerate or migrate unselected article rows. Preserve status, number, tags, feature flag, published dates, body Markdown and source keys. For every `/media/articles/...` reference, require the matching `public/media/articles/...` file, copy it to a task-owned temporary package directory, and rewrite the Markdown to a relative asset reference.
 
-Default mode only prints a sanitized plan. `--execute` first calls both remote validate routes for every record. Only after every validation succeeds may it call article upsert sequentially and idea upsert sequentially. `--execute` must also require `--confirm-counts 5:3` for the current migration snapshot.
+Default mode only prints a sanitized plan. `--execute` first calls both remote validate routes for every selected record. Only after every validation succeeds may it call article upsert sequentially and idea upsert sequentially. `--execute` must also require `--confirm-counts 1:3` for the current migration snapshot.
 
 - [ ] **Step 4: Verify migration idempotency and commit**
 
@@ -672,7 +672,7 @@ git commit -m "feat: migrate local content through remote skills"
 git push origin HEAD:main
 ```
 
-Expected: tests pass; dry-run reports 5 articles and 3 ideas; no remote request is sent.
+Expected: tests pass; dry-run reports 1 article and 3 ideas; no remote request is sent and the four unselected article rows never appear.
 
 ### Task 9: Complete Local Verification and Select the Release SHA
 
@@ -819,13 +819,13 @@ curl --head https://www.burnsgao.me
 
 Expected: root health is `200`; `www` is a permanent redirect to `https://burnsgao.me`; certificate names cover both hosts.
 
-### Task 12: Migrate All Local Articles and Ideas and Perform Production Acceptance
+### Task 12: Migrate the Selected Article and Ideas and Perform Production Acceptance
 
 **Files:**
 - Production SQLite and media only; no Git changes expected.
 
 **Interfaces:**
-- Consumes: local 5-article/3-idea SQLite snapshot, local media, remote Skills and production API.
+- Consumes: the ignored 1-article/3-idea selection, local media, remote Skills and production API.
 - Produces: production content parity, backups and a rollback proof.
 
 - [ ] **Step 1: Validate every migration package remotely**
@@ -836,17 +836,17 @@ Run:
 npm run migrate:content -- --database data/blog.sqlite --validate-production
 ```
 
-Expected: 5 article validations and 3 idea validations pass; production article/idea counts remain zero before execution.
+Expected: 1 article validation and 3 idea validations pass; production article/idea counts remain zero before execution.
 
 - [ ] **Step 2: Execute the confirmed migration**
 
 Run:
 
 ```bash
-npm run migrate:content -- --database data/blog.sqlite --execute --confirm-counts 5:3
+npm run migrate:content -- --database data/blog.sqlite --execute --confirm-counts 1:3
 ```
 
-Expected: all 5 articles and 3 ideas succeed. Re-running the command reports unchanged article revisions and one row per idea source-key.
+Expected: the selected article and all 3 ideas succeed. Re-running the command reports an unchanged article revision and one row per idea source-key.
 
 - [ ] **Step 3: Compare exact production identities**
 
@@ -857,13 +857,9 @@ curl --fail --silent https://burnsgao.me/api/articles
 curl --fail --silent https://burnsgao.me/api/ideas
 ```
 
-Expected article slugs:
+Expected article slug:
 
 ```text
-ai-aesthetics
-reliable-agent-systems
-designing-with-restraint
-low-friction-knowledge-base
 taste-is-all-you-need
 ```
 
@@ -877,11 +873,11 @@ Expected idea source keys:
 
 - [ ] **Step 4: Verify the visual site and persistent media**
 
-Check desktop and mobile pages for `/`, `/writing`, all five article URLs, `/projects`, and `/ideas`. Confirm the homepage orrery, lunar artwork, Writing star atlas, rotating Earth, satellite interaction, Ideas black hole, search and pagination remain intact. Fetch every migrated `/media/articles/...` URL and require HTTP 200 with `image/webp`.
+Check desktop and mobile pages for `/`, `/writing`, `/writing/taste-is-all-you-need`, `/projects`, and `/ideas`. Confirm the homepage orrery, lunar artwork, Writing star atlas, rotating Earth, satellite interaction, Ideas black hole, search and pagination remain intact. Fetch every migrated `/media/articles/...` URL and require HTTP 200 with `image/webp`.
 
 - [ ] **Step 5: Verify backup and code rollback without data rollback**
 
-Start `burns-blog-backup.service`, run `PRAGMA integrity_check` on the newest backup, temporarily switch `current` to the preceding release and back, and verify the same 5 articles and 3 ideas remain visible after both service restarts.
+Start `burns-blog-backup.service`, run `PRAGMA integrity_check` on the newest backup, temporarily switch `current` to the preceding release and back, and verify the same selected article and 3 ideas remain visible after both service restarts.
 
 - [ ] **Step 6: Final security audit**
 

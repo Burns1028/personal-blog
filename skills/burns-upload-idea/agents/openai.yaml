@@ -1,0 +1,4 @@
+interface:
+  display_name: "Burns Idea Upload"
+  short_description: "记录一条真实灵感到 Burns 博客 SQLite 档案"
+  default_prompt: "Use $burns-upload-idea to publish this observation to the Burns blog idea archive."

@@ -1,34 +1,74 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import type { MarkdownHeading } from "@astrojs/markdown-remark";
 import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import {
+  getStoredArticleBySlug,
+  listArticleAssets,
+} from "../../lib/server/content-store";
+import { renderArticleMarkdown } from "../../lib/server/markdown";
+import { getWritingCatalog } from "../../lib/server/writing-catalog";
 
-export async function getStaticPaths() {
-  const entries = await getCollection("writing", ({ data }) => !data.draft);
-  return entries.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+export const prerender = false;
+
+const slug = Astro.params.slug;
+const entries = await getWritingCatalog();
+const currentIndex = slug
+  ? entries.findIndex((entry) => entry.id === slug)
+  : -1;
+
+if (currentIndex < 0) {
+  return Astro.redirect("/writing");
 }
 
-interface Props {
-  post: CollectionEntry<"writing">;
+const post = entries[currentIndex];
+const previousPost =
+  currentIndex > 0 ? entries[currentIndex - 1] : undefined;
+const nextPost =
+  currentIndex < entries.length - 1 ? entries[currentIndex + 1] : undefined;
+let contentHtml = "";
+let headings: MarkdownHeading[] = [];
+
+const storedArticle = getStoredArticleBySlug(post.id);
+if (!storedArticle) {
+  return Astro.redirect("/writing");
 }
 
-const { post } = Astro.props;
-const { Content, headings } = await render(post);
+const assets = listArticleAssets(storedArticle.id);
+const rendered = await renderArticleMarkdown(
+  storedArticle.bodyMarkdown,
+  assets,
+);
+contentHtml = rendered.html;
+headings = rendered.headings;
 ---
 
 <ArticleLayout
   title={post.data.title}
   summary={post.data.summary}
+  deck={post.data.deck}
   number={post.data.number}
   publishedAt={post.data.publishedAt}
   updatedAt={post.data.updatedAt}
   tags={post.data.tags}
   headings={headings}
+  showTableOfContents={false}
   kind="思考"
   readingTime={post.data.readingTime}
   backHref="/writing"
+  previousArticle={previousPost
+    ? {
+        href: `/writing/${previousPost.id}`,
+        title: previousPost.data.title,
+        number: previousPost.data.number,
+      }
+    : undefined}
+  nextArticle={nextPost
+    ? {
+        href: `/writing/${nextPost.id}`,
+        title: nextPost.data.title,
+        number: nextPost.data.number,
+      }
+    : undefined}
 >
-  <Content />
+  <Fragment set:html={contentHtml} />
 </ArticleLayout>

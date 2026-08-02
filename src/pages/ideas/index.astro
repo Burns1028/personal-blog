@@ -1,16 +1,14 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { ideas } from "../../data/ideas";
+import IdeasSingularity from "../../components/IdeasSingularity.astro";
+import { listPublishedIdeas } from "../../lib/server/idea-store";
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("zh-CN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+export const prerender = false;
 
-const featuredIdea = ideas[0]!;
-const collectedIdeas = ideas.slice(1);
+const ideas = listPublishedIdeas();
+const formatDate = (date: string) => new Date(date).toISOString().slice(0, 10);
+const formatIdeaNumber = (index: number) =>
+  String(index + 1).padStart(2, "0");
 ---
 
 <BaseLayout
@@ -18,53 +16,112 @@ const collectedIdeas = ideas.slice(1);
   description="在它们变成文章、文档或代码之前，先保留那些值得记住的小观察。"
   theme="ochre"
 >
-  <div class="idea-collection-world">
-    <header class="idea-collection-hero">
-      <div class="idea-collection-hero__intro">
-        <h1>值得留下的<br />灵感。</h1>
-        <p>在一句话长成文章、文档或代码之前，先把它记下来。</p>
+  <section class="ideas-signals" aria-labelledby="ideas-title">
+    <h1 id="ideas-title" class="ideas-signals__title">灵感</h1>
+
+    <div class="ideas-signals__inner">
+      <div class="ideas-navigation-field" aria-hidden="true">
+        <svg
+          viewBox="0 0 1600 900"
+          preserveAspectRatio="none"
+          focusable="false"
+        >
+          <path
+            class="ideas-navigation-route ideas-navigation-route--track"
+            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            class="ideas-navigation-route ideas-navigation-route--flow"
+            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            class="ideas-navigation-route ideas-navigation-route--signal"
+            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+
+          <path
+            class="ideas-navigation-route ideas-navigation-route--track"
+            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            class="ideas-navigation-route ideas-navigation-route--flow ideas-navigation-route--secondary"
+            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            class="ideas-navigation-route ideas-navigation-route--signal ideas-navigation-route--secondary"
+            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+          />
+
+          <g
+            class="ideas-navigation-waypoint"
+            transform="translate(680 235)"
+          >
+            <circle r="4" />
+            <path d="M-13 0H-7M7 0H13M0-13V-7M0 7V13" />
+          </g>
+          <g
+            class="ideas-navigation-waypoint ideas-navigation-waypoint--late"
+            transform="translate(1150 442)"
+          >
+            <circle r="4" />
+            <path d="M-13 0H-7M7 0H13M0-13V-7M0 7V13" />
+          </g>
+        </svg>
       </div>
 
-      <article
-        class="idea-featured artifact-destination artifact-destination--idea"
-        id={featuredIdea.id}
-      >
-        <time datetime={featuredIdea.capturedAt.toISOString()}>
-          {formatDate(featuredIdea.capturedAt)}
-        </time>
-        <blockquote>{featuredIdea.text}</blockquote>
-        <footer>
-          <span>{featuredIdea.theme}</span>
-          <a href="#collection">打开灵感集 ↓</a>
-        </footer>
-      </article>
-    </header>
+      <IdeasSingularity />
 
-    <section class="idea-archive" id="collection" aria-labelledby="idea-archive-title">
-      <header>
-        <h2 id="idea-archive-title">收集起来的想法。</h2>
-        <p>短到足以记住，也有用到值得回来重看。</p>
-      </header>
-      <div class="idea-deck">
+      <div class="ideas-board" id="ideas">
         {
-          collectedIdeas.map((idea, index) => (
-            <article
-              class="idea-card"
-              id={idea.id}
-              style={`--idea-index: ${index}`}
-            >
-              <time datetime={idea.capturedAt.toISOString()}>
-                {formatDate(idea.capturedAt)}
-              </time>
-              <blockquote>{idea.text}</blockquote>
-              <footer>
-                <span>{idea.theme}</span>
-                <a href={`#${idea.id}`} aria-label={`链接到灵感：${idea.text}`}>↗</a>
-              </footer>
-            </article>
-          ))
+          ideas.length > 0 ? (
+            <ol class="signal-card-grid">
+              {ideas.map((idea, index) => (
+                <li class="signal-card-item">
+                  <article class="signal-card" id={idea.sourceKey}>
+                    <header class="signal-card__meta">
+                      <span class="signal-card__catalog">
+                        <span class="signal-card__index" aria-hidden="true">
+                          {formatIdeaNumber(index)}
+                        </span>
+                        <span>{idea.theme}</span>
+                      </span>
+                      <time datetime={idea.capturedAt}>
+                        {formatDate(idea.capturedAt)}
+                      </time>
+                    </header>
+                    <h2>{idea.text}</h2>
+                    <a
+                      class="signal-card__permalink"
+                      href={`#${idea.sourceKey}`}
+                      aria-label={`此条灵感的固定链接：${idea.text}`}
+                    >
+                      <span aria-hidden="true">#</span>
+                    </a>
+                  </article>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <div class="ideas-empty-state" role="status">
+              <span aria-hidden="true">∅</span>
+              <p>还没有被记录下来的灵感。</p>
+              <small>新的观察会从 SQLite 档案中出现在这里。</small>
+            </div>
+          )
         }
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </BaseLayout>

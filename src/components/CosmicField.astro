@@ -1,19 +1,69 @@
 ---
+interface Props {
+  mode?: "full" | "stars";
+}
+
+const { mode = "full" } = Astro.props;
 ---
 
-<div class="cosmic-field" aria-hidden="true" data-cosmic-field>
+<div
+  class:list={[
+    "cosmic-field",
+    { "cosmic-field--stars-only": mode === "stars" },
+  ]}
+  aria-hidden="true"
+  data-cosmic-field
+  data-cosmic-mode={mode}
+>
+  {
+    mode === "full" && (
+      <picture>
+        <source
+          media="(max-width: 1280px)"
+          srcset="/assets/home-space-1280.webp"
+        />
+        <img
+          class="cosmic-field__space"
+          src="/assets/home-space-2048.webp"
+          alt=""
+          width="2048"
+          height="1152"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+    )
+  }
+
   <canvas class="cosmic-field__stars" data-cosmic-stars></canvas>
-  <div class="cosmic-field__planet-fallback"></div>
-  <canvas class="cosmic-field__planet" data-cosmic-planet></canvas>
-  <div class="cosmic-field__atmosphere"></div>
+
+  {
+    mode === "full" && (
+      <>
+        <picture class="cosmic-field__rings">
+          <source
+            media="(max-width: 1280px)"
+            srcset="/assets/home-rings-composed-v5-1280.webp"
+          />
+          <img
+            src="/assets/home-rings-composed-v5-2048.webp"
+            alt=""
+            width="1403"
+            height="609"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+
+        <div class="cosmic-field__atmosphere" />
+      </>
+    )
+  }
 </div>
 
 <script>
-  import {
-    PLANET_FRAGMENT_SHADER,
-    PLANET_VERTEX_SHADER,
-  } from "./cosmic-shaders";
-
   const seededRandom = (seed: number) => {
     let state = seed >>> 0;
     return () => {
@@ -22,7 +72,7 @@
     };
   };
 
-  interface Star {
+  interface Spark {
     x: number;
     y: number;
     depth: number;
@@ -30,176 +80,258 @@
     alpha: number;
     phase: number;
     speed: number;
-    twinkle: number;
-    warm: boolean;
-    sparkle: boolean;
+    warmth: number;
+    flare: boolean;
   }
 
-  const initStarMap = (
-    field: HTMLElement,
+  const sizeCanvas = (
     canvas: HTMLCanvasElement,
+    maximumDpr: number,
+  ) => {
+    const bounds = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, maximumDpr);
+    const width = Math.max(1, Math.round(bounds.width * dpr));
+    const height = Math.max(1, Math.round(bounds.height * dpr));
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    return { width, height, dpr };
+  };
+
+  const initCosmicMotion = (
+    field: HTMLElement,
+    starCanvas: HTMLCanvasElement,
     reducedMotion: boolean,
     saveData: boolean,
   ) => {
-    const context = canvas.getContext("2d");
-    if (!context) return;
+    const starContext = starCanvas.getContext("2d");
+    if (!starContext) return;
 
-    const pointerSurface = field.closest<HTMLElement>(".home-hero") ?? field;
+    const pointerSurface =
+      field.closest<HTMLElement>(".home-hero, .projects-scene") ?? field;
     const animated = !reducedMotion && !saveData;
-    let stars: Star[] = [];
-    let width = 1;
-    let height = 1;
-    let dpr = 1;
-    let animationFrame = 0;
-    let lastDraw = -Infinity;
-    let visible = true;
+    const starRandom = seededRandom(7272026);
+    const sparkCount =
+      field.dataset.cosmicMode === "stars" ? 64 : 92;
+    const sparks: Spark[] = Array.from({ length: sparkCount }, () => {
+      const radius = 0.38 + starRandom() * 1.34;
+      return {
+        x: starRandom(),
+        y: starRandom(),
+        depth: 0.35 + starRandom() * 0.65,
+        radius,
+        alpha: 0.18 + starRandom() * 0.68,
+        phase: starRandom() * Math.PI * 2,
+        speed: 0.52 + starRandom() * 1.38,
+        warmth: starRandom(),
+        flare: radius > 0.98 && starRandom() > 0.42,
+      };
+    });
+
+    const maximumDpr = field.dataset.cosmicMode === "stars" ? 1.2 : 1.25;
+    const paintInterval = field.dataset.cosmicMode === "stars" ? 60 : 50;
+    let starSize = sizeCanvas(starCanvas, maximumDpr);
+    let pointerBounds = pointerSurface.getBoundingClientRect();
     let pointerX = 0;
     let pointerY = 0;
     let pointerTargetX = 0;
     let pointerTargetY = 0;
+    let pointerCanvasX = 0.5;
+    let pointerCanvasY = 0.5;
+    let pointerCanvasTargetX = 0.5;
+    let pointerCanvasTargetY = 0.5;
+    let pointerInfluence = 0;
+    let pointerInfluenceTarget = 0;
+    let animationFrame = 0;
+    let lastDraw = -Infinity;
+    let visible = true;
+    let navigationPaused = false;
 
-    const buildMap = () => {
-      const bounds = canvas.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 1.4);
-      width = Math.max(1, Math.round(bounds.width * dpr));
-      height = Math.max(1, Math.round(bounds.height * dpr));
+    const drawStars = (seconds: number) => {
+      const { width, height, dpr } = starSize;
+      starContext.clearRect(0, 0, width, height);
+      starContext.globalCompositeOperation = "lighter";
 
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
+      for (const spark of sparks) {
+        const wave = animated
+          ? 0.5 + Math.sin(seconds * spark.speed + spark.phase) * 0.5
+          : 0.64;
+        const glint = Math.pow(wave, 9);
+        const parallax = (4 + spark.depth * 24) * dpr;
+        let x = spark.x * width + pointerX * parallax;
+        let y = spark.y * height + pointerY * parallax * 0.68;
+        const cursorDeltaX = x - pointerCanvasX * width;
+        const cursorDeltaY = y - pointerCanvasY * height;
+        const cursorDistance = Math.hypot(cursorDeltaX, cursorDeltaY);
+        const cursorRange = (128 + spark.depth * 84) * dpr;
+        const cursorProximity =
+          pointerInfluence *
+          Math.pow(Math.max(0, 1 - cursorDistance / cursorRange), 2);
 
-      const random = seededRandom(26071996);
-      const motionRandom = seededRandom(27072026);
-      const count = Math.round(
-        Math.min(
-          280,
-          Math.max(138, (bounds.width * bounds.height) / 6200),
-        ),
-      );
+        if (cursorProximity > 0.001) {
+          const safeDistance = Math.max(0.001, cursorDistance);
+          const fallbackAngle = spark.phase + spark.depth * Math.PI;
+          const directionX =
+            cursorDistance > 0.001
+              ? cursorDeltaX / safeDistance
+              : Math.cos(fallbackAngle);
+          const directionY =
+            cursorDistance > 0.001
+              ? cursorDeltaY / safeDistance
+              : Math.sin(fallbackAngle);
+          const displacement =
+            cursorProximity * (17 + spark.depth * 27) * dpr;
+          x += directionX * displacement;
+          y += directionY * displacement;
+        }
 
-      stars = Array.from({ length: count }, () => {
-        const x = random();
-        const y = random();
-        const depth = 0.4 + random() * 0.6;
-        const radius = (0.46 + random() * 1.18) * depth;
-        const warm = random() > 0.84;
-        const alpha = 0.3 + random() * 0.64;
-        const sparkle = radius > 0.96 && random() > 0.58;
-        return {
-          x,
-          y,
-          depth,
-          radius,
-          alpha,
-          phase: motionRandom() * Math.PI * 2,
-          speed: 0.82 + motionRandom() * 0.78,
-          twinkle: sparkle
-            ? 0.38 + motionRandom() * 0.16
-            : 0.14 + motionRandom() * 0.12,
-          warm,
-          sparkle,
-        };
-      });
-    };
-
-    const draw = (now: number) => {
-      const seconds = now / 1000;
-      const interpolation = 0.085;
-      pointerX += (pointerTargetX - pointerX) * interpolation;
-      pointerY += (pointerTargetY - pointerY) * interpolation;
-
-      context.clearRect(0, 0, width, height);
-      context.globalCompositeOperation = "lighter";
-
-      for (const star of stars) {
-        const pulse = animated
-          ? Math.sin(seconds * star.speed + star.phase)
-          : 0;
+        const radius =
+          spark.radius * dpr * (0.76 + wave * 0.22 + glint * 0.72);
+        const interactiveRadius = radius * (1 + cursorProximity * 0.38);
         const alpha = Math.min(
           1,
-          star.alpha * (0.88 + pulse * star.twinkle),
+          spark.alpha *
+            (0.22 + wave * 0.56 + glint * 0.34) *
+            (1 + cursorProximity * 0.72),
         );
-        const radius = star.radius * dpr * (
-          1 + (star.sparkle ? pulse * 0.16 : 0)
+        const warm = spark.warmth > 0.82;
+
+        starContext.beginPath();
+        starContext.arc(
+          x,
+          y,
+          Math.max(0.35, interactiveRadius),
+          0,
+          Math.PI * 2,
         );
-        const parallax = (2.4 + star.depth * 12.6) * dpr;
-        const x = star.x * width + pointerX * parallax;
-        const y = star.y * height + pointerY * parallax * 0.72;
-        const [red, green, blue] = star.warm
-          ? [224, 188, 112]
-          : [236, 233, 218];
+        starContext.fillStyle = warm
+          ? `rgba(214, 167, 80, ${alpha})`
+          : `rgba(239, 236, 225, ${alpha})`;
+        starContext.fill();
 
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-        context.fill();
-
-        if (star.sparkle) {
-          context.save();
-          context.translate(x, y);
-          const flare = 0.24 + Math.max(0, pulse) * 0.48;
-          context.strokeStyle = `rgba(239, 226, 197, ${alpha * flare})`;
-          context.lineWidth = Math.max(0.5, dpr * 0.48);
-          context.beginPath();
-          context.moveTo(-radius * 3.8, 0);
-          context.lineTo(radius * 3.8, 0);
-          context.moveTo(0, -radius * 3.8);
-          context.lineTo(0, radius * 3.8);
-          context.stroke();
-          context.restore();
+        if (spark.flare && glint > 0.13) {
+          starContext.save();
+          starContext.translate(x, y);
+          starContext.strokeStyle = `rgba(244, 235, 210, ${alpha * (0.22 + glint * 0.54)})`;
+          starContext.lineWidth = Math.max(0.45, 0.55 * dpr);
+          starContext.beginPath();
+          starContext.moveTo(
+            -interactiveRadius * (3.2 + glint * 3.8),
+            0,
+          );
+          starContext.lineTo(
+            interactiveRadius * (3.2 + glint * 3.8),
+            0,
+          );
+          starContext.moveTo(
+            0,
+            -interactiveRadius * (3.2 + glint * 3.8),
+          );
+          starContext.lineTo(
+            0,
+            interactiveRadius * (3.2 + glint * 3.8),
+          );
+          starContext.stroke();
+          starContext.restore();
         }
       }
     };
 
-    const scheduleDraw = () => {
-      if (!animated || !visible || animationFrame) return;
-      animationFrame = requestAnimationFrame(tick);
+    const draw = (now: number) => {
+      const seconds = now / 1000;
+      pointerX += (pointerTargetX - pointerX) * 0.065;
+      pointerY += (pointerTargetY - pointerY) * 0.065;
+      pointerCanvasX += (pointerCanvasTargetX - pointerCanvasX) * 0.14;
+      pointerCanvasY += (pointerCanvasTargetY - pointerCanvasY) * 0.14;
+      pointerInfluence +=
+        (pointerInfluenceTarget - pointerInfluence) * 0.12;
+      drawStars(seconds);
     };
 
     const tick = (now: number) => {
       animationFrame = 0;
-
-      if (now - lastDraw >= 42) {
+      if (now - lastDraw >= paintInterval) {
         lastDraw = now;
         draw(now);
       }
-
-      scheduleDraw();
+      if (animated && visible && !navigationPaused) {
+        animationFrame = requestAnimationFrame(tick);
+      }
     };
 
     const updatePointer = (event: PointerEvent) => {
-      if (event.pointerType === "touch" || event.pointerType === "pen") return;
-      const bounds = pointerSurface.getBoundingClientRect();
-      const normalizedX = (event.clientX - bounds.left) / bounds.width;
-      const normalizedY = (event.clientY - bounds.top) / bounds.height;
-      pointerTargetX = Math.min(1, Math.max(-1, normalizedX * 2 - 1));
-      pointerTargetY = Math.min(1, Math.max(-1, normalizedY * 2 - 1));
+      if (
+        navigationPaused ||
+        event.pointerType === "touch" ||
+        event.pointerType === "pen"
+      ) {
+        return;
+      }
+      pointerCanvasTargetX = Math.min(
+        1,
+        Math.max(0, (event.clientX - pointerBounds.left) / pointerBounds.width),
+      );
+      pointerCanvasTargetY = Math.min(
+        1,
+        Math.max(0, (event.clientY - pointerBounds.top) / pointerBounds.height),
+      );
+      pointerTargetX = pointerCanvasTargetX * 2 - 1;
+      pointerTargetY = pointerCanvasTargetY * 2 - 1;
+      pointerInfluenceTarget = 1;
+      field.dataset.pointerActive = "true";
+      field.style.setProperty(
+        "--cosmic-bg-x",
+        `${(-pointerTargetX * 9).toFixed(2)}px`,
+      );
+      field.style.setProperty(
+        "--cosmic-bg-y",
+        `${(-pointerTargetY * 6).toFixed(2)}px`,
+      );
     };
 
     const resetPointer = () => {
       pointerTargetX = 0;
       pointerTargetY = 0;
+      pointerInfluenceTarget = 0;
+      field.dataset.pointerActive = "false";
+      field.style.setProperty("--cosmic-bg-x", "0px");
+      field.style.setProperty("--cosmic-bg-y", "0px");
     };
 
-    buildMap();
-    draw(performance.now());
+    const pauseForArtifactNavigation = () => {
+      navigationPaused = true;
+      field.dataset.navigationPaused = "true";
+      cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      pointerSurface.removeEventListener("pointermove", updatePointer);
+      pointerSurface.removeEventListener("pointerleave", resetPointer);
+      resetPointer();
+    };
+
+    document.addEventListener(
+      "burns:artifact-navigation-start",
+      pauseForArtifactNavigation,
+      { once: true },
+    );
 
     const resizeObserver = new ResizeObserver(() => {
-      buildMap();
+      pointerBounds = pointerSurface.getBoundingClientRect();
+      starSize = sizeCanvas(starCanvas, maximumDpr);
       draw(performance.now());
-      scheduleDraw();
     });
-    resizeObserver.observe(canvas);
+    resizeObserver.observe(pointerSurface);
 
     const intersectionObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (!visible) {
         cancelAnimationFrame(animationFrame);
         animationFrame = 0;
-        return;
+      } else if (animated && !navigationPaused && !animationFrame) {
+        animationFrame = requestAnimationFrame(tick);
       }
-      scheduleDraw();
     });
     intersectionObserver.observe(field);
 
@@ -210,7 +342,8 @@
       pointerSurface.addEventListener("pointerleave", resetPointer);
     }
 
-    scheduleDraw();
+    draw(performance.now());
+    if (animated) animationFrame = requestAnimationFrame(tick);
 
     window.addEventListener(
       "pagehide",
@@ -220,169 +353,10 @@
         intersectionObserver.disconnect();
         pointerSurface.removeEventListener("pointermove", updatePointer);
         pointerSurface.removeEventListener("pointerleave", resetPointer);
-      },
-      { once: true },
-    );
-  };
-
-  const initPlanet = (
-    field: HTMLElement,
-    canvas: HTMLCanvasElement,
-    reducedMotion: boolean,
-  ) => {
-    const gl = canvas.getContext("webgl", {
-      alpha: true,
-      antialias: false,
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: true,
-      powerPreference: "low-power",
-    });
-    if (!gl) return;
-
-    const compile = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.warn("Cosmic shader could not compile:", gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-
-    const vertex = compile(gl.VERTEX_SHADER, PLANET_VERTEX_SHADER);
-    const fragment = compile(gl.FRAGMENT_SHADER, PLANET_FRAGMENT_SHADER);
-    if (!vertex || !fragment) return;
-
-    const program = gl.createProgram();
-    if (!program) return;
-    gl.attachShader(program, vertex);
-    gl.attachShader(program, fragment);
-    gl.bindAttribLocation(program, 0, "position");
-    gl.bindAttribLocation(program, 1, "uv");
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.warn("Cosmic shader could not link:", gl.getProgramInfoLog(program));
-      return;
-    }
-    gl.useProgram(program);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -1, -1, 0, 0,
-        1, -1, 1, 0,
-        -1, 1, 0, 1,
-        -1, 1, 0, 1,
-        1, -1, 1, 0,
-        1, 1, 1, 1,
-      ]),
-      gl.STATIC_DRAW,
-    );
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
-    gl.enableVertexAttribArray(1);
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.clearColor(0, 0, 0, 0);
-
-    const uniforms = {
-      time: gl.getUniformLocation(program, "uTime"),
-      resolution: gl.getUniformLocation(program, "uResolution"),
-      center: gl.getUniformLocation(program, "uCenter"),
-      roll: gl.getUniformLocation(program, "uRoll"),
-      elevation: gl.getUniformLocation(program, "uElevation"),
-      zoom: gl.getUniformLocation(program, "uZoom"),
-    };
-
-    gl.uniform2f(uniforms.center, 0.68, 0.115);
-    gl.uniform1f(uniforms.roll, (4.5 * Math.PI) / 180);
-    gl.uniform1f(uniforms.elevation, (18 * Math.PI) / 180);
-    gl.uniform1f(uniforms.zoom, 0.76);
-
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
-      const renderScale = 0.66;
-      const width = Math.max(1, Math.round(bounds.width * dpr * renderScale));
-      const height = Math.max(1, Math.round(bounds.height * dpr * renderScale));
-
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-
-      gl.viewport(0, 0, width, height);
-      gl.uniform3f(uniforms.resolution, width, height, width / height);
-    };
-
-    let animationFrame = 0;
-    let lastDraw = -Infinity;
-    let visible = true;
-    let hasDrawn = false;
-    const startedAt = performance.now();
-
-    const draw = (now: number) => {
-      if (!visible) return;
-
-      if (now - lastDraw >= 42 || reducedMotion) {
-        lastDraw = now;
-        gl.uniform1f(uniforms.time, (now - startedAt) / 1000);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-        if (!hasDrawn) {
-          hasDrawn = true;
-          field.dataset.planetReady = "true";
-        }
-      }
-
-      if (!reducedMotion) {
-        animationFrame = requestAnimationFrame(draw);
-      }
-    };
-
-    const handleContextLost = () => {
-      cancelAnimationFrame(animationFrame);
-      field.dataset.planetReady = "false";
-    };
-
-    canvas.addEventListener("webglcontextlost", handleContextLost, {
-      once: true,
-    });
-
-    resize();
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      cancelAnimationFrame(animationFrame);
-      if (visible) animationFrame = requestAnimationFrame(draw);
-    });
-    observer.observe(field);
-
-    const resizeObserver = new ResizeObserver(() => {
-      resize();
-      if (reducedMotion) draw(performance.now());
-    });
-    resizeObserver.observe(canvas);
-
-    draw(performance.now());
-
-    window.addEventListener(
-      "pagehide",
-      () => {
-        cancelAnimationFrame(animationFrame);
-        observer.disconnect();
-        resizeObserver.disconnect();
-        gl.deleteProgram(program);
-        gl.deleteBuffer(buffer);
-        gl.deleteShader(vertex);
-        gl.deleteShader(fragment);
-        canvas.removeEventListener("webglcontextlost", handleContextLost);
+        document.removeEventListener(
+          "burns:artifact-navigation-start",
+          pauseForArtifactNavigation,
+        );
       },
       { once: true },
     );
@@ -393,21 +367,17 @@
     field.dataset.cosmicReady = "true";
 
     const stars = field.querySelector<HTMLCanvasElement>("[data-cosmic-stars]");
-    const planet = field.querySelector<HTMLCanvasElement>("[data-cosmic-planet]");
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const compactViewport = window.matchMedia("(max-width: 700px)").matches;
     const connection = (
       navigator as Navigator & { connection?: { saveData?: boolean } }
     ).connection;
 
     if (stars) {
-      initStarMap(field, stars, reducedMotion, Boolean(connection?.saveData));
-    }
-
-    if (planet && !compactViewport && !connection?.saveData) {
-      initPlanet(field, planet, reducedMotion);
+      initCosmicMotion(
+        field,
+        stars,
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        Boolean(connection?.saveData),
+      );
     }
   });
 </script>

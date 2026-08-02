@@ -8,46 +8,51 @@ interface Heading {
   text: string;
 }
 
+interface AdjacentArticle {
+  href: string;
+  title: string;
+  number: string;
+}
+
 interface Props {
   title: string;
   summary: string;
+  deck?: string;
   number: string;
   publishedAt: Date;
   updatedAt?: Date;
   tags: string[];
   headings: Heading[];
+  showTableOfContents?: boolean;
   kind: "思考" | "文档" | "项目";
   readingTime?: string;
   status?: string;
   backHref: string;
+  previousArticle?: AdjacentArticle;
+  nextArticle?: AdjacentArticle;
 }
 
 const {
   title,
   summary,
+  deck,
   number,
   publishedAt,
   updatedAt,
   tags,
   headings,
+  showTableOfContents = true,
   kind,
   readingTime,
   status,
   backHref,
+  previousArticle,
+  nextArticle,
 } = Astro.props;
 
-const date = new Intl.DateTimeFormat("zh-CN", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-}).format(publishedAt);
-const updated = updatedAt
-  ? new Intl.DateTimeFormat("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(updatedAt)
-  : null;
+const formatDate = (value: Date) => value.toISOString().slice(0, 10);
+const date = formatDate(publishedAt);
+const updated = updatedAt ? formatDate(updatedAt) : null;
 const sectionLabel = kind;
 const sectionNavLabel =
   kind === "文档" ? "DOCUMENTS" : kind === "思考" ? "WRITING" : "PROJECTS";
@@ -55,6 +60,11 @@ const theme =
   kind === "文档" ? "document" : kind === "思考" ? "stone" : "code";
 const articleKind =
   kind === "文档" ? "document" : kind === "思考" ? "writing" : "project";
+const tocHeadings = headings.filter(
+  ({ depth, slug }) =>
+    depth >= 2 && depth <= 3 && slug !== "footnote-label",
+);
+const tagLine = tags.join(" · ");
 ---
 
 <BaseLayout title={title} description={summary} theme={theme}>
@@ -64,95 +74,295 @@ const articleKind =
       `article-shell--${articleKind}`,
     ]}
   >
-    <Breadcrumbs
-      current={number}
-      parent={{ label: sectionNavLabel, href: backHref }}
-    />
-    <header
-      class:list={[
-        "article-hero",
-        { "artifact-destination artifact-destination--document": kind === "文档" },
-      ]}
-    >
-      <div class="article-hero__rail">
-        <div class="article-hero__rail-links">
-          <a href="/">← HOME</a>
-          <a href={backHref}>ALL {sectionNavLabel}</a>
+    {
+      kind === "思考" ? (
+        <div class="writing-article">
+          <aside class="writing-rail" aria-label="文章导航与目录">
+            <div class="writing-rail__sticky">
+              <a class="writing-rail__back" href={backHref}>
+                <span aria-hidden="true">←</span>
+                <span>回到 Writing</span>
+              </a>
+
+              <nav class="writing-rail__sequence" aria-label="相邻文章">
+                {previousArticle ? (
+                  <a href={previousArticle.href} rel="prev">
+                    <span class="writing-rail__direction">上一篇</span>
+                    <strong>{previousArticle.title}</strong>
+                  </a>
+                ) : (
+                  <span class="is-unavailable" aria-disabled="true">
+                    <span class="writing-rail__direction">上一篇</span>
+                    <strong>已到最新一篇</strong>
+                  </span>
+                )}
+                {nextArticle ? (
+                  <a href={nextArticle.href} rel="next">
+                    <span class="writing-rail__direction">下一篇</span>
+                    <strong>{nextArticle.title}</strong>
+                  </a>
+                ) : (
+                  <span class="is-unavailable" aria-disabled="true">
+                    <span class="writing-rail__direction">下一篇</span>
+                    <strong>已到最早一篇</strong>
+                  </span>
+                )}
+              </nav>
+
+              {showTableOfContents && (
+                <nav
+                  class="writing-toc"
+                  aria-labelledby="writing-toc-title"
+                  data-writing-toc
+                >
+                  <span id="writing-toc-title" class="writing-toc__label">
+                    目录
+                  </span>
+                  {tocHeadings.length > 0 ? (
+                    <ol>
+                      {tocHeadings.map((heading, index) => (
+                        <li class:list={{ "is-sub": heading.depth === 3 }}>
+                          <a
+                            href={`#${heading.slug}`}
+                            data-writing-toc-link
+                          >
+                            <span aria-hidden="true">
+                              {String(index + 1)}
+                            </span>
+                            <span>{heading.text}</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p class="muted">原稿未设置章节标题。</p>
+                  )}
+                </nav>
+              )}
+            </div>
+          </aside>
+
+          <div class="writing-article__main">
+            <header class="writing-hero">
+              <h1>{title}</h1>
+
+              <p class="writing-hero__deck">{deck ?? summary}</p>
+
+              <dl class="writing-hero__meta" aria-label="文章信息">
+                <div>
+                  <dt>发布日期</dt>
+                  <dd><time datetime={date}>{date}</time></dd>
+                </div>
+                <div>
+                  <dt>主题</dt>
+                  <dd>{tagLine}</dd>
+                </div>
+                {readingTime && (
+                  <div>
+                    <dt>阅读时间</dt>
+                    <dd>{readingTime}</dd>
+                  </div>
+                )}
+                {updated && (
+                  <div>
+                    <dt>修订日期</dt>
+                    <dd><time datetime={updated}>{updated}</time></dd>
+                  </div>
+                )}
+              </dl>
+            </header>
+
+            <div class="prose">
+              <slot />
+            </div>
+
+            <footer class="writing-end">
+              <div class="writing-end__rule" aria-hidden="true">
+                <span />
+                <img
+                  src="/assets/article-moon-seal-256.webp"
+                  alt=""
+                  width="256"
+                  height="256"
+                  loading="lazy"
+                />
+                <span />
+              </div>
+              <nav class="writing-end__sequence" aria-label="继续阅读">
+                {previousArticle ? (
+                  <a href={previousArticle.href} rel="prev">
+                    <span>← 上一篇</span>
+                    <strong>{previousArticle.title}</strong>
+                  </a>
+                ) : (
+                  <span class="is-unavailable" aria-disabled="true">
+                    <span>← 上一篇</span>
+                    <strong>已到最新一篇</strong>
+                  </span>
+                )}
+                {nextArticle ? (
+                  <a href={nextArticle.href} rel="next">
+                    <span>下一篇 →</span>
+                    <strong>{nextArticle.title}</strong>
+                  </a>
+                ) : (
+                  <span class="is-unavailable" aria-disabled="true">
+                    <span>下一篇 →</span>
+                    <strong>已到最早一篇</strong>
+                  </span>
+                )}
+              </nav>
+            </footer>
+          </div>
         </div>
-        <span>{sectionNavLabel} / {number}</span>
-      </div>
-      <div class="article-hero__title">
-        <span class="eyebrow">{sectionLabel} · {date}</span>
-        <h1>{title}</h1>
-        <p>{summary}</p>
-      </div>
-      <dl class="article-hero__meta">
-        <div>
-          <dt>发布于</dt>
-          <dd>{date}</dd>
-        </div>
-        {updated && (
-          <div>
-            <dt>修订于</dt>
-            <dd>{updated}</dd>
-          </div>
-        )}
-        {readingTime && (
-          <div>
-            <dt>阅读时间</dt>
-            <dd>{readingTime}</dd>
-          </div>
-        )}
-        {status && (
-          <div>
-            <dt>状态</dt>
-            <dd>{status}</dd>
-          </div>
-        )}
-      </dl>
-    </header>
+      ) : (
+        <>
+          <Breadcrumbs
+            current={number}
+            parent={{ label: sectionNavLabel, href: backHref }}
+          />
+          <header
+            class:list={[
+              "article-hero",
+              {
+                "artifact-destination artifact-destination--document":
+                  kind === "文档",
+              },
+            ]}
+          >
+            <div class="article-hero__rail">
+              <div class="article-hero__rail-links">
+                <a href="/">← HOME</a>
+                <a href={backHref}>ALL {sectionNavLabel}</a>
+              </div>
+              <span>{sectionNavLabel} / {number}</span>
+            </div>
+            <div class="article-hero__title">
+              <span class="eyebrow">{sectionLabel} · {date}</span>
+              <h1>{title}</h1>
+              <p>{deck ?? summary}</p>
+            </div>
+            <dl class="article-hero__meta">
+              <div>
+                <dt>发布于</dt>
+                <dd>{date}</dd>
+              </div>
+              {updated && (
+                <div>
+                  <dt>修订于</dt>
+                  <dd>{updated}</dd>
+                </div>
+              )}
+              {readingTime && (
+                <div>
+                  <dt>阅读时间</dt>
+                  <dd>{readingTime}</dd>
+                </div>
+              )}
+              {status && (
+                <div>
+                  <dt>状态</dt>
+                  <dd>{status}</dd>
+                </div>
+              )}
+            </dl>
+          </header>
 
-    <div class="article-grid">
-      <aside class="article-aside">
-        <div class="article-aside__sticky">
-          <span class="eyebrow">本页目录</span>
-          {
-            headings.length > 0 ? (
-              <ol>
-                {headings
-                  .filter((heading) => heading.depth <= 3)
-                  .map((heading) => (
-                    <li class:list={{ "is-sub": heading.depth === 3 }}>
-                      <a href={`#${heading.slug}`}>{heading.text}</a>
-                    </li>
-                  ))}
-              </ol>
-            ) : (
-              <p class="muted">这是一篇没有目录的短笔记。</p>
-            )
-          }
-          <div class="article-aside__tags">
-            {tags.map((tag) => <span>#{tag}</span>)}
+          <div class="article-grid">
+            <aside class="article-aside">
+              <div class="article-aside__sticky">
+                <span class="eyebrow">本页目录</span>
+                {tocHeadings.length > 0 ? (
+                  <ol>
+                    {tocHeadings.map((heading) => (
+                      <li class:list={{ "is-sub": heading.depth === 3 }}>
+                        <a href={`#${heading.slug}`}>{heading.text}</a>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p class="muted">这是一篇没有目录的短笔记。</p>
+                )}
+                <div class="article-aside__tags">
+                  {tags.map((tag) => <span>#{tag}</span>)}
+                </div>
+              </div>
+            </aside>
+
+            <div class="prose">
+              <slot />
+            </div>
+
+            <aside class="margin-note" aria-label="页边说明">
+              <span class="margin-note__mark">※</span>
+              <p>这是一份持续工作的记录，会随着实践改变结论而不断修订。</p>
+            </aside>
           </div>
-        </div>
-      </aside>
 
-      <div class="prose">
-        <slot />
-      </div>
-
-      <aside class="margin-note" aria-label="页边说明">
-        <span class="margin-note__mark">※</span>
-        <p>这是一份持续工作的记录，会随着实践改变结论而不断修订。</p>
-      </aside>
-    </div>
-
-    <footer class="article-end">
-      <span>正文结束 / {number}</span>
-      <div class="article-end__links">
-        <a href="/">HOME</a>
-        <a href={backHref}>ALL {sectionNavLabel} →</a>
-      </div>
-    </footer>
+          <footer class="article-end">
+            <span>正文结束 / {number}</span>
+            <div class="article-end__links">
+              <a href="/">HOME</a>
+              <a href={backHref}>ALL {sectionNavLabel} →</a>
+            </div>
+          </footer>
+        </>
+      )
+    }
   </article>
+
+  <script>
+    const toc = document.querySelector<HTMLElement>("[data-writing-toc]");
+
+    if (toc) {
+      const links = Array.from(
+        toc.querySelectorAll<HTMLAnchorElement>("[data-writing-toc-link]"),
+      );
+      const targets = links
+        .map((link) => {
+          const id = decodeURIComponent(link.hash.slice(1));
+          const heading = document.getElementById(id);
+          return heading ? { heading, link } : null;
+        })
+        .filter(
+          (
+            item,
+          ): item is { heading: HTMLElement; link: HTMLAnchorElement } =>
+            item !== null,
+        );
+
+      const markCurrent = (activeLink: HTMLAnchorElement) => {
+        links.forEach((link) => {
+          if (link === activeLink) {
+            link.setAttribute("aria-current", "location");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      if (targets[0]) {
+        markCurrent(targets[0].link);
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          const active = visible[0]?.target;
+          if (!(active instanceof HTMLElement)) return;
+
+          const match = targets.find(({ heading }) => heading === active);
+          if (match) markCurrent(match.link);
+        },
+        {
+          rootMargin: "-18% 0px -68% 0px",
+          threshold: [0, 1],
+        },
+      );
+
+      targets.forEach(({ heading }) => observer.observe(heading));
+    }
+  </script>
 </BaseLayout>

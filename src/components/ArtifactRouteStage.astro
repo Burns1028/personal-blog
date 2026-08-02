@@ -1,0 +1,290 @@
+---
+type ArtifactKind = "document" | "repo" | "idea";
+type ArtifactVariant = "writing" | "projects" | "ideas";
+
+interface Props {
+  active: ArtifactKind;
+  variant: ArtifactVariant;
+}
+
+const { active, variant } = Astro.props;
+
+const routes: Record<ArtifactKind, string> = {
+  document: "/writing",
+  repo: "/projects",
+  idea: "/ideas",
+};
+
+const labels: Record<ArtifactKind, string> = {
+  document: "Writing",
+  repo: "Projects",
+  idea: "Ideas",
+};
+
+const containerClasses: Record<ArtifactVariant, string> = {
+  writing: "writing-artifacts",
+  projects: "projects-artifacts",
+  ideas: "ideas-collage",
+};
+
+const artifactClasses: Record<
+  ArtifactVariant,
+  Record<ArtifactKind, string>
+> = {
+  writing: {
+    document: "writing-artifact writing-artifact--manuscript",
+    repo: "writing-artifact writing-artifact--repo",
+    idea: "writing-artifact writing-artifact--sketch",
+  },
+  projects: {
+    document: "projects-artifact projects-artifact--manuscript",
+    repo: "projects-artifact projects-artifact--repo",
+    idea: "projects-artifact projects-artifact--sketch",
+  },
+  ideas: {
+    document:
+      "ideas-collage__artifact ideas-collage__artifact--manuscript",
+    repo: "ideas-collage__artifact ideas-collage__artifact--repo",
+    idea: "ideas-collage__artifact ideas-collage__artifact--sketch",
+  },
+};
+
+const destinationFor = (kind: ArtifactKind) =>
+  active === kind ? "/" : routes[kind];
+const ariaLabelFor = (kind: ArtifactKind) =>
+  active === kind
+    ? `收起 ${labels[kind]} 并返回首页`
+    : `展开并浏览 ${labels[kind]}`;
+const classFor = (kind: ArtifactKind) =>
+  `${artifactClasses[variant][kind]} artifact-destination artifact-destination--${kind}`;
+---
+
+<nav
+  class={containerClasses[variant]}
+  aria-label="作品空间导航"
+  data-route-artifacts
+  data-active-artifact={active}
+>
+  {
+    variant === "ideas" && (
+      <div class="ideas-collage__singularity" aria-hidden="true">
+        <div class="ideas-collage__singularity-motion">
+          <img
+            class="ideas-collage__black-hole"
+            src="/assets/ideas-black-hole-overlay-v4.webp"
+            alt=""
+            width="1206"
+            height="676"
+            loading="eager"
+            decoding="async"
+          />
+
+          <svg
+            class="ideas-collage__gravity-chart"
+            viewBox="0 0 1206 676"
+            fill="none"
+            focusable="false"
+          >
+            <ellipse
+              class="ideas-gravity-orbit ideas-gravity-orbit--outer"
+              cx="708"
+              cy="292"
+              rx="420"
+              ry="126"
+              transform="rotate(-8 708 292)"
+              vector-effect="non-scaling-stroke"
+            />
+            <ellipse
+              class="ideas-gravity-orbit ideas-gravity-orbit--inner"
+              cx="708"
+              cy="292"
+              rx="302"
+              ry="88"
+              transform="rotate(-8 708 292)"
+              vector-effect="non-scaling-stroke"
+            />
+
+            <path
+              class="ideas-gravity-route ideas-gravity-route--base"
+              d="M24 82C188 55 328 91 446 168C542 231 616 280 704 292C822 285 925 327 939 383C954 444 848 466 746 442C640 416 574 355 610 318C632 296 670 291 708 292"
+              pathLength="1000"
+              vector-effect="non-scaling-stroke"
+            />
+            <path
+              class="ideas-gravity-route ideas-gravity-route--flow"
+              d="M24 82C188 55 328 91 446 168C542 231 616 280 704 292C822 285 925 327 939 383C954 444 848 466 746 442C640 416 574 355 610 318C632 296 670 291 708 292"
+              pathLength="1000"
+              vector-effect="non-scaling-stroke"
+            />
+            <path
+              class="ideas-gravity-route ideas-gravity-route--signal"
+              d="M24 82C188 55 328 91 446 168C542 231 616 280 704 292C822 285 925 327 939 383C954 444 848 466 746 442C640 416 574 355 610 318C632 296 670 291 708 292"
+              pathLength="1000"
+              vector-effect="non-scaling-stroke"
+            />
+
+            <g
+              class="ideas-gravity-waypoint ideas-gravity-waypoint--one"
+              transform="translate(190 72)"
+            >
+              <circle r="5" vector-effect="non-scaling-stroke" />
+              <path
+                d="M-18 0H-8M8 0H18M0-18V-8M0 8V18"
+                vector-effect="non-scaling-stroke"
+              />
+            </g>
+            <g
+              class="ideas-gravity-waypoint ideas-gravity-waypoint--two"
+              transform="translate(424 154)"
+            >
+              <circle r="5" vector-effect="non-scaling-stroke" />
+              <path
+                d="M-18 0H-8M8 0H18M0-18V-8M0 8V18"
+                vector-effect="non-scaling-stroke"
+              />
+            </g>
+            <g
+              class="ideas-gravity-waypoint ideas-gravity-waypoint--three"
+              transform="translate(610 268)"
+            >
+              <circle r="5" vector-effect="non-scaling-stroke" />
+              <path
+                d="M-18 0H-8M8 0H18M0-18V-8M0 8V18"
+                vector-effect="non-scaling-stroke"
+              />
+            </g>
+
+            <g class="ideas-gravity-reticle">
+              <ellipse
+                cx="708"
+                cy="292"
+                rx="116"
+                ry="78"
+                transform="rotate(-8 708 292)"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                d="M708 194V220M708 364V390M574 292H602M814 292H842"
+                vector-effect="non-scaling-stroke"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    )
+  }
+
+  <a
+    class={classFor("document")}
+    href={destinationFor("document")}
+    aria-label={ariaLabelFor("document")}
+    data-route-artifact="document"
+    data-route-artifact-active={active === "document" ? "true" : undefined}
+  >
+    <picture>
+      <source
+        media="(max-width: 720px)"
+        srcset="/assets/home-manuscript-cutout-v3-640.webp"
+      />
+      <img
+        src="/assets/home-manuscript-cutout-v3-960.webp"
+        alt=""
+        width="960"
+        height="1304"
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
+  </a>
+
+  <a
+    class={classFor("repo")}
+    href={destinationFor("repo")}
+    aria-label={ariaLabelFor("repo")}
+    data-route-artifact="repo"
+    data-route-artifact-active={active === "repo" ? "true" : undefined}
+  >
+    <picture>
+      <source
+        media="(max-width: 720px)"
+        srcset="/assets/home-github-cutout-v3-960.webp"
+      />
+      <img
+        src="/assets/home-github-cutout-v3-1440.webp"
+        alt=""
+        width="1440"
+        height="991"
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
+  </a>
+
+  <a
+    class={classFor("idea")}
+    href={destinationFor("idea")}
+    aria-label={ariaLabelFor("idea")}
+    data-route-artifact="idea"
+    data-route-artifact-active={active === "idea" ? "true" : undefined}
+  >
+    <picture>
+      <source
+        media="(max-width: 720px)"
+        srcset="/assets/home-sketch-cutout-v3-640.webp"
+      />
+      <img
+        src="/assets/home-sketch-cutout-v3-960.webp"
+        alt=""
+        width="960"
+        height="868"
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
+  </a>
+</nav>
+
+<script>
+  const ideasCollage = document.querySelector(".ideas-collage");
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  );
+
+  if (
+    ideasCollage instanceof HTMLElement &&
+    !reducedMotion.matches &&
+    window.innerWidth > 620
+  ) {
+    let motionFrame = 0;
+
+    const stopWatching = () => {
+      window.removeEventListener("scroll", scheduleMotionCheck);
+      window.removeEventListener("resize", scheduleMotionCheck);
+    };
+
+    const revealMotionWhenVisible = () => {
+      motionFrame = 0;
+      const bounds = ideasCollage.getBoundingClientRect();
+      const visibleHeight =
+        Math.min(window.innerHeight, bounds.bottom) -
+        Math.max(0, bounds.top);
+      const revealThreshold = Math.min(bounds.height * 0.32, 160);
+
+      if (visibleHeight < revealThreshold) return;
+
+      ideasCollage.classList.add("is-motion-ready");
+      stopWatching();
+    };
+
+    function scheduleMotionCheck() {
+      if (motionFrame) return;
+      motionFrame = window.requestAnimationFrame(
+        revealMotionWhenVisible,
+      );
+    }
+
+    window.addEventListener("scroll", scheduleMotionCheck, { passive: true });
+    window.addEventListener("resize", scheduleMotionCheck);
+    scheduleMotionCheck();
+  }
+</script>

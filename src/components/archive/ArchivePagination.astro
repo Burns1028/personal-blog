@@ -1,0 +1,43 @@
+---
+interface Props {
+  page: number;
+  pageCount: number;
+  hrefFor: (page: number) => string;
+  label: string;
+}
+
+const { page, pageCount, hrefFor, label } = Astro.props;
+const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+---
+
+<nav class="archive-pagination" aria-label={label}>
+  {
+    page > 1 ? (
+      <a href={hrefFor(page - 1)}>← <span>上一页</span></a>
+    ) : (
+      <span aria-disabled="true">← <span>上一页</span></span>
+    )
+  }
+  <ol>
+    {
+      pages.map((number) => (
+        <li>
+          {number === page ? (
+            <span aria-current="page">
+              {String(number).padStart(2, "0")}
+            </span>
+          ) : (
+            <a href={hrefFor(number)}>{String(number).padStart(2, "0")}</a>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+  {
+    page < pageCount ? (
+      <a href={hrefFor(page + 1)}><span>下一页</span> →</a>
+    ) : (
+      <span aria-disabled="true"><span>下一页</span> →</span>
+    )
+  }
+</nav>

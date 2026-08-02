@@ -1,0 +1,21 @@
+---
+import type { LunarPhase } from "../../lib/lunar-phase";
+import { getLunarPhaseAsset } from "../../lib/lunar-phase";
+
+interface Props {
+  phase: LunarPhase;
+  size?: number;
+}
+
+const { phase, size = 56 } = Astro.props;
+---
+
+<img
+  class="lunar-phase"
+  src={getLunarPhaseAsset(phase.index)}
+  width={size}
+  height={size}
+  alt={`${phase.name}，照明度约 ${phase.illumination}%`}
+  loading="lazy"
+  decoding="async"
+/>

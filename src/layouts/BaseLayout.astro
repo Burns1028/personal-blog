@@ -1,6 +1,7 @@
 ---
 import { nav, site } from "../data/site";
 import "../styles/global.css";
+import "../styles/home-orrery.css";
 
 interface Props {
   title?: string;
@@ -23,10 +24,18 @@ const themeColor = {
   stone: "#d8d6ce",
 }[theme];
 const pageTitle = title ? `${title} — ${site.shortTitle}` : site.title;
-const path = Astro.url.pathname;
+const path =
+  Astro.url.pathname === "/"
+    ? "/"
+    : Astro.url.pathname.replace(/\/+$/, "");
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const isCurrentRoute = (href: string) =>
   href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
+const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
+  "/writing": "document",
+  "/projects": "repo",
+  "/ideas": "idea",
+};
 ---
 
 <!doctype html>
@@ -40,7 +49,14 @@ const isCurrentRoute = (href: string) =>
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <meta name="theme-color" content={themeColor} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/webp"
+      sizes="96x96"
+      href="/assets/home-icons/ai-horizon.webp"
+    />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
@@ -49,6 +65,20 @@ const isCurrentRoute = (href: string) =>
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       document.documentElement.classList.add("js");
+
+      try {
+        const artifactArrival = sessionStorage.getItem(
+          "burns:artifact-transition",
+        );
+
+        if (["repo", "document", "idea"].includes(artifactArrival ?? "")) {
+          document.documentElement.dataset.artifactArrival = artifactArrival;
+        }
+
+        sessionStorage.removeItem("burns:artifact-transition");
+      } catch {
+        // Navigation remains fully functional when sessionStorage is blocked.
+      }
     </script>
     <title>{pageTitle}</title>
   </head>
@@ -57,11 +87,7 @@ const isCurrentRoute = (href: string) =>
 
     <header class="site-header">
       <a class="wordmark" href="/" aria-label={`${site.title} 首页`}>
-        <pre class="wordmark__ascii" aria-hidden="true">{`    ____
-   / __ )__  ___________  _____
-  / __  / / / / ___/ __ \\/ ___/
- / /_/ / /_/ / /  / / / (__  )
-/_____/\\__,_/_/  /_/ /_/____/`}</pre>
+        <span class="wordmark__text">Burns</span>
       </a>
 
       <nav class="site-nav" aria-label="主导航">
@@ -70,17 +96,13 @@ const isCurrentRoute = (href: string) =>
             <a
               href={item.href}
               aria-current={isCurrentRoute(item.href) ? "page" : undefined}
+              data-artifact={artifactForRoute[item.href]}
             >
               {item.label}
             </a>
           ))
         }
       </nav>
-
-      <a class="header-code-link" href={site.github} target="_blank" rel="noreferrer">
-        GITHUB
-        <span aria-hidden="true">↗</span>
-      </a>
     </header>
 
     <main id="content">
@@ -95,5 +117,124 @@ const isCurrentRoute = (href: string) =>
         <a href="https://astro.build/" target="_blank" rel="noreferrer">Astro</a>
       </p>
     </footer>
+
+    <script is:inline>
+        (() => {
+          const root = document.documentElement;
+          let settled = false;
+          let pageRevealSeen = false;
+
+        const settlePage = () => {
+          if (settled) return;
+          settled = true;
+          root.dataset.pageSettled = "true";
+          delete root.dataset.artifactArrival;
+          document.dispatchEvent(new CustomEvent("burns:page-settled"));
+        };
+
+          const settleWhenIdle = () => {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(settlePage, { timeout: 1000 });
+            return;
+          }
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(settlePage);
+            });
+          };
+
+          const settleAfterLoad = () => {
+            if (!pageRevealSeen) {
+              if (root.dataset.artifactArrival) {
+                window.setTimeout(settlePage, 700);
+              } else {
+                settleWhenIdle();
+              }
+            }
+          };
+
+          window.addEventListener("load", settleAfterLoad, { once: true });
+          if (document.readyState === "complete") {
+            settleAfterLoad();
+          }
+
+          if ("onpagereveal" in window) {
+            window.addEventListener(
+              "pagereveal",
+              (event) => {
+                pageRevealSeen = true;
+                if (event.viewTransition) {
+                event.viewTransition.finished.then(settlePage, settlePage);
+              } else {
+                settleWhenIdle();
+              }
+            },
+            { once: true },
+          );
+        } else {
+          settleWhenIdle();
+        }
+      })();
+    </script>
+
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const stage = document.querySelector(
+          "[data-artifact-stage], [data-route-artifacts]",
+        );
+        if (!stage) return;
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        );
+        const routeLinks = document.querySelectorAll(
+          "a[data-route-artifact], a[data-artifact]",
+        );
+        let navigating = false;
+
+        routeLinks.forEach((link) => {
+          link.addEventListener("click", (event) => {
+            if (
+              navigating ||
+              event.defaultPrevented ||
+              event.button !== 0 ||
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            ) {
+              return;
+            }
+
+            const anchor = event.currentTarget;
+            if (!(anchor instanceof HTMLAnchorElement)) return;
+
+            const kind =
+              anchor.dataset.routeArtifact ?? anchor.dataset.artifact;
+            if (!kind) return;
+
+            sessionStorage.setItem("burns:last-artifact", kind);
+
+            if (reduceMotion.matches) return;
+
+            event.preventDefault();
+            navigating = true;
+            root.dataset.artifactIntent = kind;
+            root.dataset.artifactNavigating = "true";
+            sessionStorage.setItem("burns:artifact-transition", kind);
+            document.dispatchEvent(
+              new CustomEvent("burns:artifact-navigation-start", {
+                detail: { kind },
+              }),
+            );
+
+            window.requestAnimationFrame(() => {
+              window.location.assign(anchor.href);
+            });
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

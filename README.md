@@ -1,81 +1,88 @@
 # Burns’ Blog
 
-一个以“做旧技术杂志”为视觉语言的 Astro 个人博客，包含：
+Burns 的 Astro 个人博客。Writing、Ideas、Projects 和 Project Activities 都以 `data/blog.sqlite` 为唯一事实源；页面不保留静态示例或前端 Mock 回退。
 
-- 黑色刊物封面式首页；
-- 随滚动放大并接管视口的纸页过渡；
-- Markdown 思考与持续更新的文档；
-- 代码档案式 GitHub 项目入口；
-- RSS、sitemap、SEO 与响应式阅读页面。
+## 内容发布
 
-## 先替换个人信息
+所有内容写入统一通过仓库内三个 Skill 完成：
 
-编辑 `src/data/site.ts`：
+- `skills/burns-upload-article`：发布含本地图片的 Markdown 文章；
+- `skills/burns-upload-idea`：记录或修订一条灵感；
+- `skills/burns-update-github-progress`：一次写入真实 GitHub 项目资料与一条项目活动。
 
-```ts
-export const site = {
-  author: "你的名字",
-  email: "you@example.com",
-  github: "https://github.com/your-handle",
-  // ...
-};
+### 发布文章
+
+模板位于 `skills/burns-upload-article/assets/article-template.md`。本地图片使用 Markdown 相对路径，导入时会压缩为 WebP 并归档到 `public/media/articles/<slug>/`。
+
+```bash
+node skills/burns-upload-article/scripts/upload.mjs \
+  --project-root "$PWD" \
+  --file /absolute/path/article.md \
+  --slug article-slug \
+  --status published
 ```
 
-然后把 `src/content/projects/` 中每个项目的 `repo` 换成真实仓库地址。
+### 发布灵感
 
-## 写一篇文章
-
-在 `src/content/writing/` 新建 Markdown：
-
-```md
----
-title: "文章标题"
-summary: "一段用于列表和 SEO 的摘要"
-publishedAt: 2026-07-24
-tags: ["Agent", "Infra"]
-featured: false
-draft: false
-number: "WR—004"
-readingTime: "6 MIN"
----
-
-正文从这里开始。
+```bash
+node skills/burns-upload-idea/scripts/upload.mjs \
+  --project-root "$PWD" \
+  --source-key 2026-08-02-observation \
+  --text "一条真实观察。" \
+  --theme "系统" \
+  --captured-at 2026-08-02T20:30:00+08:00 \
+  --status published
 ```
 
-文档放在 `src/content/docs/`，项目放在 `src/content/projects/`。字段约束位于
-`src/content.config.ts`。
+### 更新 GitHub 项目进度
 
-## 首页视觉素材
+```bash
+node skills/burns-update-github-progress/scripts/upload.mjs \
+  --project-root "$PWD" \
+  --repo Burns1028/repository \
+  --slug repository \
+  --project-title "Project title" \
+  --project-summary "Verified project summary" \
+  --language TypeScript \
+  --project-status active \
+  --source-key repository:2026-08-02:event \
+  --occurred-at 2026-08-02T21:00:00+08:00 \
+  --kind progress \
+  --activity-title "Concrete change" \
+  --activity-summary "What changed and why"
+```
 
-首页三张档案原图保存在 `design-source/hero/`，不会进入发布产物。实际页面使用
-`public/assets/` 中按显示尺寸生成的两档 JPEG，并通过 `srcset` 让浏览器按视口选择：
+三个 Skill 都支持 `BURNS_BLOG_ROOT`，也可显式传 `--project-root`。底层命令对应 `npm run article:upload`、`npm run idea:upload` 和 `npm run github:progress`。
 
-- 文档：640px / 960px；
-- 代码仓库：720px / 1200px；
-- 灵感纸片：480px / 720px。
+## 读取接口
 
-替换原图时保留相同比例并重新生成这两档资源，避免直接把高分辨率设计源文件放进首屏。
+- `GET /api/articles`
+- `GET /api/articles/:slug`
+- `GET /api/ideas`
+- `GET /api/projects`
+- `GET /api/activities?days=6`
+
+写入不通过前端或公开 API 完成，只走上述 Skill。`BLOG_DB_PATH` 可覆盖默认数据库路径 `./data/blog.sqlite`。
 
 ## 本地运行
+
+需要 Node.js 24.15 或更高版本。
 
 ```bash
 npm install
 npm run dev
 ```
 
-生产构建：
+完整验证与生产构建：
 
 ```bash
+npm run test:content
 npm run build
-npm run preview
+npm start
 ```
 
-## 发布到 GitHub Pages
+`src/content/docs/` 仍用于站内文档；Writing、Ideas 和 Projects 不再使用 Astro content collection。
 
-1. 推送到 GitHub 仓库的 `main` 分支；
-2. 在仓库 `Settings → Pages` 中选择 `GitHub Actions`；
-3. 在 `Settings → Secrets and variables → Actions → Variables` 添加
-   `SITE_URL`，值为你的最终域名；
-4. 如使用自定义域名，再配置相应 DNS。
+## 部署
 
-工作流已经放在 `.github/workflows/deploy.yml`。
+这是使用本地 SQLite 的 Node SSR 应用。生产环境必须使用单实例与持久磁盘，并把 `BLOG_DB_PATH` 指向持久目录。GitHub Pages、无状态 serverless/edge 和多副本部署不能直接共享该本地数据库；这些部署形态需要远程 SQLite/LibSQL 或 PostgreSQL。

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Burns Article Upload"
+  short_description: "发布含图片的 Markdown 文章到 Burns 博客"
+  default_prompt: "Use $burns-upload-article to publish this Markdown article and its local images to the Burns blog."

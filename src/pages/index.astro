@@ -1,28 +1,8 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CosmicField from "../components/CosmicField.astro";
-import { ideas } from "../data/ideas";
+import HomeOrrery from "../components/HomeOrrery.astro";
 import { contacts } from "../data/site";
-
-const writings = (await getCollection("writing", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
-const projects = (await getCollection("projects", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
-
-const featuredWriting = writings.find(({ data }) => data.featured) ?? writings[0];
-const featuredProject = projects.find(({ data }) => data.featured) ?? projects[0];
-const featuredIdea = ideas[0];
-
-// 联系方式图标（内联 SVG，currentColor 跟随文字色，契合暗色 + 品牌橙风格）
-const contactIcons: Record<string, string> = {
-  github:
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.72-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 2.5-.35c.85 0 1.71.12 2.5.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.35 4.8-4.58 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>',
-  mail:
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>',
-  wechat:
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M9.2 3C5.2 3 2 5.72 2 9.06c0 1.9 1.06 3.6 2.72 4.72l-.6 1.94 2.28-1.2c.7.2 1.42.32 2.16.34a4.9 4.9 0 0 1-.2-1.38c0-2.9 2.72-5.2 6.06-5.2.2 0 .4 0 .6.03C14.5 4.86 12.1 3 9.2 3Zm-2.5 3.3a.94.94 0 1 1 0 1.88.94.94 0 0 1 0-1.88Zm5 0a.94.94 0 1 1 0 1.88.94.94 0 0 1 0-1.88Z"/><path d="M22 13.9c0-2.66-2.6-4.82-5.8-4.82s-5.8 2.16-5.8 4.82 2.6 4.82 5.8 4.82c.66 0 1.3-.1 1.9-.28l1.9 1-.5-1.62A4.66 4.66 0 0 0 22 13.9Zm-7.8-1.1a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Zm4 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z"/></svg>',
-};
 ---
 
 <BaseLayout>
@@ -33,152 +13,257 @@ const contactIcons: Record<string, string> = {
       <div class="home-hero__copy" data-intro-copy>
           <h1
             id="home-title"
-            aria-label="Hello, I’m Burns — AI System Builder, AI enthusiast."
+            aria-label="Hello I am Burns"
           >
             <span class="term-line">
-              <span class="term-prompt" aria-hidden="true">&gt; whoami</span>
+              <span class="term-prompt" aria-hidden="true">
+                <b>&gt;</b> whoami
+              </span>
             </span>
-            <span class="term-line">
-              <span class="term-name" data-typed data-text="Hello, I’m Burns">Hello, I’m Burns</span><span class="term-caret" aria-hidden="true"></span>
+            <span class="term-line term-line--identity">
+              <span class="hero-portrait" aria-hidden="true">
+                <picture>
+                  <source
+                    media="(min-resolution: 1.5dppx)"
+                    srcset="/assets/home-profile-burns-640.webp"
+                  />
+                  <img
+                    src="/assets/home-profile-burns-320.webp"
+                    width="320"
+                    height="427"
+                    alt=""
+                    loading="eager"
+                    decoding="async"
+                  />
+                </picture>
+                <i class="hero-portrait__star"></i>
+              </span>
+              <span
+                class="term-name"
+                data-typewriter
+              data-typewriter-text="Hello I am Burns"
+              data-typewriter-signature-text="Burns"
+              >
+                <span class="term-name__line term-name__line--prefix">
+                  <span data-typewriter-prefix>Hello I am </span>
+                  <i
+                    class="term-typewriter-caret"
+                    data-typewriter-prefix-caret
+                    aria-hidden="true"
+                  ></i>
+                </span>
+                <span class="term-name__line term-name__line--signature">
+                  <span class="term-signature" data-typewriter-signature>Burns</span>
+                  <i
+                    class="term-typewriter-caret"
+                    data-typewriter-signature-caret
+                    aria-hidden="true"
+                    hidden
+                  ></i>
+                </span>
+              </span>
+              <i class="hero-title-star" aria-hidden="true"></i>
             </span>
-            <span class="accent-line">AI System Builder, AI enthusiast.</span>
-          </h1>
-          <p>
-            Born in Shanghai, graduated from Peking University, and now exploring
-            Agent infrastructure at ByteDance Seed.
-          </p>
-          <p>
-            I’m a curious carbon-based life form, always eager to explore the
-            unknown.
-          </p>
-          <div class="hero-actions">
-            <a class="button button--accent" href={`/writing/${featuredWriting.id}`}>
-              Read latest writing <span aria-hidden="true">→</span>
-            </a>
-            <a class="button" href="/writing">Browse writing</a>
+            </h1>
+            <div class="hero-profile">
+              <p class="hero-profile__fact hero-profile__work">
+                <span class="hero-profile__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/agent-systems.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span class="hero-profile__copy">
+                  Building agent systems at
+                  <a
+                    href="https://seed.bytedance.com/en/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      class="hero-profile__seed-logo"
+                      src="/assets/bytedance-seed-official-v1.png"
+                      alt="ByteDance Seed"
+                      width="984"
+                      height="120"
+                      decoding="async"
+                    />
+                  </a>.
+                </span>
+              </p>
+              <p class="hero-profile__fact hero-profile__identity">
+                <span class="hero-profile__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/location.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span class="hero-profile__copy">
+                  An absurdist from <span class="hero-profile__place">Shanghai</span>.
+                </span>
+              </p>
+              <p class="hero-profile__fact hero-profile__education">
+                <span class="hero-profile__copy hero-profile__education-copy">
+                  <a
+                    class="hero-profile__institution-logo"
+                    href="https://english.pku.edu.cn/index.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      class="hero-profile__pku-logo"
+                      src="/assets/peking-university-lockup-v1.png"
+                      alt="Peking University"
+                      width="610"
+                      height="179"
+                      decoding="async"
+                    />
+                  </a><span
+                    class="hero-profile__education-note"
+                  >{" graduate."}</span>
+                </span>
+              </p>
+              <p class="hero-profile__fact hero-profile__horizon">
+                <span class="hero-profile__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/ai-horizon.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span class="hero-profile__copy">
+                  Exploring <span class="hero-profile__ai">AI<sup>*</sup></span> and whatever comes next.
+                </span>
+              </p>
           </div>
-          <ul class="hero-contacts" aria-label="联系方式">
+          <section class="hero-invitation" aria-labelledby="hero-invitation-title">
+            <h2 id="hero-invitation-title">Let’s be friends.</h2>
+            <i class="hero-invitation__mark" aria-hidden="true"></i>
+            <nav class="hero-actions" aria-label="Explore Burns’ work">
+              <a href="/projects" data-artifact="repo">
+                <span class="hero-actions__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/projects.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span>Projects</span>
+                <b aria-hidden="true">→</b>
+              </a>
+              <a href="/writing" data-artifact="document">
+                <span class="hero-actions__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/writing.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span>Writing</span>
+                <b aria-hidden="true">→</b>
+              </a>
+              <a href="/ideas" data-artifact="idea">
+                <span class="hero-actions__icon" aria-hidden="true">
+                  <img
+                    src="/assets/home-icons/ideas.webp"
+                    alt=""
+                    width="96"
+                    height="96"
+                    decoding="async"
+                  />
+                </span>
+                <span>Ideas</span>
+                <b aria-hidden="true">→</b>
+              </a>
+            </nav>
+          </section>
+          <section class="hero-contact-block" aria-labelledby="hero-contact-title">
+            <h3 id="hero-contact-title" class="hero-contact-block__title">Contact me</h3>
+            <nav id="contact-links" class="contact-strip" aria-label="Contact Burns">
             {
-              contacts.map((item) =>
-                item.kind === "copy" ? (
-                  <li>
-                    <button
-                      type="button"
-                      class="hero-contact"
-                      data-copy={item.value}
-                      aria-label={`${item.label}：${item.value}（点击复制）`}
-                      title={`${item.label}: ${item.value}`}
-                    >
-                      <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
-                      <span class="hero-contact__label">{item.value}</span>
-                    </button>
-                  </li>
+              contacts.map((contact) => {
+                const icon = (
+                  <svg
+                    class="contact-strip__icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    {
+                      contact.icon === "x" ? (
+                        <path d="M18.24 2.25h3.31l-7.23 8.26 8.51 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.84L7.08 4.13H5.12l11.96 15.64Z" />
+                      ) : contact.icon === "jike" ? (
+                        <path d="M8.05 2.75h8.38v11.08c0 4.66-2.72 7.42-7.18 7.42-2.52 0-4.57-.9-5.91-2.54l2.88-2.96c.77.88 1.68 1.35 2.82 1.35 1.8 0 2.72-1.03 2.72-3.41V6.76H8.05V2.75Z" />
+                      ) : contact.icon === "github" ? (
+                        <path
+                          d="M12 2.8a9.2 9.2 0 0 0-2.91 17.93c.46.08.63-.2.63-.45v-1.77c-2.57.56-3.11-1.09-3.11-1.09-.42-1.07-1.03-1.35-1.03-1.35-.84-.58.06-.57.06-.57.93.07 1.42.96 1.42.96.83 1.42 2.17 1.01 2.7.77.08-.6.32-1.01.59-1.24-2.05-.23-4.2-1.02-4.2-4.55 0-1 .36-1.83.95-2.47-.1-.23-.41-1.17.09-2.43 0 0 .77-.25 2.53.94A8.8 8.8 0 0 1 12 7.18a8.8 8.8 0 0 1 2.3.31c1.76-1.19 2.53-.94 2.53-.94.5 1.26.19 2.2.09 2.43.59.64.95 1.46.95 2.47 0 3.54-2.16 4.31-4.21 4.54.33.29.62.85.62 1.71v2.58c0 .25.17.54.63.45A9.2 9.2 0 0 0 12 2.8Z"
+                        />
+                      ) : contact.icon === "wechat" ? (
+                        <>
+                          <path d="M10.1 5.1c-4.3 0-7.3 2.6-7.3 5.8 0 1.8 1 3.5 2.8 4.6l-.7 2.1 2.5-1.2c.8.2 1.7.4 2.7.4 4.2 0 7.3-2.6 7.3-5.9s-3.1-5.8-7.3-5.8Z" />
+                          <path d="M14.7 10.1c3.8 0 6.5 2.3 6.5 5.2 0 1.6-.9 3.1-2.5 4.1l.6 1.9-2.2-1.1c-.8.2-1.5.3-2.4.3-3.8 0-6.5-2.3-6.5-5.2" />
+                          <circle cx="7.7" cy="9.7" r=".65" />
+                          <circle cx="12.4" cy="9.7" r=".65" />
+                          <circle cx="12.6" cy="14.5" r=".6" />
+                          <circle cx="16.8" cy="14.5" r=".6" />
+                        </>
+                      ) : (
+                        <>
+                          <rect x="3" y="5.2" width="18" height="13.6" rx="1.2" />
+                          <path d="m4.2 6.6 7.8 6 7.8-6" />
+                        </>
+                      )
+                    }
+                  </svg>
+                );
+
+                return contact.kind === "link" ? (
+                  <a
+                    href={contact.href}
+                    target={contact.href.startsWith("mailto:") ? undefined : "_blank"}
+                    rel={contact.href.startsWith("mailto:") ? undefined : "noreferrer"}
+                    aria-label={contact.label}
+                    data-contact-tooltip={contact.label}
+                    data-contact-icon={contact.icon}
+                  >
+                    {icon}
+                  </a>
                 ) : (
-                  <li>
-                    <a
-                      class="hero-contact"
-                      href={item.href}
-                      target={item.icon === "mail" ? undefined : "_blank"}
-                      rel="noreferrer"
-                      aria-label={item.label}
-                      title={item.label}
-                    >
-                      <span class="hero-contact__icon" set:html={contactIcons[item.icon]} />
-                      <span class="hero-contact__label">{item.label}</span>
-                    </a>
-                  </li>
-                ),
-              )
+                  <button
+                    type="button"
+                    aria-label={`Copy ${contact.label}: ${contact.value}`}
+                    data-contact-copy
+                    data-contact-value={contact.value}
+                    data-contact-tooltip={`${contact.label} · copy`}
+                    data-contact-icon={contact.icon}
+                  >
+                    {icon}
+                  </button>
+                );
+              })
             }
-          </ul>
+            <span
+              class="contact-strip__status"
+              role="status"
+              aria-live="polite"
+              data-contact-status
+            ></span>
+            </nav>
+          </section>
         </div>
 
-      <div
-        class="artifact-stage"
-        aria-label="精选代码仓库、文档与灵感"
-        data-artifact-stage
-        data-active-artifact="none"
-      >
-          <div
-            class="repo-artifact"
-            aria-hidden="true"
-          >
-            <img
-              class="artifact-image"
-              src="/assets/artifact-github-cosmic-720.webp"
-              srcset="/assets/artifact-github-cosmic-720.webp 720w, /assets/artifact-github-cosmic-1200.webp 1200w"
-              sizes="(max-width: 680px) 92vw, (max-width: 980px) 76vw, 540px"
-              alt=""
-              width="1200"
-              height="936"
-              loading="lazy"
-              fetchpriority="low"
-              decoding="async"
-            />
-          </div>
-
-          <div
-            class="paper-artifact"
-            aria-hidden="true"
-          >
-            <img
-              class="artifact-image"
-              src="/assets/artifact-document-cosmic-640.webp"
-              srcset="/assets/artifact-document-cosmic-640.webp 640w, /assets/artifact-document-cosmic-960.webp 960w"
-              sizes="(max-width: 680px) 72vw, (max-width: 980px) 56vw, 410px"
-              alt=""
-              width="960"
-              height="1300"
-              loading="eager"
-              fetchpriority="high"
-              decoding="async"
-            />
-          </div>
-
-          <div
-            class="idea-artifact"
-            aria-hidden="true"
-          >
-            <img
-              class="artifact-image"
-              src="/assets/artifact-idea-cosmic-480.webp"
-              srcset="/assets/artifact-idea-cosmic-480.webp 480w, /assets/artifact-idea-cosmic-720.webp 720w"
-              sizes="(max-width: 680px) 45vw, (max-width: 980px) 34vw, 270px"
-              alt=""
-              width="720"
-              height="878"
-              loading="lazy"
-              fetchpriority="low"
-              decoding="async"
-            />
-          </div>
-
-          <a
-            class="artifact-hotspot artifact-hotspot--repo-side"
-            href="/projects"
-            aria-label={`浏览代码仓库，从${featuredProject.data.title}开始`}
-            data-artifact="repo"
-          ></a>
-          <a
-            class="artifact-hotspot artifact-hotspot--repo-bottom"
-            href="/projects"
-            aria-hidden="true"
-            tabindex="-1"
-            data-artifact="repo"
-          ></a>
-          <a
-            class="artifact-hotspot artifact-hotspot--document"
-            href="/writing"
-            aria-label="浏览 Writing"
-            data-artifact="document"
-          ></a>
-          <a
-            class="artifact-hotspot artifact-hotspot--idea"
-            href="/ideas"
-            aria-label={`打开灵感集：${featuredIdea.text}`}
-            data-artifact="idea"
-          ></a>
-      </div>
+      <HomeOrrery />
     </div>
   </section>
 
@@ -187,70 +272,103 @@ const contactIcons: Record<string, string> = {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stage = document.querySelector<HTMLElement>("[data-artifact-stage]");
     const artifacts = document.querySelectorAll<HTMLElement>("[data-artifact]");
-
-    // 联系方式里的“复制”按钮（如微信号）：点击后写入剪贴板并短暂提示已复制。
-    document.querySelectorAll<HTMLButtonElement>(".hero-contact[data-copy]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const value = btn.dataset.copy ?? "";
-        try {
-          await navigator.clipboard.writeText(value);
-          btn.dataset.copied = "true";
-          setTimeout(() => delete btn.dataset.copied, 1400);
-        } catch {
-          /* 剪贴板不可用时静默降级，tooltip 仍可读出号码 */
-        }
-      });
-    });
-
-    // 标题终端打字机：`> whoami` 之后逐字打出名字，尊重 reduce-motion。
-    const typed = document.querySelector<HTMLElement>("[data-typed]");
-    if (typed) {
-      const full = typed.dataset.text ?? typed.textContent ?? "";
-      if (reduceMotion.matches) {
-        // 尊重减少动效：直接显示全名，不循环。
-        typed.textContent = full;
-        typed.dataset.done = "true";
-      } else {
-        // 循环打字机：打出 → 停顿 → 逐字删除 → 停顿 → 再打，往复进行。
-        const TYPE_MS = 130; // 每个字符打出的间隔
-        const ERASE_MS = 80; // 每个字符删除的间隔
-        const HOLD_FULL_MS = 1900; // 打完后停留
-        const HOLD_EMPTY_MS = 600; // 清空后停留
-        typed.textContent = "";
-        let i = 0;
-        let erasing = false;
-
-        const tick = () => {
-          if (!erasing) {
-            i += 1;
-            typed.textContent = full.slice(0, i);
-            if (i >= full.length) {
-              erasing = true;
-              window.setTimeout(tick, HOLD_FULL_MS);
-            } else {
-              window.setTimeout(tick, TYPE_MS);
-            }
-          } else {
-            i -= 1;
-            typed.textContent = full.slice(0, i);
-            if (i <= 0) {
-              erasing = false;
-              window.setTimeout(tick, HOLD_EMPTY_MS);
-            } else {
-              window.setTimeout(tick, ERASE_MS);
-            }
-          }
-        };
-
-        window.setTimeout(tick, 500);
-      }
-    }
+    const artifactEntrypoints =
+      document.querySelectorAll<HTMLAnchorElement>(
+        ".hero-actions > a[data-artifact]",
+      );
+    const typewriter =
+      document.querySelector<HTMLElement>("[data-typewriter]");
+    const typewriterPrefix =
+      typewriter?.querySelector<HTMLElement>("[data-typewriter-prefix]");
+    const typewriterSignature =
+      typewriter?.querySelector<HTMLElement>("[data-typewriter-signature]");
+    const typewriterPrefixCaret =
+      typewriter?.querySelector<HTMLElement>("[data-typewriter-prefix-caret]");
+    const typewriterSignatureCaret =
+      typewriter?.querySelector<HTMLElement>("[data-typewriter-signature-caret]");
+    const typewriterText =
+      typewriter?.dataset.typewriterText ??
+      typewriter?.textContent?.trim() ??
+      "";
+    const typewriterSignatureText =
+      typewriter?.dataset.typewriterSignatureText ??
+      typewriterSignature?.textContent?.trim() ??
+      "";
+    let typewriterTimer = 0;
+    let contactStatusTimer = 0;
 
     const clamp = (value: number, min = 0, max = 1) =>
       Math.min(max, Math.max(min, value));
 
+    const startTypewriter = () => {
+      if (!typewriter) return;
+
+      const typewriterElement = typewriter;
+      typewriterElement.dataset.typewriterReady = "true";
+      const characters = Array.from(typewriterText);
+      const signatureStart = Math.max(
+        0,
+        characters.length - Array.from(typewriterSignatureText).length,
+      );
+      let index = 0;
+      const renderTypewriter = (visibleCharacters: string[]) => {
+        if (typewriterPrefix && typewriterSignature) {
+          typewriterPrefix.textContent = visibleCharacters
+            .slice(0, signatureStart)
+            .join("");
+          typewriterSignature.textContent = visibleCharacters
+            .slice(signatureStart)
+            .join("");
+          const isTypingSignature = visibleCharacters.length > signatureStart;
+          if (typewriterPrefixCaret) {
+            typewriterPrefixCaret.hidden = isTypingSignature;
+          }
+          if (typewriterSignatureCaret) {
+            typewriterSignatureCaret.hidden = !isTypingSignature;
+          }
+          return;
+        }
+
+        typewriterElement.textContent = visibleCharacters.join("");
+      };
+
+      if (reduceMotion.matches) {
+        renderTypewriter(characters);
+        typewriterElement.dataset.typewriterState = "complete";
+        return;
+      }
+
+      renderTypewriter([]);
+      typewriterElement.dataset.typewriterState = "typing";
+
+      const scheduleTypewriter = (callback: () => void, delay: number) => {
+        typewriterTimer = window.setTimeout(callback, delay);
+      };
+
+      function typeNextCharacter() {
+        index += 1;
+        renderTypewriter(characters.slice(0, index));
+
+        if (index >= characters.length) {
+          typewriterElement.dataset.typewriterState = "complete";
+          return;
+        }
+
+        const currentCharacter = characters[index - 1];
+        scheduleTypewriter(
+          typeNextCharacter,
+          currentCharacter === " " ? 42 : 68,
+        );
+      }
+
+      scheduleTypewriter(typeNextCharacter, 360);
+    };
+
     const setReady = () => {
-      requestAnimationFrame(() => root.classList.add("motion-ready"));
+      requestAnimationFrame(() => {
+        root.classList.add("motion-ready");
+        startTypewriter();
+      });
     };
 
     if (document.readyState === "loading") {
@@ -261,6 +379,7 @@ const contactIcons: Record<string, string> = {
 
     if (stage && !reduceMotion.matches) {
       let frame = 0;
+      let stageBounds = stage.getBoundingClientRect();
 
       const setStageParallax = (x: number, y: number) => {
         stage.style.setProperty("--stage-near-x", `${(x * 18).toFixed(2)}px`);
@@ -275,9 +394,17 @@ const contactIcons: Record<string, string> = {
         if (frame) cancelAnimationFrame(frame);
 
         frame = requestAnimationFrame(() => {
-          const bounds = stage.getBoundingClientRect();
-          const x = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
-          const y = clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
+          frame = 0;
+          const x = clamp(
+            (event.clientX - stageBounds.left) / stageBounds.width,
+            0,
+            1,
+          );
+          const y = clamp(
+            (event.clientY - stageBounds.top) / stageBounds.height,
+            0,
+            1,
+          );
 
           const pointerX = x - 0.5;
           const pointerY = y - 0.5;
@@ -293,8 +420,26 @@ const contactIcons: Record<string, string> = {
         setStageParallax(0, 0);
       };
 
+      const stageResizeObserver = new ResizeObserver(() => {
+        stageBounds = stage.getBoundingClientRect();
+      });
+      stageResizeObserver.observe(stage);
+
+      const pauseStageMotion = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+        stage.removeEventListener("pointermove", updatePointer);
+        stage.removeEventListener("pointerleave", resetPointer);
+        stageResizeObserver.disconnect();
+      };
+
       stage.addEventListener("pointermove", updatePointer, { passive: true });
       stage.addEventListener("pointerleave", resetPointer);
+      document.addEventListener(
+        "burns:artifact-navigation-start",
+        pauseStageMotion,
+        { once: true },
+      );
     }
 
     if (stage) {
@@ -312,12 +457,75 @@ const contactIcons: Record<string, string> = {
         });
       });
 
+      artifactEntrypoints.forEach((entry) => {
+        entry.addEventListener("pointerleave", () => setActiveArtifact());
+        entry.addEventListener("focusout", (event) => {
+          const next = event.relatedTarget;
+          if (!(next instanceof Node) || !entry.contains(next)) {
+            setActiveArtifact();
+          }
+        });
+      });
+
       stage.addEventListener("pointerleave", () => setActiveArtifact());
       stage.addEventListener("focusout", (event) => {
         const next = event.relatedTarget;
         if (!(next instanceof Node) || !stage.contains(next)) setActiveArtifact();
       });
     }
+
+    const contactStatus =
+      document.querySelector<HTMLElement>("[data-contact-status]");
+    const contactCopyButtons =
+      document.querySelectorAll<HTMLButtonElement>("[data-contact-copy]");
+
+    const copyContact = async (value: string) => {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
+
+      await navigator.clipboard.writeText(value);
+    };
+
+    contactCopyButtons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const value = button.dataset.contactValue;
+        if (!value) return;
+
+        window.clearTimeout(contactStatusTimer);
+
+        try {
+          await copyContact(value);
+          button.dataset.copied = "true";
+          if (contactStatus) contactStatus.textContent = `Copied: ${value}`;
+        } catch {
+          if (contactStatus) contactStatus.textContent = `WeChat: ${value}`;
+        }
+
+        contactStatusTimer = window.setTimeout(() => {
+          delete button.dataset.copied;
+          if (contactStatus) contactStatus.textContent = "";
+        }, 2200);
+      });
+    });
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        window.clearTimeout(typewriterTimer);
+        window.clearTimeout(contactStatusTimer);
+      },
+      { once: true },
+    );
+
+    document.addEventListener(
+      "burns:artifact-navigation-start",
+      () => {
+        window.clearTimeout(typewriterTimer);
+        window.clearTimeout(contactStatusTimer);
+      },
+      { once: true },
+    );
 
   </script>
 </BaseLayout>

@@ -1,0 +1,183 @@
+---
+import { homeOrreryAssets } from "../data/home-orrery-assets";
+---
+
+<section
+  class="home-orrery"
+  aria-label="Writing、Projects 与 Ideas 思想星系"
+  data-home-orrery
+  data-artifact-stage
+  data-active-artifact="none"
+>
+  <svg
+    class="home-orrery__instrument"
+    viewBox="0 0 1000 900"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <g class="home-orrery__orbit-lines">
+      <ellipse cx="610" cy="490" rx="395" ry="178" transform="rotate(-12 610 490)" />
+      <ellipse cx="610" cy="490" rx="318" ry="132" transform="rotate(-12 610 490)" />
+      <ellipse cx="610" cy="490" rx="214" ry="82" transform="rotate(-12 610 490)" />
+      <path d="M201 649C379 565 540 544 716 582S972 620 1040 586" />
+    </g>
+    <g class="home-orrery__ticks">
+      <path d="M196 462h22M207 451v22M760 168h26M773 155v26M862 696h22M873 685v22" />
+      <circle cx="207" cy="462" r="3" />
+      <circle cx="773" cy="168" r="3" />
+      <circle cx="873" cy="696" r="3" />
+    </g>
+  </svg>
+
+  <span class="home-orrery__dust-flow" aria-hidden="true"></span>
+  <span class="home-orrery__registration home-orrery__registration--one" aria-hidden="true"></span>
+  <span class="home-orrery__registration home-orrery__registration--two" aria-hidden="true"></span>
+
+  <a
+    class="home-planet home-planet--writing"
+    href="/writing"
+    aria-label="进入 Writing"
+    data-artifact="document"
+  >
+    <span class="home-planet__halo" aria-hidden="true"></span>
+    <picture class="home-planet__surface" aria-hidden="true">
+      <source
+        media="(min-resolution: 1.5dppx)"
+        srcset={homeOrreryAssets.writing.retina}
+      />
+      <img
+        src={homeOrreryAssets.writing.standard}
+        alt=""
+        width="480"
+        height="480"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <span class="sr-only">Writing</span>
+  </a>
+
+  <a
+    class="home-planet home-planet--projects"
+    href="/projects"
+    aria-label="进入 Projects"
+    data-artifact="repo"
+  >
+    <span class="home-planet__halo" aria-hidden="true"></span>
+    <picture class="home-planet__surface" aria-hidden="true">
+      <source
+        media="(min-resolution: 1.5dppx)"
+        srcset={homeOrreryAssets.projects.retina}
+      />
+      <img
+        src={homeOrreryAssets.projects.standard}
+        alt=""
+        width="480"
+        height="480"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <span class="home-planet__satellite-orbit" aria-hidden="true">
+      <img
+        src={homeOrreryAssets.satellite}
+        alt=""
+        width="512"
+        height="512"
+        loading="eager"
+        decoding="async"
+      />
+    </span>
+    <span class="sr-only">Projects</span>
+  </a>
+
+  <a
+    class="home-planet home-planet--ideas"
+    href="/ideas"
+    aria-label="进入 Ideas"
+    data-artifact="idea"
+  >
+    <span class="home-planet__gravity" aria-hidden="true"></span>
+    <span class="home-planet__halo" aria-hidden="true"></span>
+    <picture class="home-planet__surface" aria-hidden="true">
+      <source
+        media="(min-resolution: 1.5dppx)"
+        srcset={homeOrreryAssets.ideas.retina}
+      />
+      <img
+        src={homeOrreryAssets.ideas.standard}
+        alt=""
+        width="480"
+        height="480"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <span class="sr-only">Ideas</span>
+  </a>
+</section>
+
+<script>
+  const orrery = document.querySelector<HTMLElement>("[data-home-orrery]");
+
+  if (orrery && orrery.dataset.bound !== "true") {
+    orrery.dataset.bound = "true";
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let visible = true;
+    let navigationPaused = false;
+
+    const updateMotionState = () => {
+      const running =
+        visible &&
+        !document.hidden &&
+        !navigationPaused &&
+        !reducedMotion.matches;
+
+      if (running) {
+        orrery.dataset.motionRunning = "true";
+      } else {
+        delete orrery.dataset.motionRunning;
+      }
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? true;
+      updateMotionState();
+    });
+
+    const pauseForNavigation = () => {
+      navigationPaused = true;
+      updateMotionState();
+    };
+
+    observer.observe(orrery);
+    document.addEventListener("visibilitychange", updateMotionState);
+    document.addEventListener(
+      "burns:artifact-navigation-start",
+      pauseForNavigation,
+      { once: true },
+    );
+
+    reducedMotion.addEventListener("change", updateMotionState);
+
+    updateMotionState();
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", updateMotionState);
+        document.removeEventListener(
+          "burns:artifact-navigation-start",
+          pauseForNavigation,
+        );
+        reducedMotion.removeEventListener("change", updateMotionState);
+      },
+      { once: true },
+    );
+  }
+</script>

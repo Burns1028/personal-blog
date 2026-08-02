@@ -1,0 +1,72 @@
+---
+import type { ActivityDay } from "../../lib/server/activity-store";
+import SatelliteControl from "./SatelliteControl.astro";
+
+interface Props {
+  days: ActivityDay[];
+}
+
+const { days } = Astro.props;
+const positions = [
+  [8, 30],
+  [25, 60],
+  [43, 72],
+  [61, 65],
+  [78, 48],
+  [91, 24],
+] as const;
+const chronological = days.slice(0, 6).reverse();
+const positionOffset = positions.length - chronological.length;
+---
+
+<section class="activity-orbit" aria-label="近期活动">
+  <svg
+    class="activity-orbit__line"
+    viewBox="0 0 1000 260"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <path
+      data-orbit-path
+      d="M0 38 C180 240 520 260 1000 32"
+      pathLength="1"
+    ></path>
+  </svg>
+
+  {
+    chronological.length > 0 ? (
+      <ol>
+        {chronological.map((day, index) => {
+          const [left, top] = positions[index + positionOffset];
+          const featured = day.items[0];
+          const isLatest = index === chronological.length - 1;
+
+          return (
+            <li
+              class:list={{ "is-current": isLatest }}
+              style={`--node-left:${left}%;--node-top:${top}%;--node-index:${index}`}
+              tabindex={isLatest ? -1 : undefined}
+              data-latest-activity={isLatest ? "true" : undefined}
+            >
+              <span class="activity-orbit__dot" aria-hidden="true" />
+              <time datetime={day.date}>
+                {day.date.slice(5).replace("-", ".")}
+              </time>
+              <strong>{day.count} 项活动</strong>
+              <small>
+                {featured?.projectSlug ? `${featured.projectSlug}：` : ""}
+                {featured?.title}
+              </small>
+            </li>
+          );
+        })}
+      </ol>
+    ) : (
+      <p class="activity-orbit__empty">等待下一次信号</p>
+    )
+  }
+
+  <div class="activity-orbit__satellite" data-satellite-control-host>
+    <SatelliteControl />
+  </div>
+</section>

@@ -1,0 +1,61 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import test from "node:test";
+
+const root = resolve(import.meta.dirname, "..");
+
+function skillFile(skill: string, path: string): string {
+  const absolutePath = resolve(root, "skills", skill, path);
+  assert.equal(existsSync(absolutePath), true, `${absolutePath} must exist`);
+  return readFileSync(absolutePath, "utf8");
+}
+
+test("article publication Skill has one validated upload path", () => {
+  const instructions = skillFile("burns-upload-article", "SKILL.md");
+  const interfaceYaml = skillFile(
+    "burns-upload-article",
+    "agents/openai.yaml",
+  );
+  const runner = skillFile("burns-upload-article", "scripts/upload.mjs");
+  skillFile("burns-upload-article", "assets/article-template.md");
+
+  assert.match(instructions, /name: burns-upload-article/);
+  assert.match(instructions, /description: Use when/);
+  assert.match(instructions, /scripts\/upload\.mjs/);
+  assert.match(interfaceYaml, /\$burns-upload-article/);
+  assert.match(runner, /scripts\/import-article\.ts/);
+});
+
+test("idea publication Skill has one validated upload path", () => {
+  const instructions = skillFile("burns-upload-idea", "SKILL.md");
+  const interfaceYaml = skillFile("burns-upload-idea", "agents/openai.yaml");
+  const runner = skillFile("burns-upload-idea", "scripts/upload.mjs");
+
+  assert.match(instructions, /name: burns-upload-idea/);
+  assert.match(instructions, /description: Use when/);
+  assert.match(instructions, /source-key/);
+  assert.match(interfaceYaml, /\$burns-upload-idea/);
+  assert.match(runner, /scripts\/import-idea\.ts/);
+});
+
+test("GitHub progress Skill records verified project facts and activity", () => {
+  const instructions = skillFile(
+    "burns-update-github-progress",
+    "SKILL.md",
+  );
+  const interfaceYaml = skillFile(
+    "burns-update-github-progress",
+    "agents/openai.yaml",
+  );
+  const runner = skillFile(
+    "burns-update-github-progress",
+    "scripts/upload.mjs",
+  );
+
+  assert.match(instructions, /name: burns-update-github-progress/);
+  assert.match(instructions, /description: Use when/);
+  assert.match(instructions, /verified|核对/i);
+  assert.match(interfaceYaml, /\$burns-update-github-progress/);
+  assert.match(runner, /scripts\/import-github-progress\.ts/);
+});

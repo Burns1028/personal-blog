@@ -1,10 +1,31 @@
 ---
-import { getCollection } from "astro:content";
+import ArchivePagination from "../../components/archive/ArchivePagination.astro";
+import LunarPhase from "../../components/writing/LunarPhase.astro";
+import { archiveAssets } from "../../data/archive-assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { site } from "../../data/site";
+import { matchesSearch, pageHref, paginate } from "../../lib/archive-query";
+import { getLunarPhase } from "../../lib/lunar-phase";
+import { getWritingCatalog } from "../../lib/server/writing-catalog";
+import "../../styles/writing-archive-v2.css";
 
-const entries = (await getCollection("writing", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+export const prerender = false;
+
+const query = Astro.url.searchParams.get("q")?.trim() ?? "";
+const requestedPage = Number(Astro.url.searchParams.get("page") ?? 1);
+const entries = (await getWritingCatalog()).filter((entry) =>
+  matchesSearch(
+    [
+      entry.data.title,
+      entry.data.summary,
+      entry.data.deck,
+      ...entry.data.tags,
+    ],
+    query,
+  ),
+);
+const result = paginate(entries, requestedPage, 4);
+const hrefFor = (page: number) => pageHref("/writing", page, query);
+const currentPhase = getLunarPhase(new Date());
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
@@ -18,60 +39,126 @@ const formatDate = (date: Date) =>
   description="长文、工作反思，以及那些值得被说完整的想法。"
   theme="paper"
 >
-  <div class="writing-archive">
-    <div class="writing-archive__inner">
-      <div
-        class="writing-archive__watermark artifact-destination artifact-destination--document"
-        aria-hidden="true"
-      >
-        <img
-          src="/assets/artifact-document-cosmic-640.webp"
-          srcset="/assets/artifact-document-cosmic-640.webp 640w, /assets/artifact-document-cosmic-960.webp 960w"
-          sizes="(max-width: 680px) 220px, 420px"
-          alt=""
-          width="960"
-          height="1300"
-          loading="eager"
-          decoding="async"
-        />
+  <section class="writing-v2" data-writing-archive>
+    <picture class="writing-v2__atlas" aria-hidden="true">
+      <source
+        media="(max-width: 767px)"
+        srcset={archiveAssets.writing.atlas.mobile}
+      />
+      <source
+        srcset={`${archiveAssets.writing.atlas.desktop} 1x, ${archiveAssets.writing.atlas.desktop2x} 2x`}
+      />
+      <img
+        src={archiveAssets.writing.atlas.desktop}
+        alt=""
+        width="1600"
+        height="900"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+
+    <div class="writing-v2__column">
+      <h1 class="sr-only">Writing</h1>
+
+      <div class="writing-v2__phase-strip" aria-label="月相序列">
+        {
+          archiveAssets.writing.phases.map((src, index) => (
+            <img
+              class:list={{ "is-current": index === currentPhase.index }}
+              src={src}
+              alt=""
+              width="58"
+              height="58"
+              decoding="async"
+              title={
+                index === currentPhase.index
+                  ? `当前月相：${currentPhase.name}`
+                  : undefined
+              }
+            />
+          ))
+        }
       </div>
 
-      <section class="writing-index" aria-label="文章列表">
-        <ol class="writing-list">
-          {
-            entries.map((entry, index) => (
-              <li>
-                <a
-                  class:list={[
-                    "writing-entry",
-                    { "writing-entry--lead": index === 0 },
-                  ]}
-                  href={`/writing/${entry.id}`}
-                >
-                  <div class="writing-entry__body">
-                    {
-                      index === 0
-                        ? <h1>{entry.data.title}</h1>
-                        : <h2>{entry.data.title}</h2>
-                    }
-                    <p>{entry.data.summary}</p>
-                  </div>
+      <form
+        class="archive-search archive-search--writing"
+        method="get"
+        action="/writing"
+        role="search"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.8" cy="10.8" r="6.4"></circle>
+          <path d="m15.5 15.5 4.2 4.2"></path>
+        </svg>
+        <input
+          id="writing-search"
+          type="search"
+          name="q"
+          value={query}
+          placeholder="搜索文章、主题或关键词"
+          autocomplete="off"
+        />
+        <kbd>⌘ K</kbd>
+      </form>
 
-                  <p class="writing-entry__meta">
-                    <time datetime={entry.data.publishedAt.toISOString()}>
-                      {formatDate(entry.data.publishedAt)}
-                    </time>
-                    <span aria-hidden="true">·</span>
-                    <span>{entry.data.readingTime}阅读</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{site.author}</span>
-                  </p>
-                </a>
-              </li>
-            ))
-          }
-        </ol>
-      </section>
+      {
+        result.items.length > 0 ? (
+          <ol class="writing-v2__list" data-archive-results>
+            {result.items.map((entry, index) => {
+              const phase = getLunarPhase(entry.data.publishedAt);
+              return (
+                <li style={`--entry-index:${index}`}>
+                  <a href={`/writing/${entry.id}`}>
+                    <div class="writing-v2__entry-copy">
+                      <h2>{entry.data.title}</h2>
+                      <p>{entry.data.deck ?? entry.data.summary}</p>
+                    </div>
+                    <div class="writing-v2__meta">
+                      <span>
+                        <time
+                          datetime={entry.data.publishedAt.toISOString()}
+                        >
+                          {formatDate(entry.data.publishedAt)}
+                        </time>
+                        <small>{entry.data.readingTime}阅读</small>
+                      </span>
+                      <LunarPhase phase={phase} />
+                    </div>
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <div class="archive-empty">
+            <p>这一片星图里暂时没有对应的记录。</p>
+            <a href="/writing">清空搜索</a>
+          </div>
+        )
+      }
+
+      <ArchivePagination
+        page={result.page}
+        pageCount={result.pageCount}
+        hrefFor={hrefFor}
+        label="文章分页"
+      />
     </div>
-  </div>
+  </section>
+
+  <script>
+    document.addEventListener("keydown", (event) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        const input = document.querySelector("#writing-search");
+        if (input instanceof HTMLInputElement) {
+          event.preventDefault();
+          input.focus();
+        }
+      }
+    });
+  </script>
 </BaseLayout>

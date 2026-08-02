@@ -1,0 +1,234 @@
+---
+import { archiveAssets } from "../../data/archive-assets";
+
+const earth = archiveAssets.projects.earth;
+---
+
+<div
+  class="projects-v2__earth projects-earth"
+  aria-hidden="true"
+  data-projects-earth
+  data-earth-frame-count={earth.frameCount}
+  data-earth-frame-prefix={earth.framePrefix}
+>
+  <canvas
+    class="projects-earth__motion"
+    width="256"
+    height="1152"
+    data-projects-earth-motion
+  ></canvas>
+  <picture>
+    <source media="(max-width: 620px)" srcset={earth.mobile} />
+    <img
+      class="projects-earth__fallback"
+      src={earth.fallback}
+      alt=""
+      width="256"
+      height="1152"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
+    />
+  </picture>
+</div>
+
+<script is:inline>
+  (() => {
+    const earth = document.querySelector("[data-projects-earth]");
+    if (!(earth instanceof HTMLElement) || earth.dataset.animated === "true") {
+      return;
+    }
+
+    earth.dataset.animated = "true";
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const connection = navigator.connection;
+    if (
+      reducedMotion.matches ||
+      connection?.saveData ||
+      window.innerWidth <= 620
+    ) {
+      earth.classList.add("has-static-earth");
+      return;
+    }
+    const canvas = earth.querySelector("[data-projects-earth-motion]");
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    const fallback = earth.querySelector(".projects-earth__fallback");
+    if (!(fallback instanceof HTMLImageElement)) return;
+    const context = canvas.getContext("2d", {
+      alpha: true,
+      desynchronized: true,
+    });
+    const frameCount = Number(earth.dataset.earthFrameCount ?? 0);
+    const framePrefix = earth.dataset.earthFramePrefix;
+    if (!context || !framePrefix || frameCount < 2) return;
+    let pageActive = true;
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        pageActive = false;
+      },
+      { once: true },
+    );
+
+    const decodeFrame = async (index) => {
+      if (index === 0) {
+        await fallback.decode();
+        return fallback;
+      }
+
+      const image = new Image();
+      image.decoding = "async";
+      image.fetchPriority = "low";
+      image.src = `${framePrefix}${String(index).padStart(2, "0")}.webp`;
+      await image.decode();
+      return image;
+    };
+
+    const startEarthMotion = async () => {
+      const frames = [];
+      for (let index = 0; index < frameCount; index += 1) {
+        if (!pageActive) return;
+        frames.push(await decodeFrame(index));
+      }
+
+      if (!pageActive) return;
+      const rotationDuration = 20_000;
+      const paintInterval = 1000 / 24;
+      let animationFrameId = 0;
+      let elapsed = 0;
+      let previousTime = null;
+      let previousPaint = 0;
+      let isIntersecting = true;
+
+      const render = (phase) => {
+        const framePosition = phase * frameCount;
+        const currentIndex = Math.floor(framePosition) % frameCount;
+        const nextIndex = (currentIndex + 1) % frameCount;
+        const mix = framePosition - Math.floor(framePosition);
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = "source-over";
+        context.globalAlpha = 1 - mix;
+        context.drawImage(
+          frames[currentIndex],
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
+        context.globalCompositeOperation = "source-over";
+        context.globalAlpha = mix;
+        context.drawImage(
+          frames[nextIndex],
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
+        context.globalAlpha = 1;
+        context.globalCompositeOperation = "source-over";
+        earth.classList.add("is-motion-ready");
+      };
+
+      const stop = () => {
+        if (animationFrameId !== 0) {
+          window.cancelAnimationFrame(animationFrameId);
+          animationFrameId = 0;
+        }
+        previousTime = null;
+      };
+
+      const drawFrame = (now) => {
+        animationFrameId = 0;
+
+        if (reducedMotion.matches || document.hidden || !isIntersecting) {
+          previousTime = null;
+          return;
+        }
+
+        if (previousTime === null) {
+          previousTime = now;
+        } else {
+          elapsed =
+            (elapsed + Math.min(now - previousTime, 100)) % rotationDuration;
+          previousTime = now;
+        }
+
+        if (now - previousPaint >= paintInterval) {
+          render(elapsed / rotationDuration);
+          previousPaint = now;
+        }
+
+        animationFrameId = window.requestAnimationFrame(drawFrame);
+      };
+
+      const start = () => {
+        if (
+          animationFrameId !== 0 ||
+          reducedMotion.matches ||
+          document.hidden ||
+          !isIntersecting
+        ) {
+          return;
+        }
+
+        previousTime = null;
+        animationFrameId = window.requestAnimationFrame(drawFrame);
+      };
+
+      const updateMotion = () => {
+        if (reducedMotion.matches) {
+          stop();
+          elapsed = 0;
+          render(0);
+          return;
+        }
+
+        if (document.hidden || !isIntersecting) {
+          stop();
+        } else {
+          start();
+        }
+      };
+
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(([entry]) => {
+          isIntersecting = entry?.isIntersecting ?? true;
+          updateMotion();
+        });
+        observer.observe(earth);
+        window.addEventListener("pagehide", () => observer.disconnect(), {
+          once: true,
+        });
+      }
+
+      document.addEventListener("visibilitychange", updateMotion);
+      if ("addEventListener" in reducedMotion) {
+        reducedMotion.addEventListener("change", updateMotion);
+      } else {
+        reducedMotion.addListener(updateMotion);
+      }
+
+      window.addEventListener("pagehide", stop, { once: true });
+      render(0);
+      updateMotion();
+    };
+
+    const beginEarthMotion = () => {
+      startEarthMotion().catch(() => {
+        earth.classList.add("has-static-earth");
+      });
+    };
+
+    if (document.documentElement.dataset.pageSettled === "true") {
+      beginEarthMotion();
+    } else {
+      document.addEventListener("burns:page-settled", beginEarthMotion, {
+        once: true,
+      });
+    }
+  })();
+</script>

@@ -59,6 +59,48 @@ test("Writing production assets meet dimensions and byte budgets", async () => {
       .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
+    let visiblePixels = 0;
+    let nearBlackPixels = 0;
+    let maximumAlpha = 0;
+    const lunarAlphaValues: number[] = [];
+    for (let offset = 0; offset < data.length; offset += info.channels) {
+      maximumAlpha = Math.max(maximumAlpha, data[offset + 3]);
+      if (data[offset + 3] > 3) lunarAlphaValues.push(data[offset + 3]);
+      if (data[offset + 3] < 32) continue;
+      visiblePixels += 1;
+      const luma =
+        data[offset] * 0.2126 +
+        data[offset + 1] * 0.7152 +
+        data[offset + 2] * 0.0722;
+      if (luma < 12) nearBlackPixels += 1;
+    }
+    assert.ok(visiblePixels > 0, `${phase} must contain a visible lunar disk`);
+    if (phase.includes("-0-new")) {
+      assert.ok(maximumAlpha < 160, `${phase} should remain a faint earthshine`);
+    }
+    lunarAlphaValues.sort((left, right) => left - right);
+    const alphaPercentile = (percentile: number) =>
+      lunarAlphaValues[
+        Math.floor((lunarAlphaValues.length - 1) * percentile)
+      ];
+    if (phase.includes("-0-new")) {
+      assert.ok(
+        alphaPercentile(0.9) < 70,
+        `${phase} should dissolve into the paper instead of reading as a gray disk`,
+      );
+    }
+    if (phase.includes("crescent")) {
+      assert.ok(alphaPercentile(0.5) < 70, `${phase} night side is too opaque`);
+      assert.ok(alphaPercentile(0.9) > 150, `${phase} crescent is too faint`);
+    }
+    if (phase.includes("quarter")) {
+      assert.ok(alphaPercentile(0.25) < 60, `${phase} night side is too opaque`);
+      assert.ok(alphaPercentile(0.75) > 150, `${phase} lit side is too faint`);
+    }
+    assert.ok(
+      nearBlackPixels / visiblePixels < 0.015,
+      `${phase} contains a flat near-black mask`,
+    );
     for (let y = 0; y < 32; y += 1) {
       for (let x = 0; x < 32; x += 1) {
         const corners = [

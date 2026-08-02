@@ -12,15 +12,6 @@ const baseEntry = z.object({
   draft: z.boolean().default(false),
 });
 
-const writing = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/writing" }),
-  schema: baseEntry.extend({
-    number: z.string(),
-    readingTime: z.string(),
-    deck: z.string().optional(),
-  }),
-});
-
 const docs = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/docs" }),
   schema: baseEntry.extend({
@@ -30,16 +21,4 @@ const docs = defineCollection({
   }),
 });
 
-const projects = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/projects" }),
-  schema: baseEntry.extend({
-    number: z.string(),
-    repo: z.url(),
-    demo: z.url().optional(),
-    language: z.string(),
-    status: z.enum(["active", "maintained", "experiment", "archived"]),
-    command: z.string(),
-  }),
-});
-
-export const collections = { writing, docs, projects };
+export const collections = { docs };

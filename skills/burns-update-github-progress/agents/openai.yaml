@@ -1,0 +1,4 @@
+interface:
+  display_name: "Burns GitHub Progress"
+  short_description: "把已核对的 GitHub 项目进度写入 Burns 博客"
+  default_prompt: "Use $burns-update-github-progress to record this verified repository update in the Burns blog."

@@ -5,3 +5,11 @@ dist/
 .env
 .env.*
 !.env.example
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+public/media/
+*.pem
+*.key
+.deploy/
+.content-backup/
