@@ -43,6 +43,7 @@ install -d -m 0750 -o root -g burns-blog /etc/burns-blog
 install -d -m 0755 -o nginx -g nginx /var/www/letsencrypt
 timedatectl set-timezone Asia/Shanghai
 systemctl enable nginx
+systemctl enable --now certbot-renew.timer
 
 /usr/local/bin/node --version
 git --version

@@ -31,6 +31,7 @@ test("systemd runs the app as an unprivileged persistent service", () => {
   assert.match(service, /EnvironmentFile=\/etc\/burns-blog\/app\.env/);
   assert.match(service, /ReadWritePaths=\/var\/lib\/burns-blog/);
   assert.match(bootstrap, /usermod -a -G burns-blog nginx/);
+  assert.match(bootstrap, /systemctl enable --now certbot-renew\.timer/);
   assert.match(read("ops/systemd/burns-blog-backup.timer"), /Persistent=true/);
 });
 
