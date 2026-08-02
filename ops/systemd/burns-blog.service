@@ -9,6 +9,7 @@ User=burns-blog
 Group=burns-blog
 WorkingDirectory=/opt/burns-blog/current
 EnvironmentFile=/etc/burns-blog/app.env
+EnvironmentFile=-/etc/burns-blog/release.env
 Environment=HOST=127.0.0.1
 Environment=PORT=4321
 ExecStart=/usr/local/bin/node /opt/burns-blog/current/dist/server/entry.mjs

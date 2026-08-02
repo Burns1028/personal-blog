@@ -64,6 +64,9 @@ previous_target="$(readlink "$current_link" 2>/dev/null || true)"
 next_link="${current_link}.next"
 ln -sfn "$release_dir" "$next_link"
 mv -Tf "$next_link" "$current_link"
+printf 'BURNS_RELEASE_SHA=%s\n' "$release_sha" > /etc/burns-blog/release.env
+chown root:burns-blog /etc/burns-blog/release.env
+chmod 0640 /etc/burns-blog/release.env
 systemctl restart burns-blog.service
 
 if ! curl --fail --silent --retry 15 --retry-delay 1 --retry-all-errors \
@@ -71,6 +74,7 @@ if ! curl --fail --silent --retry 15 --retry-delay 1 --retry-all-errors \
   if [[ -n "$previous_target" ]]; then
     ln -sfn "$previous_target" "$next_link"
     mv -Tf "$next_link" "$current_link"
+    printf 'BURNS_RELEASE_SHA=%s\n' "$(basename "$previous_target")" > /etc/burns-blog/release.env
     systemctl restart burns-blog.service
   fi
   exit 1
