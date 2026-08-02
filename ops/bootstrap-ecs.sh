@@ -36,6 +36,7 @@ ln -sfn "/opt/node-v${NODE_VERSION}-linux-${node_arch}/bin/npx" /usr/local/bin/n
 ln -sfn "/opt/node-v${NODE_VERSION}-linux-${node_arch}/bin/corepack" /usr/local/bin/corepack
 
 id burns-blog >/dev/null 2>&1 || useradd --system --create-home --home-dir /home/burns-blog --shell /bin/bash burns-blog
+usermod -a -G burns-blog nginx
 install -d -m 0755 -o burns-blog -g burns-blog /opt/burns-blog /opt/burns-blog/releases /opt/burns-blog/repository
 install -d -m 0750 -o burns-blog -g burns-blog /var/lib/burns-blog /var/lib/burns-blog/media /var/lib/burns-blog/media/articles /var/lib/burns-blog/backups
 install -d -m 0750 -o root -g burns-blog /etc/burns-blog

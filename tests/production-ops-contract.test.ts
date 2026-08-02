@@ -26,9 +26,11 @@ test("Nginx protects publishing routes and serves persistent media", () => {
 
 test("systemd runs the app as an unprivileged persistent service", () => {
   const service = read("ops/systemd/burns-blog.service");
+  const bootstrap = read("ops/bootstrap-ecs.sh");
   assert.match(service, /User=burns-blog/);
   assert.match(service, /EnvironmentFile=\/etc\/burns-blog\/app\.env/);
   assert.match(service, /ReadWritePaths=\/var\/lib\/burns-blog/);
+  assert.match(bootstrap, /usermod -a -G burns-blog nginx/);
   assert.match(read("ops/systemd/burns-blog-backup.timer"), /Persistent=true/);
 });
 
