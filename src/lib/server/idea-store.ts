@@ -71,7 +71,7 @@ function normalizeDate(value: string): string {
   return capturedAt;
 }
 
-function validateIdea(input: IdeaInput): IdeaInput {
+export function validateIdea(input: IdeaInput): IdeaInput {
   const text = input.text.trim();
   const theme = input.theme.trim();
 
