@@ -1,0 +1,26 @@
+[Unit]
+Description=Burns personal blog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=burns-blog
+Group=burns-blog
+WorkingDirectory=/opt/burns-blog/current
+EnvironmentFile=/etc/burns-blog/app.env
+Environment=HOST=127.0.0.1
+Environment=PORT=4321
+ExecStart=/usr/local/bin/node /opt/burns-blog/current/dist/server/entry.mjs
+Restart=on-failure
+RestartSec=3s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/burns-blog
+ReadWritePaths=/var/lib/burns-blog
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

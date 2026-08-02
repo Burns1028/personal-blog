@@ -1,0 +1,19 @@
+[Unit]
+Description=Back up the Burns blog SQLite database
+After=burns-blog.service
+
+[Service]
+Type=oneshot
+User=burns-blog
+Group=burns-blog
+WorkingDirectory=/opt/burns-blog/current
+EnvironmentFile=/etc/burns-blog/app.env
+Environment=TZ=Asia/Shanghai
+ExecStart=/usr/local/bin/node /opt/burns-blog/current/ops/backup-sqlite.mjs
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/burns-blog
+ReadWritePaths=/var/lib/burns-blog
+UMask=0077
