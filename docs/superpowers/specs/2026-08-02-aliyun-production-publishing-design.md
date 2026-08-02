@@ -6,7 +6,9 @@
 
 把当前 Burns Blog 完整部署到杭州 ECS `i-bp1bcc626i6ygsbfg71k`，以 `https://burnsgao.me` 作为唯一正式入口，并保留现有首页、Writing、Projects、Ideas、旋转地球、月相与全部视觉素材。
 
-生产环境继续以 SQLite 作为文章、灵感、项目和活动的唯一事实源。新增受保护的文章与灵感写入接口，让 `burns-upload-article` 和 `burns-upload-idea` 两个 Skill 可以通过生产凭据完成远程校验、发布、更新和查询，不在前端保留 Mock，也不把密钥写进仓库。
+生产环境继续以 SQLite 作为文章、灵感、项目和活动的唯一事实源。新增受保护的文章与灵感写入接口，让 `burns-upload-article` 和 `burns-upload-idea` 两个 Skill 只通过生产凭据完成远程校验、发布、更新和查询。两个 Skill 不再提供本地 SQLite 发布模式。
+
+代码以私有 GitHub 仓库 `Burns1028/personal-blog` 作为唯一同步源。ECS 只按明确的 commit SHA 创建 release，不接收手工复制的代码目录。数据库、运行时媒体和凭据不进入 Git。
 
 ## 已确认环境
 
@@ -18,6 +20,7 @@
 - 当前 DNS 只有一个 `*` 类型的 A 记录，且没有指向目标 ECS；根域 `@` 没有记录。
 - 当前应用是 Astro Node standalone SSR，运行时要求 Node.js 24.15 或更高版本。
 - 当前数据库默认位于 `data/blog.sqlite`；文章素材默认写入 `public/media/articles`。
+- 当前 Git 仓库没有有效远端；受跟踪文件约 24 MB，没有超过 GitHub 单文件限制的文件。
 
 ## 方案比较
 
@@ -68,6 +71,30 @@ blog.sqlite              media/articles/
 
 Astro 仅监听 `127.0.0.1:4321`。Nginx 是唯一公网入口。应用由独立的 `burns-blog` 系统用户运行，不使用 root。
 
+## Git 代码同步
+
+创建私有 GitHub 仓库 `Burns1028/personal-blog`，并把它设置为本地 `origin`。私有仓库保存应用源码、锁文件、数据库迁移、部署脚本和实际运行所需的优化后静态素材。
+
+以下内容不得提交：
+
+- `data/*.sqlite`、WAL 与 SHM 文件；
+- `/var/lib/burns-blog` 的运行时媒体；
+- `.env`、发布密钥、证书私钥和 ECS SSH 密钥；
+- `node_modules`、`dist` 和构建缓存；
+- 不参与运行的大型临时生成素材与中间文件。
+
+代码同步流程：
+
+1. 本地完成测试与构建。
+2. 只提交经过审阅的代码和运行素材。
+3. 推送到私有仓库的 `main` 分支。
+4. 记录待部署 commit SHA。
+5. ECS 使用只读 GitHub Deploy Key 获取该 commit。
+6. 在新的 release 目录执行 `npm ci` 与生产构建。
+7. 健康检查通过后原子切换 `current`。
+
+推送代码不会自动上线。上线必须显式执行部署命令并传入 commit SHA，避免尚未验收的提交自动替换生产版本。后续若接入 GitHub Actions，也沿用相同的 commit 锁定、健康检查和回滚契约。
+
 ## DNS 与 TLS
 
 正式域名为 `burnsgao.me`，`www.burnsgao.me` 只作为别名并重定向到根域。
@@ -93,7 +120,7 @@ SITE_URL=https://burnsgao.me
 
 文章 Markdown 中的最终素材 URL 继续保持 `/media/articles/<slug>/<asset>.webp`。Nginx 直接映射持久素材目录，因此后续通过 Skill 新增的图片不依赖重新构建 Astro，也不会随代码回滚丢失。
 
-本地开发仍默认使用 `public/media/articles`；只有设置 `BLOG_MEDIA_PATH` 时才切换到外部持久目录。
+本地开发仍可使用临时 SQLite 和 `public/media/articles` 做测试，但它不是内容发布入口。所有正式文章和灵感只通过远程私有 API 写入生产 SQLite。
 
 SQLite 保持 WAL 模式、事务写入和单实例运行。应用发布前创建一致性备份；每日通过 systemd timer 备份一次，保留最近 14 份。数据库迁移必须向后兼容当前和上一个应用版本。
 
@@ -185,9 +212,9 @@ SHA-256 request body
 
 Nginx 不记录认证头，应用错误不得输出密钥、签名或素材正文。
 
-## 两个 Skill 的远程模式
+## 两个远程发布 Skill
 
-`burns-upload-article` 和 `burns-upload-idea` 保留现有本地 SQLite 模式，并增加统一远程配置：
+`burns-upload-article` 和 `burns-upload-idea` 只提供远程发布模式，使用统一配置：
 
 ```text
 BURNS_PUBLISH_URL=https://burnsgao.me
@@ -216,23 +243,25 @@ Skill 的远程模式不会直接访问 SQLite、SSH 或服务器文件系统。
 
 ## 部署传输与初始化
 
-当前安全组未开放 22，也没有实例 Key Pair。首次发布按以下流程完成：
+当前安全组未开放 22，也没有实例 Key Pair。首次发布不需要开放 SSH：
 
-1. 本地生成一次性 SSH 密钥。
-2. 通过 Cloud Assistant 创建无 sudo 权限的临时传输用户并写入公钥。
-3. 仅对当前本机公网 IPv4 的 `/32` 临时开放安全组 22。
-4. 上传排除 `.git`、`node_modules`、`design-source`、测试和本地密钥的发布包。
-5. 通过 Cloud Assistant 以 root 安装 Node.js 24、Nginx、证书工具并完成系统目录和 systemd 配置。
-6. 发布完成后删除临时传输用户、公钥和安全组 22 规则。
+1. 本机安装 GitHub CLI 并通过浏览器 OAuth 登录 GitHub。
+2. 创建私有仓库 `Burns1028/personal-blog`，把当前仓库历史和已审阅工作区内容推送到 `main`。
+3. 通过 Cloud Assistant 在 ECS 创建 `burns-blog` 系统用户，安装 Git、Node.js 24、Nginx 和证书工具。
+4. 在 ECS 为 `burns-blog` 生成专用 SSH Deploy Key，只把公钥添加到该 GitHub 仓库，权限设为只读。
+5. ECS 使用 Deploy Key 克隆私有仓库，并按指定 commit SHA 创建首个 release。
+6. 完成 systemd、Nginx、持久目录、DNS、TLS 和健康检查后切换上线。
 
-未来文章和灵感更新只走 HTTPS API，不重新开放 SSH。未来代码版本部署可重复上述一次性传输流程或另行接入 CI/CD。
+安全组始终只保留 80/443，不因代码同步开放 22。GitHub Deploy Key 只能读取一个仓库，不能推送代码，也不能访问其他仓库。
+
+首次内容迁移不复制本地 SQLite 文件到服务器。部署 API 后，从当前本地 SQLite 导出真实文章、文章素材和灵感，分别通过两个远程 Skill 写入生产数据库。Projects 与 Activities 不混入这两个接口，继续由独立的项目进度发布链管理。这样 Git 只负责代码，各内容接口只负责自己的数据，生产 SQLite 从第一天就是独立事实源。
 
 ## 原子发布与回滚
 
 每次代码发布：
 
-1. 上传到新的 release 目录。
-2. 安装锁定依赖并构建。
+1. 从私有 GitHub 仓库获取明确的 commit SHA，并在新的 release 目录检出。
+2. 用锁文件安装依赖并构建。
 3. 使用生产环境变量在独立端口运行健康检查。
 4. 备份 SQLite。
 5. 原子切换 `current` 软链接。
@@ -285,7 +314,8 @@ Skill 的远程模式不会直接访问 SQLite、SSH 或服务器文件系统。
 
 ### Skills
 
-- 两个 Skill 的本地模式测试继续通过。
+- 两个 Skill 不包含本地 SQLite 写入路径，缺少远程 URL 或生产凭据时必须失败。
+- 两个 Skill 的请求构造与签名使用临时 HTTP 服务和临时 SQLite 完成自动化测试，但不向用户暴露本地发布模式。
 - 两个 Skill 的远程 validate 在生产环境通过且不制造测试内容。
 - 一篇明确授权的真实文章和一条明确授权的真实灵感能够远程发布并在页面读取。
 - 凭据不存在于仓库、shell 历史、命令输出、应用日志或前端资源中。
@@ -295,4 +325,6 @@ Skill 的远程模式不会直接访问 SQLite、SSH 或服务器文件系统。
 - systemd 开机自启且异常退出自动重启。
 - 数据库备份 timer 正常，最近备份可通过 SQLite integrity check。
 - 上一个 release 可以在不触碰持久内容的情况下恢复。
-- 安全组最终只保留部署所需的 80/443 公网入口，不保留临时 22 规则。
+- ECS 当前 release 能映射到一个已推送的 GitHub commit SHA。
+- GitHub Deploy Key 只有目标私有仓库的只读权限。
+- 安全组只保留部署所需的 80/443 公网入口。
