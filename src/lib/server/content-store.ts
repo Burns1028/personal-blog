@@ -176,6 +176,16 @@ const schema = `
 
   CREATE INDEX IF NOT EXISTS idx_article_assets_article
     ON article_assets(article_id, sort_order, id);
+
+  CREATE TABLE IF NOT EXISTS publish_nonces (
+    key_id TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    used_at TEXT NOT NULL,
+    PRIMARY KEY (key_id, nonce)
+  ) STRICT;
+
+  CREATE INDEX IF NOT EXISTS idx_publish_nonces_used_at
+    ON publish_nonces(used_at);
 `;
 
 let sharedDatabase: DatabaseSync | undefined;
