@@ -46,7 +46,7 @@ const archiveImpressionistEarthDirectory = resolve(
 );
 const archiveImpressionistEarthSource = resolve(
   archiveImpressionistEarthDirectory,
-  "candidate-oil.png",
+  "candidate-oil-refined.png",
 );
 const archiveImpressionistEarthMaster = resolve(
   archiveImpressionistEarthDirectory,
@@ -233,7 +233,7 @@ async function writeSeamlessImpressionistEarthMaster() {
   const { data, info } = await sharp(archiveImpressionistEarthSource)
     .resize({ width: 2048, height: 1024, fit: "fill" })
     .removeAlpha()
-    .modulate({ brightness: 0.82, saturation: 0.92 })
+    .modulate({ brightness: 1.08, saturation: 1.06 })
     .raw()
     .toBuffer({ resolveWithObject: true });
   const output = Buffer.from(data);

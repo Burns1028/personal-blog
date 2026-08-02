@@ -13,6 +13,10 @@ Create a flat equirectangular planetary surface texture for a continuously rotat
 
 Translate the surface into restrained impressionist oil painting: cobalt, ultramarine and ink-blue oceans; muted ochre, grey-green and ivory land; visible dry-brush marks; loose white-grey cloud strokes; simplified coastlines; low microdetail; museum-quality matte pigment on fine canvas. The result must remain clearly Earth but must not resemble a satellite photograph or 3D game material.
 
+### Candidate A refinement
+
+Change only the surface rendering of Candidate A so the impressionist medium survives the narrow globe crop: deepen cobalt, ultramarine and Prussian-blue oceans; cool and desaturate the land toward grey ochre; enlarge the visible dry-brush marks; use restrained ivory cloud strokes and luminous mixed pigment. Preserve the same geography and flat 2:1 map. This refined candidate is the production source.
+
 ## Candidate B — Celestial atlas
 
 Translate the same surface into a deep-blue celestial-atlas painting: ink-blue oceans, desaturated land, ivory cloud bands, subtle copperplate and hand-inked texture, restrained contrast, aged scientific illustration sensibility. Keep it painterly and non-photographic; do not add map labels, coordinates, borders, or symbols.
