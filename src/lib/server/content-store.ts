@@ -376,6 +376,13 @@ export function listArticleAssets(
   return rows.map(mapAssetRow);
 }
 
+export function deleteArticle(
+  slug: string,
+  database: DatabaseSync = getArticleDatabase(),
+): boolean {
+  return database.prepare("DELETE FROM articles WHERE slug = ?").run(slug).changes > 0;
+}
+
 export function upsertArticle(
   input: ArticleInput,
   assets: ArticleAssetInput[],

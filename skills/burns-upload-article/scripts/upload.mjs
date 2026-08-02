@@ -4,7 +4,7 @@ import { basename, dirname, extname, isAbsolute, resolve } from "node:path";
 import { signedPublishRequest } from "../../_shared/publish-client.mjs";
 
 function parseArguments(argv) {
-  const options = { status: "draft", featured: false, validate: false };
+  const options = { action: "upsert", status: "draft", featured: false, validate: false };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--featured" || argument === "--validate") {
@@ -83,34 +83,53 @@ function packageLocalImages(markdown, sourceFile) {
 }
 
 const options = parseArguments(process.argv.slice(2));
-if (!options.file) throw new Error("Missing value for --file");
 if (!options.slug) throw new Error("Missing value for --slug");
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(options.slug)) throw new Error("Article slug is invalid");
+if (!["upsert", "delete"].includes(options.action)) throw new Error("Article action is invalid");
 if (!["draft", "published", "archived"].includes(options.status)) throw new Error("Article status is invalid");
 
-const sourceFile = resolve(options.file);
-if (!existsSync(sourceFile)) throw new Error(`Article Markdown does not exist: ${sourceFile}`);
-let markdown = readFileSync(sourceFile, "utf8");
-if (options.number) markdown = setFrontmatterValue(markdown, "number", JSON.stringify(options.number));
-if (options.featured) markdown = setFrontmatterValue(markdown, "featured", "true");
-const packaged = packageLocalImages(markdown, sourceFile);
-const path = options.validate
-  ? `/api/publish/articles/${encodeURIComponent(options.slug)}/validate`
-  : `/api/publish/articles/${encodeURIComponent(options.slug)}`;
-const result = await signedPublishRequest(path, {
-  method: options.validate ? "POST" : "PUT",
-  body: {
-    slug: options.slug,
-    status: options.status,
-    sourceName: basename(sourceFile),
-    markdown: packaged.markdown,
-    assets: packaged.assets,
-  },
-});
+let result;
+if (options.action === "delete") {
+  if (options.validate) throw new Error("Article deletion cannot use --validate");
+  if (options["confirm-delete"] !== options.slug) {
+    throw new Error(`Deletion requires --confirm-delete ${options.slug}`);
+  }
+  result = await signedPublishRequest(
+    `/api/publish/articles/${encodeURIComponent(options.slug)}`,
+    {
+      method: "DELETE",
+      headers: { "x-burns-confirm-delete": options.slug },
+    },
+  );
+  if (result.data?.slug !== options.slug || typeof result.data?.deleted !== "boolean") {
+    throw new Error("Article deletion response is incomplete");
+  }
+} else {
+  if (!options.file) throw new Error("Missing value for --file");
+  const sourceFile = resolve(options.file);
+  if (!existsSync(sourceFile)) throw new Error(`Article Markdown does not exist: ${sourceFile}`);
+  let markdown = readFileSync(sourceFile, "utf8");
+  if (options.number) markdown = setFrontmatterValue(markdown, "number", JSON.stringify(options.number));
+  if (options.featured) markdown = setFrontmatterValue(markdown, "featured", "true");
+  const packaged = packageLocalImages(markdown, sourceFile);
+  const path = options.validate
+    ? `/api/publish/articles/${encodeURIComponent(options.slug)}/validate`
+    : `/api/publish/articles/${encodeURIComponent(options.slug)}`;
+  result = await signedPublishRequest(path, {
+    method: options.validate ? "POST" : "PUT",
+    body: {
+      slug: options.slug,
+      status: options.status,
+      sourceName: basename(sourceFile),
+      markdown: packaged.markdown,
+      assets: packaged.assets,
+    },
+  });
 
-if (result.data?.slug !== options.slug) throw new Error("Publishing response slug does not match");
-if (result.data?.status !== options.status) throw new Error("Publishing response status does not match");
-if (!options.validate && (!Number.isInteger(result.data?.revision) || !Array.isArray(result.data?.assets))) {
-  throw new Error("Publishing response is incomplete");
+  if (result.data?.slug !== options.slug) throw new Error("Publishing response slug does not match");
+  if (result.data?.status !== options.status) throw new Error("Publishing response status does not match");
+  if (!options.validate && (!Number.isInteger(result.data?.revision) || !Array.isArray(result.data?.assets))) {
+    throw new Error("Publishing response is incomplete");
+  }
 }
 console.log(JSON.stringify(result, null, 2));

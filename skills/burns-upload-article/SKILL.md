@@ -30,6 +30,17 @@ node skills/burns-upload-article/scripts/upload.mjs --file /absolute/article.md 
 
 5. Publish by removing `--validate`. Confirm the response slug, status, revision, URL, and asset list. Repeating unchanged content must preserve the revision.
 
+## Delete
+
+Delete only when the user explicitly authorizes it. The stable slug must be repeated as confirmation:
+
+```bash
+node skills/burns-upload-article/scripts/upload.mjs \
+  --action delete --slug stable-slug --confirm-delete stable-slug
+```
+
+Confirm the response reports the same slug and `deleted: true`. Deleting a test article also removes its production media directory.
+
 ## Safety
 
 - Default uncertain work to `draft`.

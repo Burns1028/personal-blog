@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
 import {
+  deleteArticlePackage,
   publishArticlePackage,
   type ArticlePublishPackage,
 } from "../../../../lib/server/article-publisher.ts";
@@ -53,6 +54,34 @@ export async function PUT({ request, params }: APIContext): Promise<Response> {
       400,
       "PUBLISH_ARTICLE_INVALID",
       error instanceof Error ? error.message : "文章数据无效。",
+    );
+  }
+}
+
+export async function DELETE({ request, params }: APIContext): Promise<Response> {
+  const database = getArticleDatabase();
+  try {
+    await verifyPublishRequest(request, database);
+  } catch {
+    return publishAuthError();
+  }
+
+  const slug = params.slug ?? "";
+  if (request.headers.get("x-burns-confirm-delete") !== slug) {
+    return publishError(400, "PUBLISH_DELETE_CONFIRMATION", "删除确认与文章 slug 不一致。");
+  }
+
+  try {
+    const deleted = deleteArticlePackage(slug, {
+      database,
+      mediaRoot: process.env.BLOG_MEDIA_PATH ?? "public/media/articles",
+    });
+    return publishSuccess({ slug, deleted });
+  } catch (error) {
+    return publishError(
+      400,
+      "PUBLISH_ARTICLE_DELETE_INVALID",
+      error instanceof Error ? error.message : "文章删除失败。",
     );
   }
 }

@@ -13,6 +13,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { parseFrontmatter } from "@astrojs/markdown-remark";
 import sharp from "sharp";
 import {
+  deleteArticle,
   upsertArticle,
   type ArticleAssetInput,
   type ArticleStatus,
@@ -59,6 +60,11 @@ export interface ArticlePublishResult {
   validated: boolean;
   article: Pick<StoredArticle, "slug" | "status" | "revision">;
   assets: PublishedAsset[];
+}
+
+export interface ArticleDeleteOptions {
+  database: DatabaseSync;
+  mediaRoot: string;
 }
 
 const imagePattern =
@@ -383,5 +389,31 @@ export async function publishArticlePackage(
     if (existsSync(stageDirectory)) {
       rmSync(stageDirectory, { recursive: true, force: true });
     }
+  }
+}
+
+export function deleteArticlePackage(
+  slug: string,
+  options: ArticleDeleteOptions,
+): boolean {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new TypeError("Article slug is invalid.");
+  }
+
+  const finalDirectory = join(options.mediaRoot, slug);
+  const backupDirectory = join(options.mediaRoot, `.delete-${slug}-${randomUUID()}`);
+  const hasMedia = existsSync(finalDirectory);
+  if (hasMedia) renameSync(finalDirectory, backupDirectory);
+
+  try {
+    const deleted = deleteArticle(slug, options.database);
+    if (!deleted && hasMedia) renameSync(backupDirectory, finalDirectory);
+    if (deleted && hasMedia) rmSync(backupDirectory, { recursive: true, force: true });
+    return deleted;
+  } catch (error) {
+    if (hasMedia && existsSync(backupDirectory)) {
+      renameSync(backupDirectory, finalDirectory);
+    }
+    throw error;
   }
 }

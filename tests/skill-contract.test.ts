@@ -25,6 +25,8 @@ test("article publication Skill has one validated upload path", () => {
   assert.match(instructions, /scripts\/upload\.mjs/);
   assert.match(interfaceYaml, /\$burns-upload-article/);
   assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.match(runner, /x-burns-confirm-delete/);
+  assert.match(instructions, /## Delete/);
   assert.doesNotMatch(runner, /import-article|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
   assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });

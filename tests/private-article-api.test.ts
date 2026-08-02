@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, createHmac } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -100,6 +100,66 @@ test("article publishing requires authentication and validation is read-only", a
     assert.equal(result.revision, 1);
     assert.equal(result.url, "/writing/verified-article");
     assert.deepEqual(result.assets, []);
+  } finally {
+    closeArticleDatabase();
+    delete process.env.BLOG_DB_PATH;
+    delete process.env.BLOG_MEDIA_PATH;
+    delete process.env.BURNS_PUBLISH_KEYS;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("article publishing supports signed confirmed deletion", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "burns-delete-article-"));
+  process.env.BLOG_DB_PATH = join(directory, "blog.sqlite");
+  process.env.BLOG_MEDIA_PATH = join(directory, "media");
+  process.env.BURNS_PUBLISH_KEYS = `primary:${secret}`;
+
+  try {
+    const articleModule = await import("../src/pages/api/publish/articles/[slug].ts");
+    assert.equal(typeof articleModule.DELETE, "function");
+
+    const published = await PUT({
+      request: request("PUT", "/api/publish/articles/verified-article", payload),
+      params: { slug: "verified-article" },
+    } as never);
+    assert.equal(published.status, 200);
+    assert.equal(existsSync(join(process.env.BLOG_MEDIA_PATH, "verified-article")), true);
+
+    const unconfirmedRequest = request(
+      "DELETE",
+      "/api/publish/articles/verified-article",
+      {},
+    );
+    const unconfirmed = await articleModule.DELETE({
+      request: unconfirmedRequest,
+      params: { slug: "verified-article" },
+    } as never);
+    assert.equal(unconfirmed.status, 400);
+
+    const deleteRequest = request(
+      "DELETE",
+      "/api/publish/articles/verified-article",
+      {},
+    );
+    deleteRequest.headers.set("x-burns-confirm-delete", "verified-article");
+    const deleted = await articleModule.DELETE({
+      request: deleteRequest,
+      params: { slug: "verified-article" },
+    } as never);
+    assert.equal(deleted.status, 200);
+    assert.deepEqual((await deleted.json()).data, {
+      slug: "verified-article",
+      deleted: true,
+    });
+
+    const database = createArticleDatabase(process.env.BLOG_DB_PATH);
+    assert.equal(
+      (database.prepare("SELECT count(*) AS count FROM articles").get() as { count: number }).count,
+      0,
+    );
+    database.close();
+    assert.equal(existsSync(join(process.env.BLOG_MEDIA_PATH, "verified-article")), false);
   } finally {
     closeArticleDatabase();
     delete process.env.BLOG_DB_PATH;
