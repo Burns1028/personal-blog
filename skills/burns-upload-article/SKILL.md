@@ -5,30 +5,34 @@ description: Use when publishing or updating a Markdown article, including local
 
 # Burns Upload Article
 
-Publish one trusted Markdown source through the blog's SQLite importer. Keep SQLite as the only runtime source; never add the article to `src/content/writing` or hardcode it in a page.
+Publish one trusted Markdown article to the production Burns blog through its signed HTTPS API. This Skill has no local database fallback.
+
+## Configuration
+
+Set `BURNS_PUBLISH_URL=https://burnsgao.me` and `BURNS_PUBLISH_KEY_ID=primary`. Store the hexadecimal secret in macOS Keychain:
+
+```bash
+security add-generic-password -U -a Burns -s burns-blog-publisher -w
+```
+
+Missing URL, Key ID, or secret is a hard failure.
 
 ## Workflow
 
-1. Locate the `burns-personal-blog` repository. Set `BURNS_BLOG_ROOT` or pass `--project-root` when running outside it.
-2. Start from `assets/article-template.md` when creating a source. Require a non-empty `title`; prefer explicit `summary`, `publishedAt`, `tags`, `number`, and `status` frontmatter.
-3. Keep article images as local files referenced by relative or absolute Markdown paths. Write specific alt text. The importer converts them to WebP, archives them under `public/media/articles/<slug>/`, and rewrites the Markdown.
-4. Choose a stable lowercase ASCII slug. Always pass it explicitly for a flat Markdown file.
-5. Run:
+1. Start from `assets/article-template.md`. Require a title and explicit publication metadata.
+2. Keep local images beside the Markdown and reference them with relative paths. The client packages them; production converts them to WebP.
+3. Use a stable lowercase slug and choose `draft`, `published`, or `archived` deliberately.
+4. Validate without writing:
 
 ```bash
-node skills/burns-upload-article/scripts/upload.mjs \
-  --project-root /absolute/path/to/personal-blog \
-  --file /absolute/path/to/article.md \
-  --slug stable-article-slug \
-  --status published
+node skills/burns-upload-article/scripts/upload.mjs --file /absolute/article.md --slug stable-slug --status published --validate
 ```
 
-6. Read the JSON result. Confirm the expected slug, status, revision, URL, and every imported asset. A repeated unchanged upload must preserve the revision; changed Markdown must increment it.
-7. Run the relevant content tests or build before reporting publication complete.
+5. Publish by removing `--validate`. Confirm the response slug, status, revision, URL, and asset list. Repeating unchanged content must preserve the revision.
 
 ## Safety
 
-- Default new or uncertain work to `draft`; use `published` only when the user asked to publish.
-- Do not invent dates, sources, captions, or article claims.
-- Do not delete the source Markdown or original images unless separately authorized.
-- Do not write SQL directly or add a frontend fallback.
+- Default uncertain work to `draft`.
+- Do not invent dates, claims, captions, or sources.
+- Do not delete the source Markdown or images.
+- Never write SQLite directly, SSH content into production, or add frontend fallback data.

@@ -1,10 +1,10 @@
 # Burns’ Blog
 
-Burns 的 Astro 个人博客。Writing、Ideas、Projects 和 Project Activities 都以 `data/blog.sqlite` 为唯一事实源；页面不保留静态示例或前端 Mock 回退。
+Burns 的 Astro 个人博客。生产环境中的 Writing、Ideas、Projects 和 Project Activities 都以服务器持久化 SQLite 为事实源；Git 仓库只保存代码和视觉资产，不保存文章、灵感或生产数据库。
 
 ## 内容发布
 
-所有内容写入统一通过仓库内三个 Skill 完成：
+内容更新通过仓库内 Skill 调用生产 HTTPS 接口完成：
 
 - `skills/burns-upload-article`：发布含本地图片的 Markdown 文章；
 - `skills/burns-upload-idea`：记录或修订一条灵感；
@@ -12,21 +12,22 @@ Burns 的 Astro 个人博客。Writing、Ideas、Projects 和 Project Activities
 
 ### 发布文章
 
-模板位于 `skills/burns-upload-article/assets/article-template.md`。本地图片使用 Markdown 相对路径，导入时会压缩为 WebP 并归档到 `public/media/articles/<slug>/`。
+模板位于 `skills/burns-upload-article/assets/article-template.md`。本地图片使用 Markdown 相对路径，客户端会把图片与 Markdown 打包；生产端校验、压缩为 WebP，并写入持久素材目录。
 
 ```bash
 node skills/burns-upload-article/scripts/upload.mjs \
-  --project-root "$PWD" \
   --file /absolute/path/article.md \
   --slug article-slug \
-  --status published
+  --status published \
+  --validate
 ```
+
+校验通过后移除 `--validate` 才会写入生产数据库。
 
 ### 发布灵感
 
 ```bash
 node skills/burns-upload-idea/scripts/upload.mjs \
-  --project-root "$PWD" \
   --source-key 2026-08-02-observation \
   --text "一条真实观察。" \
   --theme "系统" \
@@ -52,7 +53,7 @@ node skills/burns-update-github-progress/scripts/upload.mjs \
   --activity-summary "What changed and why"
 ```
 
-三个 Skill 都支持 `BURNS_BLOG_ROOT`，也可显式传 `--project-root`。底层命令对应 `npm run article:upload`、`npm run idea:upload` 和 `npm run github:progress`。
+文章与灵感 Skill 需要 `BURNS_PUBLISH_URL=https://burnsgao.me`、`BURNS_PUBLISH_KEY_ID=primary`，并从 macOS Keychain 服务 `burns-blog-publisher` 读取密钥。配置缺失时直接失败，不会回退到本地数据库。底层命令对应 `npm run article:upload` 和 `npm run idea:upload`。
 
 ## 读取接口
 
@@ -62,7 +63,7 @@ node skills/burns-update-github-progress/scripts/upload.mjs \
 - `GET /api/projects`
 - `GET /api/activities?days=6`
 
-写入不通过前端或公开 API 完成，只走上述 Skill。`BLOG_DB_PATH` 可覆盖默认数据库路径 `./data/blog.sqlite`。
+写入不通过前端或公开 API 完成，只走签名后的私有接口。生产服务通过 `BLOG_DB_PATH` 和 `BLOG_MEDIA_PATH` 指向服务器持久目录。
 
 ## 本地运行
 

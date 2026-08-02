@@ -24,7 +24,9 @@ test("article publication Skill has one validated upload path", () => {
   assert.match(instructions, /description: Use when/);
   assert.match(instructions, /scripts\/upload\.mjs/);
   assert.match(interfaceYaml, /\$burns-upload-article/);
-  assert.match(runner, /scripts\/import-article\.ts/);
+  assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.doesNotMatch(runner, /import-article|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
+  assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });
 
 test("idea publication Skill has one validated upload path", () => {
@@ -36,7 +38,9 @@ test("idea publication Skill has one validated upload path", () => {
   assert.match(instructions, /description: Use when/);
   assert.match(instructions, /source-key/);
   assert.match(interfaceYaml, /\$burns-upload-idea/);
-  assert.match(runner, /scripts\/import-idea\.ts/);
+  assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.doesNotMatch(runner, /import-idea|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
+  assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });
 
 test("GitHub progress Skill records verified project facts and activity", () => {

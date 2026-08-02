@@ -1,105 +1,40 @@
 ---
 name: burns-upload-idea
-description: Use when recording, publishing, correcting, listing, or deleting one concise observation in the Burns personal blog Idea archive. Supports full CRUD via --action.
+description: Use when recording, publishing, correcting, listing, reading, or deleting one concise observation in the Burns personal blog Idea archive.
 ---
 
 # Burns Upload Idea
 
-Manage ideas in the Burns personal blog through the SQLite importer. Never append an idea to a TypeScript array or render it directly in a page.
+Manage production ideas only through the signed HTTPS API. This Skill has no local database fallback.
 
-## Operations
+## Configuration
 
-All operations use the same entry point with `--action`:
+Set `BURNS_PUBLISH_URL=https://burnsgao.me` and `BURNS_PUBLISH_KEY_ID=primary`. Store the hexadecimal secret in Keychain service `burns-blog-publisher`. Missing configuration is a hard failure.
 
-| Action | 用途 |
-|---|---|
-| `upsert` | 新增或更新一条想法（默认） |
-| `list` | 列出想法，支持按状态过滤 |
-| `get` | 按 source-key 查单条 |
-| `delete` | 按 source-key 删除 |
+## Upsert
 
----
-
-## Create / Update (upsert)
-
-1. Preserve the user's wording. Edit only for an explicitly requested correction; do not expand a small observation into invented copy.
-2. Choose a stable `source-key` using lowercase ASCII words and hyphens, such as `2026-08-02-evidence-before-confidence`. Reuse it when correcting the same idea.
-3. Set `captured-at` to the actual known time in ISO 8601 form. Include a timezone offset when available.
-4. Supply a short `theme`. Use `draft` when publication intent is uncertain, otherwise use the status the user requested.
-5. Run:
+Preserve the user's wording, choose one stable lowercase `source-key`, use the actual known `captured-at`, and validate before writing:
 
 ```bash
 node skills/burns-upload-idea/scripts/upload.mjs \
-  --project-root /absolute/path/to/personal-blog \
-  --action upsert \
-  --source-key 2026-08-02-observation \
-  --text "一条真实观察。" \
-  --theme "系统" \
-  --captured-at 2026-08-02T20:30:00+08:00 \
-  --status published
+  --action upsert --source-key 2026-08-02-observation \
+  --text "一条真实观察。" --theme "系统" \
+  --captured-at 2026-08-02T20:30:00+08:00 --status published --validate
 ```
 
-Add `--featured` only when the user explicitly wants the record prioritized. Read the JSON response and verify the source key, status, and capture time. Re-run the same command when correcting the record; the database must keep one row.
+Remove `--validate` to publish. Reusing a source key updates exactly one record.
 
----
+## Read
 
-## List
-
-List ideas, optionally filtered by status. Defaults to `published` when `--status` is omitted.
-
-```bash
-node skills/burns-upload-idea/scripts/upload.mjs \
-  --project-root /absolute/path/to/personal-blog \
-  --action list \
-  --status published
-```
-
-Status filter accepts: `published`, `draft`, `archived`, `all`.
-
-Output:
-```json
-{
-  "ideas": [{ "id": 1, "sourceKey": "...", "text": "...", ... }],
-  "count": 3
-}
-```
-
----
-
-## Get
-
-Fetch a single idea by source-key.
-
-```bash
-node skills/burns-upload-idea/scripts/upload.mjs \
-  --project-root /absolute/path/to/personal-blog \
-  --action get \
-  --source-key 2026-08-02-observation
-```
-
-Output: the full idea object as JSON, or `{ "found": false, "sourceKey": "..." }` with exit code 1.
-
----
+Use `--action list --status published` or `--action get --source-key <key>`.
 
 ## Delete
 
-Remove an idea by source-key.
+Delete only after explicit user authorization, and require the same key twice:
 
 ```bash
-node skills/burns-upload-idea/scripts/upload.mjs \
-  --project-root /absolute/path/to/personal-blog \
-  --action delete \
-  --source-key 2026-08-02-observation
+node skills/burns-upload-idea/scripts/upload.mjs --action delete \
+  --source-key observation --confirm-delete observation
 ```
 
-Output: `{ "deleted": true, "sourceKey": "..." }`. Exit code 1 if the key was not found.
-
----
-
-## Safety
-
-- Do not invent an observation, date, theme, or featured status.
-- Do not publish multiple ideas in one command.
-- Do not write SQL directly or add fallback mock content.
-- Report command validation errors instead of weakening required fields.
-- Confirm before deleting; never delete without the user explicitly asking.
+Never write SQL directly, invent content metadata, or add mock fallback data.
