@@ -42,6 +42,7 @@ if (options.action === "list") {
     result = await signedPublishRequest(endpoint, {
       method: "DELETE",
       headers: { "x-burns-confirm-delete": sourceKey },
+      body: {},
     });
   } else {
     const payload = {

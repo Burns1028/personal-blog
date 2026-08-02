@@ -99,6 +99,7 @@ if (options.action === "delete") {
     {
       method: "DELETE",
       headers: { "x-burns-confirm-delete": options.slug },
+      body: {},
     },
   );
   if (result.data?.slug !== options.slug || typeof result.data?.deleted !== "boolean") {

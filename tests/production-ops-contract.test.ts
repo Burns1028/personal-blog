@@ -11,8 +11,8 @@ test("Nginx protects publishing routes and serves persistent media", () => {
   assert.match(nginx, /server_name burnsgao\.me www\.burnsgao\.me/);
   assert.match(nginx, /alias \/var\/lib\/burns-blog\/media\/articles\//);
   assert.match(nginx, /client_max_body_size 32m/);
-  assert.match(nginx, /limit_req_zone .* zone=burns_publish:10m rate=10r\/m/);
-  assert.match(nginx, /limit_req zone=burns_publish burst=5 nodelay/);
+  assert.match(nginx, /limit_req_zone .* zone=burns_publish:10m rate=60r\/m/);
+  assert.match(nginx, /limit_req zone=burns_publish burst=20 nodelay/);
   assert.doesNotMatch(nginx, /Access-Control-Allow-Origin/);
 
   const mediaLocation = nginx.match(/location \^~ \/media\/articles\/ \{([\s\S]*?)\n    \}/)?.[1];

@@ -26,6 +26,7 @@ test("article publication Skill has one validated upload path", () => {
   assert.match(interfaceYaml, /\$burns-upload-article/);
   assert.match(runner, /_shared\/publish-client\.mjs/);
   assert.match(runner, /x-burns-confirm-delete/);
+  assert.match(runner, /method: "DELETE",[\s\S]*?body: \{\}/);
   assert.match(instructions, /## Delete/);
   assert.doesNotMatch(runner, /import-article|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
   assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
@@ -41,6 +42,7 @@ test("idea publication Skill has one validated upload path", () => {
   assert.match(instructions, /source-key/);
   assert.match(interfaceYaml, /\$burns-upload-idea/);
   assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.match(runner, /method: "DELETE",[\s\S]*?body: \{\}/);
   assert.doesNotMatch(runner, /import-idea|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
   assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });
