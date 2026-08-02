@@ -69,8 +69,15 @@ chown root:burns-blog /etc/burns-blog/release.env
 chmod 0640 /etc/burns-blog/release.env
 systemctl restart burns-blog.service
 
-if ! curl --fail --silent --retry 15 --retry-delay 1 --retry-all-errors \
-  http://127.0.0.1:4321/api/health >/dev/null; then
+service_healthy=false
+for attempt in {1..15}; do
+  if curl --fail --silent http://127.0.0.1:4321/api/health >/dev/null; then
+    service_healthy=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$service_healthy" != true ]]; then
   if [[ -n "$previous_target" ]]; then
     ln -sfn "$previous_target" "$next_link"
     mv -Tf "$next_link" "$current_link"
