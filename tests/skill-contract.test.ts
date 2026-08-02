@@ -61,5 +61,7 @@ test("GitHub progress Skill records verified project facts and activity", () => 
   assert.match(instructions, /description: Use when/);
   assert.match(instructions, /verified|核对/i);
   assert.match(interfaceYaml, /\$burns-update-github-progress/);
-  assert.match(runner, /scripts\/import-github-progress\.ts/);
+  assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.doesNotMatch(runner, /import-github-progress|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
+  assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });

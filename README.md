@@ -39,7 +39,6 @@ node skills/burns-upload-idea/scripts/upload.mjs \
 
 ```bash
 node skills/burns-update-github-progress/scripts/upload.mjs \
-  --project-root "$PWD" \
   --repo Burns1028/repository \
   --slug repository \
   --project-title "Project title" \
@@ -50,10 +49,11 @@ node skills/burns-update-github-progress/scripts/upload.mjs \
   --occurred-at 2026-08-02T21:00:00+08:00 \
   --kind progress \
   --activity-title "Concrete change" \
-  --activity-summary "What changed and why"
+  --activity-summary "What changed and why" \
+  --validate
 ```
 
-文章与灵感 Skill 需要 `BURNS_PUBLISH_URL=https://burnsgao.me`、`BURNS_PUBLISH_KEY_ID=primary`，并从 macOS Keychain 服务 `burns-blog-publisher` 读取密钥。配置缺失时直接失败，不会回退到本地数据库。底层命令对应 `npm run article:upload` 和 `npm run idea:upload`。
+三个 Skill 都需要 `BURNS_PUBLISH_URL=https://burnsgao.me`、`BURNS_PUBLISH_KEY_ID=primary`，并从 macOS Keychain 服务 `burns-blog-publisher` 读取密钥。配置缺失时直接失败，不会回退到本地数据库。底层命令对应 `npm run article:upload`、`npm run idea:upload` 和 `npm run github:progress`。
 
 ## 读取接口
 

@@ -14,7 +14,7 @@
     "assets:writing": "node scripts/build-writing-assets.mjs",
     "article:upload": "node skills/burns-upload-article/scripts/upload.mjs",
     "idea:upload": "node skills/burns-upload-idea/scripts/upload.mjs",
-    "github:progress": "node scripts/import-github-progress.ts",
+    "github:progress": "node skills/burns-update-github-progress/scripts/upload.mjs",
     "test:assets": "node --test tests/archive-assets.test.ts",
     "test:content": "node --test tests/*.test.ts",
     "dev": "astro dev",
