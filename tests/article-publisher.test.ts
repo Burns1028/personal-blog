@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -60,7 +60,9 @@ test("publishes a packaged article and preserves an unchanged revision", async (
       /^\/media\/articles\/verified-article\//,
     );
     assert.equal(unchanged.article.revision, first.article.revision);
-    assert.ok(existsSync(join(mediaRoot, "verified-article")));
+    const articleMediaDirectory = join(mediaRoot, "verified-article");
+    assert.ok(existsSync(articleMediaDirectory));
+    assert.equal(statSync(articleMediaDirectory).mode & 0o777, 0o750);
   } finally {
     database.close();
     rmSync(temporaryDirectory, { recursive: true, force: true });

@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -331,6 +332,7 @@ export async function publishArticlePackage(
 
   mkdirSync(options.mediaRoot, { recursive: true });
   const stageDirectory = mkdtempSync(join(options.mediaRoot, ".publish-"));
+  chmodSync(stageDirectory, 0o750);
   const finalDirectory = join(options.mediaRoot, prepared.slug);
   const backupDirectory = join(
     options.mediaRoot,
