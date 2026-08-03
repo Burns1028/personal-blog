@@ -13,3 +13,4 @@ public/media/
 *.key
 .deploy/
 .content-backup/
+.worktrees/
