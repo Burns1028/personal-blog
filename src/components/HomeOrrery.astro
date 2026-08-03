@@ -9,114 +9,155 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-artifact-stage
   data-active-artifact="none"
 >
+  <picture class="home-cosmos__stardust" aria-hidden="true">
+    <source
+      media="(min-width: 1100px)"
+      srcset={homeOrreryAssets.stardust.main.desktop}
+    />
+    <img
+      src={homeOrreryAssets.stardust.main.mobile}
+      alt=""
+      width="960"
+      height="480"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+  </picture>
+
+  <span
+    class="home-cosmos__dust-near"
+    data-near-dust-host
+    data-source={homeOrreryAssets.stardust.near.desktop}
+    aria-hidden="true"
+  ></span>
+
   <svg
-    class="home-orrery__instrument"
+    class="home-cosmos__paths"
     viewBox="0 0 1000 900"
     preserveAspectRatio="none"
     aria-hidden="true"
     focusable="false"
   >
-    <g class="home-orrery__orbit-lines">
-      <ellipse cx="610" cy="490" rx="395" ry="178" transform="rotate(-12 610 490)" />
-      <ellipse cx="610" cy="490" rx="318" ry="132" transform="rotate(-12 610 490)" />
-      <ellipse cx="610" cy="490" rx="214" ry="82" transform="rotate(-12 610 490)" />
-      <path d="M201 649C379 565 540 544 716 582S972 620 1040 586" />
-    </g>
-    <g class="home-orrery__ticks">
-      <path d="M196 462h22M207 451v22M760 168h26M773 155v26M862 696h22M873 685v22" />
-      <circle cx="207" cy="462" r="3" />
-      <circle cx="773" cy="168" r="3" />
-      <circle cx="873" cy="696" r="3" />
-    </g>
+    <path class="home-cosmos__path home-cosmos__path--main" d="M90 730C265 565 376 504 526 504S784 394 1018 321" />
+    <path class="home-cosmos__path home-cosmos__path--writing" d="M311 408C361 458 403 486 476 500" />
+    <path class="home-cosmos__path home-cosmos__path--projects" d="M526 504C681 500 820 408 1018 321" />
+    <path class="home-cosmos__path home-cosmos__path--ideas" d="M90 730C258 583 359 522 526 504" />
   </svg>
 
-  <span class="home-orrery__dust-flow" aria-hidden="true"></span>
-  <span class="home-orrery__registration home-orrery__registration--one" aria-hidden="true"></span>
-  <span class="home-orrery__registration home-orrery__registration--two" aria-hidden="true"></span>
+  <span class="home-cosmos__registration home-cosmos__registration--one" aria-hidden="true"></span>
+  <span class="home-cosmos__registration home-cosmos__registration--two" aria-hidden="true"></span>
 
   <a
-    class="home-planet home-planet--writing"
+    class="home-celestial home-celestial--writing"
     href="/writing"
     aria-label="进入 Writing"
     data-artifact="document"
   >
-    <span class="home-planet__halo" aria-hidden="true"></span>
-    <picture class="home-planet__surface" aria-hidden="true">
-      <source
-        media="(min-resolution: 1.5dppx)"
-        srcset={homeOrreryAssets.writing.retina}
-      />
-      <img
-        src={homeOrreryAssets.writing.standard}
-        alt=""
-        width="480"
-        height="480"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
+    <span class="home-celestial__motion home-celestial__motion--writing">
+      <span class="home-cosmos__moon-halo" aria-hidden="true"></span>
+      <picture class="home-cosmos__moon" aria-hidden="true">
+        <source
+          media="(min-resolution: 1.5dppx)"
+          srcset={homeOrreryAssets.writing.moon.retina}
+        />
+        <img
+          src={homeOrreryAssets.writing.moon.standard}
+          alt=""
+          width="480"
+          height="480"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+    </span>
     <span class="sr-only">Writing</span>
   </a>
 
   <a
-    class="home-planet home-planet--projects"
+    class="home-celestial home-celestial--projects"
     href="/projects"
     aria-label="进入 Projects"
     data-artifact="repo"
   >
-    <span class="home-planet__halo" aria-hidden="true"></span>
-    <picture class="home-planet__surface" aria-hidden="true">
-      <source
-        media="(min-resolution: 1.5dppx)"
-        srcset={homeOrreryAssets.projects.retina}
-      />
-      <img
-        src={homeOrreryAssets.projects.standard}
-        alt=""
-        width="480"
-        height="480"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
-    <span class="home-planet__satellite-orbit" aria-hidden="true">
-      <img
-        src={homeOrreryAssets.satellite}
-        alt=""
-        width="512"
-        height="512"
-        loading="eager"
-        decoding="async"
-      />
+    <span class="home-celestial__motion home-celestial__motion--projects">
+      <span class="home-cosmos__earth" aria-hidden="true">
+        <span class="home-cosmos__earth-track">
+          <img src={homeOrreryAssets.projects.earthSurface} alt="" width="1024" height="512" />
+          <img src={homeOrreryAssets.projects.earthSurface} alt="" width="1024" height="512" />
+        </span>
+        <span class="home-cosmos__earth-shade"></span>
+        <picture class="home-cosmos__earth-atmosphere">
+          <source
+            media="(min-resolution: 1.5dppx)"
+            srcset={homeOrreryAssets.projects.earthAtmosphere.retina}
+          />
+          <img
+            src={homeOrreryAssets.projects.earthAtmosphere.standard}
+            alt=""
+            width="480"
+            height="480"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+      </span>
+      <picture class="home-cosmos__satellite" aria-hidden="true">
+        <source
+          media="(min-resolution: 1.5dppx)"
+          srcset={homeOrreryAssets.projects.satellite.retina}
+        />
+        <img
+          src={homeOrreryAssets.projects.satellite.standard}
+          alt=""
+          width="320"
+          height="320"
+          loading="eager"
+          decoding="async"
+        />
+      </picture>
     </span>
     <span class="sr-only">Projects</span>
   </a>
 
   <a
-    class="home-planet home-planet--ideas"
+    class="home-celestial home-celestial--ideas"
     href="/ideas"
     aria-label="进入 Ideas"
     data-artifact="idea"
   >
-    <span class="home-planet__gravity" aria-hidden="true"></span>
-    <span class="home-planet__halo" aria-hidden="true"></span>
-    <picture class="home-planet__surface" aria-hidden="true">
-      <source
-        media="(min-resolution: 1.5dppx)"
-        srcset={homeOrreryAssets.ideas.retina}
-      />
-      <img
-        src={homeOrreryAssets.ideas.standard}
-        alt=""
-        width="480"
-        height="480"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
+    <span class="home-celestial__motion home-celestial__motion--ideas">
+      <picture class="home-cosmos__singularity-outer" aria-hidden="true">
+        <source
+          media="(min-width: 1100px)"
+          srcset={homeOrreryAssets.ideas.warp.wide}
+        />
+        <img
+          src={homeOrreryAssets.ideas.warp.standard}
+          alt=""
+          width="960"
+          height="540"
+          loading="eager"
+          decoding="async"
+        />
+      </picture>
+      <picture class="home-cosmos__singularity-inner" aria-hidden="true">
+        <source
+          media="(min-resolution: 1.5dppx)"
+          srcset={homeOrreryAssets.ideas.core.retina}
+        />
+        <img
+          src={homeOrreryAssets.ideas.core.standard}
+          alt=""
+          width="480"
+          height="480"
+          loading="eager"
+          decoding="async"
+        />
+      </picture>
+    </span>
     <span class="sr-only">Ideas</span>
   </a>
 </section>
@@ -127,15 +168,31 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   if (orrery && orrery.dataset.bound !== "true") {
     orrery.dataset.bound = "true";
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean };
+    }).connection;
+    const savesData = connection?.saveData === true;
     let visible = true;
     let navigationPaused = false;
+
+    const nearDustHost = orrery.querySelector<HTMLElement>("[data-near-dust-host]");
+    if (nearDustHost && window.innerWidth > 760 && !savesData) {
+      const nearDust = new Image();
+      nearDust.src = nearDustHost.dataset.source ?? "";
+      nearDust.alt = "";
+      nearDust.width = 1600;
+      nearDust.height = 800;
+      nearDust.decoding = "async";
+      nearDustHost.append(nearDust);
+    }
 
     const updateMotionState = () => {
       const running =
         visible &&
         !document.hidden &&
         !navigationPaused &&
-        !reducedMotion.matches;
+        !reducedMotion.matches &&
+        !savesData;
 
       if (running) {
         orrery.dataset.motionRunning = "true";
@@ -161,9 +218,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       pauseForNavigation,
       { once: true },
     );
-
     reducedMotion.addEventListener("change", updateMotionState);
-
     updateMotionState();
 
     window.addEventListener(

@@ -144,6 +144,7 @@ test("unified cosmic assets keep exact dimensions, alpha, and transfer budgets",
 
 test("orrery ambient motion is layered, pausable, and reduced-motion safe", () => {
   const css = readExisting("src/styles/home-orrery.css");
+  const component = readExisting("src/components/HomeOrrery.astro");
   const layout = readExisting("src/layouts/BaseLayout.astro");
 
   assert.match(layout, /import "\.\.\/styles\/home-orrery\.css"/);
@@ -157,6 +158,10 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   assert.match(css, /data-motion-running="true"/);
   assert.match(css, /html\[data-artifact-navigating\][\s\S]*animation-play-state:\s*paused/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(component, /connection\?: \{ saveData\?: boolean \}/);
+  assert.match(component, /window\.innerWidth > 760 && !savesData/);
+  assert.match(component, /data-near-dust-host/);
+  assert.match(component, /!savesData/);
 
   const keyframes = css.slice(css.indexOf("@keyframes home-stardust-drift"));
   assert.doesNotMatch(keyframes, /\bfilter\s*:/);
