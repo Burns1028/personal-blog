@@ -26,6 +26,8 @@ const entries = (await getWritingCatalog()).filter((entry) =>
 const result = paginate(entries, requestedPage, 4);
 const hrefFor = (page: number) => pageHref("/writing", page, query);
 const currentPhase = getLunarPhase(new Date());
+const phaseCenters = [3.83, 12.92, 23.92, 35.17, 48, 60.71, 72.04, 83.38];
+const currentPhasePosition = phaseCenters[currentPhase.index];
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
@@ -61,24 +63,28 @@ const formatDate = (date: Date) =>
     <div class="writing-v2__column">
       <h1 class="sr-only">Writing</h1>
 
-      <div class="writing-v2__phase-strip" aria-label="月相序列">
-        {
-          archiveAssets.writing.phases.map((src, index) => (
-            <img
-              class:list={{ "is-current": index === currentPhase.index }}
-              src={src}
-              alt=""
-              width="58"
-              height="58"
-              decoding="async"
-              title={
-                index === currentPhase.index
-                  ? `当前月相：${currentPhase.name}`
-                  : undefined
-              }
-            />
-          ))
-        }
+      <div
+        class="writing-v2__phase-strip"
+        role="img"
+        aria-label={`连续月相图，当前月相：${currentPhase.name}`}
+        title={`当前月相：${currentPhase.name}`}
+        style={`--current-phase-x:${currentPhasePosition}%`}
+      >
+        <span class="writing-v2__phase-glow" aria-hidden="true"></span>
+        <picture aria-hidden="true">
+          <source
+            media="(max-width: 767px)"
+            srcset={archiveAssets.writing.phaseStrip.mobile}
+          />
+          <img
+            class="writing-v2__phase-strip-image"
+            src={archiveAssets.writing.phaseStrip.desktop}
+            alt=""
+            width="1200"
+            height="203"
+            decoding="async"
+          />
+        </picture>
       </div>
 
       <form

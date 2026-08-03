@@ -22,8 +22,13 @@ export const archiveAssets = {
       desktop2x: "/assets/writing-atlas-v2-2560.webp",
       mobile: "/assets/writing-atlas-v2-mobile-900.webp",
     },
+    phaseStrip: {
+      desktop: "/assets/writing-moon-phases-1200.webp",
+      mobile: "/assets/writing-moon-phases-640.webp",
+    },
     phases: phaseNames.map(
-      (name, index) => `/assets/writing-phase-v2-${index}-${name}.webp`,
+      (name, index) =>
+        `/assets/writing-phase-restored-v1-${index}-${name}.webp`,
     ),
   },
   projects: {

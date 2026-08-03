@@ -18,25 +18,31 @@ test("Writing archive keeps search, pagination, and lunar phases on one centered
   assert.match(page, /export const prerender = false/);
   assert.match(page, /ArchivePagination/);
   assert.match(page, /<LunarPhase/);
+  assert.match(page, /archiveAssets\.writing\.phaseStrip\.desktop/);
+  assert.match(page, /archiveAssets\.writing\.phaseStrip\.mobile/);
+  assert.doesNotMatch(page, /archiveAssets\.writing\.phases\.map/);
   assert.match(css, /--writing-column:\s*min\(780px/);
   assert.match(css, /margin-inline:\s*auto/);
   assert.match(css, /font-size:\s*clamp\(21px,\s*1\.45vw,\s*23px\)/);
-  assert.match(css, /width:\s*clamp\(36px,\s*2\.7vw,\s*42px\)/);
+  assert.match(css, /width:\s*min\(100%,\s*480px\)/);
   assert.match(
     css,
-    /\.writing-v2__phase-strip img\s*\{[^}]*opacity:\s*0\.8;/,
+    /\.writing-v2__phase-strip-image\s*\{[^}]*opacity:\s*0\.88;/,
   );
-  assert.match(css, /\.writing-v2__meta \.lunar-phase[\s\S]*?width:\s*42px/);
+  assert.match(css, /\.writing-v2__meta \.lunar-phase[\s\S]*?width:\s*38px/);
   assert.doesNotMatch(css, /grid-template-columns:\s*minmax\(0,\s*62%\)/);
 });
 
-test("Writing lunar phases come from independently drawn assets, not a black mask", () => {
+test("Writing lunar phases are restored from the original complete master", () => {
   const buildScript = readFileSync(
     resolve(projectRoot, "scripts/build-writing-assets.mjs"),
     "utf8",
   );
 
-  assert.match(buildScript, /moon-phases-v3\.png/);
+  assert.match(buildScript, /writing-moon-phases-1200\.webp/);
+  assert.match(buildScript, /restoredPhaseBoundsAt1200x203/);
+  assert.match(buildScript, /writing-phase-restored-v1-/);
+  assert.doesNotMatch(buildScript, /moon-phases-v3\.png/);
   assert.doesNotMatch(buildScript, /phaseVisibility/);
   assert.doesNotMatch(buildScript, /const shade\s*=/);
 });

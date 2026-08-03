@@ -14,6 +14,13 @@ test("approved archive mockups remain in the repository", () => {
 
 test("archive asset manifest names every production output", () => {
   assert.equal(archiveAssets.writing.phases.length, 8);
+  assert.deepEqual(archiveAssets.writing.phaseStrip, {
+    desktop: "/assets/writing-moon-phases-1200.webp",
+    mobile: "/assets/writing-moon-phases-640.webp",
+  });
+  for (const phase of archiveAssets.writing.phases) {
+    assert.match(phase, /^\/assets\/writing-phase-restored-v1-/);
+  }
   assert.equal(
     archiveAssets.writing.atlas.desktop2x,
     "/assets/writing-atlas-v2-2560.webp",
@@ -47,62 +54,56 @@ test("Writing production assets meet dimensions and byte budgets", async () => {
     assert.ok(statSync(absolute).size <= budget, `${path} exceeds ${budget}`);
   }
 
+  const stripPath = resolve(
+    root,
+    `public${archiveAssets.writing.phaseStrip.desktop}`,
+  );
+  const stripMetadata = await sharp(stripPath).metadata();
+  assert.equal(stripMetadata.width, 1200);
+  assert.equal(stripMetadata.height, 203);
+  assert.equal(stripMetadata.hasAlpha, true);
+
   for (const phase of archiveAssets.writing.phases) {
     const absolute = resolve(root, `public${phase}`);
     const metadata = await sharp(absolute).metadata();
-    assert.equal(metadata.width, 256);
-    assert.equal(metadata.height, 256);
+    assert.equal(metadata.width, 128);
+    assert.equal(metadata.height, 128);
     assert.ok(metadata.hasAlpha, `${phase} must preserve transparency`);
-    assert.ok(statSync(absolute).size <= 28_000, `${phase} exceeds 28KB`);
+    assert.ok(statSync(absolute).size <= 20_000, `${phase} exceeds 20KB`);
 
     const { data, info } = await sharp(absolute)
       .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
+    const activeColumns: number[] = [];
     let visiblePixels = 0;
-    let nearBlackPixels = 0;
-    let maximumAlpha = 0;
-    const lunarAlphaValues: number[] = [];
     for (let offset = 0; offset < data.length; offset += info.channels) {
-      maximumAlpha = Math.max(maximumAlpha, data[offset + 3]);
-      if (data[offset + 3] > 3) lunarAlphaValues.push(data[offset + 3]);
-      if (data[offset + 3] < 32) continue;
-      visiblePixels += 1;
-      const luma =
-        data[offset] * 0.2126 +
-        data[offset + 1] * 0.7152 +
-        data[offset + 2] * 0.0722;
-      if (luma < 12) nearBlackPixels += 1;
+      if (data[offset + 3] >= 24) visiblePixels += 1;
     }
-    assert.ok(visiblePixels > 0, `${phase} must contain a visible lunar disk`);
-    if (phase.includes("-0-new")) {
-      assert.ok(maximumAlpha < 160, `${phase} should remain a faint earthshine`);
+    for (let x = 0; x < info.width; x += 1) {
+      let columnPixels = 0;
+      for (let y = 0; y < info.height; y += 1) {
+        if (data[(y * info.width + x) * info.channels + 3] >= 24) {
+          columnPixels += 1;
+        }
+      }
+      if (columnPixels >= 3) activeColumns.push(x);
     }
-    lunarAlphaValues.sort((left, right) => left - right);
-    const alphaPercentile = (percentile: number) =>
-      lunarAlphaValues[
-        Math.floor((lunarAlphaValues.length - 1) * percentile)
-      ];
-    if (phase.includes("-0-new")) {
-      assert.ok(
-        alphaPercentile(0.9) < 70,
-        `${phase} should dissolve into the paper instead of reading as a gray disk`,
-      );
-    }
-    if (phase.includes("crescent")) {
-      assert.ok(alphaPercentile(0.5) < 70, `${phase} night side is too opaque`);
-      assert.ok(alphaPercentile(0.9) > 150, `${phase} crescent is too faint`);
-    }
-    if (phase.includes("quarter")) {
-      assert.ok(alphaPercentile(0.25) < 60, `${phase} night side is too opaque`);
-      assert.ok(alphaPercentile(0.75) > 150, `${phase} lit side is too faint`);
-    }
+    assert.ok(visiblePixels > 80, `${phase} must contain a visible moon phase`);
+    assert.ok(activeColumns.length > 0, `${phase} has no visible phase columns`);
+    const firstColumn = activeColumns[0];
+    const lastColumn = activeColumns.at(-1)!;
     assert.ok(
-      nearBlackPixels / visiblePixels < 0.015,
-      `${phase} contains a flat near-black mask`,
+      firstColumn >= 8 && lastColumn <= info.width - 9,
+      `${phase} must retain transparent side padding`,
     );
-    for (let y = 0; y < 32; y += 1) {
-      for (let x = 0; x < 32; x += 1) {
+    assert.equal(
+      lastColumn - firstColumn + 1,
+      activeColumns.length,
+      `${phase} contains a disconnected neighboring phase`,
+    );
+    for (let y = 0; y < 8; y += 1) {
+      for (let x = 0; x < 8; x += 1) {
         const corners = [
           [x, y],
           [info.width - 1 - x, y],

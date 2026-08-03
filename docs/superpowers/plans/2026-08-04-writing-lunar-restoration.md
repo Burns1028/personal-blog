@@ -19,25 +19,25 @@
 
 ### Task 1: Lock the restoration contract with failing tests
 
-- [ ] Update archive asset tests to require the original strip and the restored, versioned crop family.
-- [ ] Update presentation tests to require one complete top strip, compact article phases, and no old v2 phase source.
-- [ ] Run the focused tests and confirm they fail for the expected missing implementation.
+- [x] Update archive asset tests to require the original strip and the restored, versioned crop family.
+- [x] Update presentation tests to require one complete top strip, compact article phases, and no old v2 phase source.
+- [x] Run the focused tests and confirm they fail for the expected missing implementation.
 
 ### Task 2: Generate article phases from the master
 
-- [ ] Add fixed crop bounds for the eight lunar stages to `scripts/build-writing-assets.mjs`.
-- [ ] Generate transparent WebP crops from `public/assets/writing-moon-phases-1200.webp` without overwriting the master.
-- [ ] Verify crop dimensions, transparency, file size, and visual isolation.
+- [x] Add fixed crop bounds for the eight lunar stages to `scripts/build-writing-assets.mjs`.
+- [x] Generate transparent WebP crops from `public/assets/writing-moon-phases-1200.webp` without overwriting the master.
+- [x] Verify crop dimensions, transparency, file size, and visual isolation.
 
 ### Task 3: Restore the Writing page presentation
 
-- [ ] Point the asset manifest at the master strip and restored crop family.
-- [ ] Render the master as one centered top image with a subtle current-phase glow.
-- [ ] Reduce article phase size to 36–38px desktop and about 32px mobile.
-- [ ] Disable the glow animation for reduced motion.
+- [x] Point the asset manifest at the master strip and restored crop family.
+- [x] Render the master as one centered top image with a subtle current-phase glow.
+- [x] Reduce article phase size to 36–38px desktop and about 32px mobile.
+- [x] Disable the glow animation for reduced motion.
 
 ### Task 4: Verify and ship
 
-- [ ] Run focused tests, the full content suite, and the production build.
-- [ ] Inspect the desktop and mobile Writing page visually.
+- [x] Run focused tests, the full content suite, and the production build.
+- [x] Inspect the desktop and mobile Writing page visually.
 - [ ] Commit the isolated change, integrate it without touching unrelated user edits, push, and deploy through the existing workflow.

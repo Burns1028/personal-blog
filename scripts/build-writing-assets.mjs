@@ -8,17 +8,9 @@ const celestialSource = resolve(
   projectRoot,
   "design-source/writing/celestial-map-source.png",
 );
-const moonSource = resolve(
-  projectRoot,
-  "design-source/writing/moon-phases-source.png",
-);
 const atlasV2Source = resolve(
   projectRoot,
   "design-source/archive-v2/writing/atlas-master.png",
-);
-const moonPhasesV3Source = resolve(
-  projectRoot,
-  "design-source/archive-v2/writing/moon-phases-v3.png",
 );
 const phaseNames = [
   "new",
@@ -91,110 +83,6 @@ async function buildCelestialMap() {
   );
 }
 
-function clamp(value, minimum, maximum) {
-  return Math.min(maximum, Math.max(minimum, value));
-}
-
-function alphaBounds(alpha, width, height, padding = 12) {
-  let minimumX = width;
-  let minimumY = height;
-  let maximumX = -1;
-  let maximumY = -1;
-
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      if (alpha[y * width + x] < 5) continue;
-      minimumX = Math.min(minimumX, x);
-      minimumY = Math.min(minimumY, y);
-      maximumX = Math.max(maximumX, x);
-      maximumY = Math.max(maximumY, y);
-    }
-  }
-
-  if (maximumX < 0 || maximumY < 0) {
-    throw new Error("Moon phase extraction produced no visible pixels.");
-  }
-
-  const left = Math.max(0, minimumX - padding);
-  const top = Math.max(0, minimumY - padding);
-  const right = Math.min(width - 1, maximumX + padding);
-  const bottom = Math.min(height - 1, maximumY + padding);
-
-  return {
-    left,
-    top,
-    width: right - left + 1,
-    height: bottom - top + 1,
-  };
-}
-
-async function buildMoonPhases() {
-  const crop = {
-    left: 280,
-    top: 590,
-    width: 2200,
-    height: 360,
-  };
-  const { data, info } = await sharp(moonSource)
-    .extract(crop)
-    .removeAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  const rgba = Buffer.alloc(info.width * info.height * 4);
-  const alpha = new Uint8Array(info.width * info.height);
-
-  for (let index = 0; index < alpha.length; index += 1) {
-    const sourceOffset = index * 3;
-    const outputOffset = index * 4;
-    const red = data[sourceOffset];
-    const green = data[sourceOffset + 1];
-    const blue = data[sourceOffset + 2];
-    const luminance = red * 0.299 + green * 0.587 + blue * 0.114;
-    const darkness = 222 - luminance;
-    const extractedOpacity = clamp((darkness - 7) * 2.25, 0, 255);
-    const opacity = extractedOpacity < 24 ? 0 : extractedOpacity;
-
-    rgba[outputOffset] = 77;
-    rgba[outputOffset + 1] = 68;
-    rgba[outputOffset + 2] = 56;
-    rgba[outputOffset + 3] = Math.round(opacity);
-    alpha[index] = Math.round(opacity);
-  }
-
-  const bounds = alphaBounds(alpha, info.width, info.height);
-  const masterPath = outputPath(
-    "design-source/writing/moon-phases-cutout.png",
-  );
-  await ensureParent(masterPath);
-
-  await sharp(rgba, {
-    raw: {
-      width: info.width,
-      height: info.height,
-      channels: 4,
-    },
-  })
-    .extract(bounds)
-    .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toFile(masterPath);
-
-  await writeWebp(
-    masterPath,
-    "public/assets/writing-moon-phases-640.webp",
-    640,
-    88,
-  );
-  await writeWebp(
-    masterPath,
-    "public/assets/writing-moon-phases-1200.webp",
-    1200,
-    90,
-  );
-
-  return bounds;
-}
-
 async function buildArticleSectionPhases(phaseStripPath) {
   const phaseMetadata = await sharp(phaseStripPath).metadata();
   if (!phaseMetadata.width || !phaseMetadata.height) {
@@ -255,71 +143,49 @@ async function buildArticleSectionPhases(phaseStripPath) {
   }
 }
 
-async function buildV2Phases() {
-  const metadata = await sharp(moonPhasesV3Source).metadata();
-  if (!metadata.width || !metadata.height) {
-    throw new Error("Independent moon phase master is missing dimensions.");
+async function buildRestoredPhases(phaseStripPath) {
+  const metadata = await sharp(phaseStripPath).metadata();
+  if (metadata.width !== 1200 || metadata.height !== 203) {
+    throw new Error("The original lunar master must remain 1200×203.");
   }
-  const rowTopRatios = [260 / 1536, 690 / 1536];
-  const rowHeightRatio = 410 / 1536;
 
-  for (let phase = 0; phase < phaseNames.length; phase += 1) {
-    const column = phase % 4;
-    const row = Math.floor(phase / 4);
-    const left = Math.round((column * metadata.width) / 4);
-    const right = Math.round(((column + 1) * metadata.width) / 4);
-    const top = Math.round(rowTopRatios[row] * metadata.height);
-    const height = Math.round(rowHeightRatio * metadata.height);
+  // Fixed isolation windows in the approved 1200×203 master. The ninth,
+  // closing crescent stays in the complete strip; the date model uses eight
+  // lunar stages, beginning with the master's far-left hairline crescent.
+  const restoredPhaseBoundsAt1200x203 = [
+    { left: 2, top: 18, width: 92, height: 170 },
+    { left: 102, top: 18, width: 106, height: 164 },
+    { left: 226, top: 18, width: 122, height: 164 },
+    { left: 350, top: 18, width: 142, height: 164 },
+    { left: 490, top: 18, width: 172, height: 168 },
+    { left: 657, top: 18, width: 143, height: 164 },
+    { left: 802, top: 18, width: 122, height: 164 },
+    { left: 948, top: 10, width: 104, height: 172 },
+  ];
+
+  for (const [phase, bounds] of restoredPhaseBoundsAt1200x203.entries()) {
     const destination = outputPath(
-      `public/assets/writing-phase-v2-${phase}-${phaseNames[phase]}.webp`,
+      `public/assets/writing-phase-restored-v1-${phase}-${phaseNames[phase]}.webp`,
     );
     await ensureParent(destination);
-    const cell = await sharp(moonPhasesV3Source)
-      .extract({ left, top, width: right - left, height })
+    const isolatedPhase = await sharp(phaseStripPath)
+      .extract(bounds)
       .png()
       .toBuffer();
-    const refinedMoon = await sharp(cell)
-      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .resize(196, 196, {
+    await sharp(isolatedPhase)
+      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 8 })
+      .resize(104, 104, {
         fit: "contain",
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .extend({
-        top: 30,
-        bottom: 30,
-        left: 30,
-        right: 30,
+        top: 12,
+        bottom: 12,
+        left: 12,
+        right: 12,
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    for (
-      let offset = 0;
-      offset < refinedMoon.data.length;
-      offset += refinedMoon.info.channels
-    ) {
-      const sourceAlpha = refinedMoon.data[offset + 3];
-      if (sourceAlpha === 0) continue;
-      const luminance =
-        refinedMoon.data[offset] * 0.2126 +
-        refinedMoon.data[offset + 1] * 0.7152 +
-        refinedMoon.data[offset + 2] * 0.0722;
-      const tonalOpacity =
-        0.025 +
-        0.975 * Math.pow(clamp((luminance - 10) / 185, 0, 1), 1.6);
-      refinedMoon.data[offset + 3] = Math.round(sourceAlpha * tonalOpacity);
-    }
-
-    await sharp(refinedMoon.data, {
-      raw: {
-        width: refinedMoon.info.width,
-        height: refinedMoon.info.height,
-        channels: refinedMoon.info.channels,
-      },
-    })
-      .webp({ quality: 62, alphaQuality: 82, effort: 6 })
+      .webp({ quality: 90, alphaQuality: 100, effort: 6 })
       .toFile(destination);
   }
 }
@@ -343,14 +209,12 @@ async function buildV2WritingAssets() {
     { width: 900, height: 1200, fit: "cover", position: "centre" },
     78,
   );
-  await buildV2Phases();
 }
 
 if (existsSync(celestialSource)) {
   await buildCelestialMap();
 }
 
-const moonBounds = existsSync(moonSource) ? await buildMoonPhases() : undefined;
 const phaseStripPath = outputPath(
   "public/assets/writing-moon-phases-1200.webp",
 );
@@ -360,15 +224,12 @@ if (!existsSync(phaseStripPath)) {
 }
 
 await buildArticleSectionPhases(phaseStripPath);
+await buildRestoredPhases(phaseStripPath);
 
-if (!existsSync(atlasV2Source) || !existsSync(moonPhasesV3Source)) {
-  throw new Error("Writing archive v2 source masters are missing.");
+if (!existsSync(atlasV2Source)) {
+  throw new Error("Writing archive atlas source master is missing.");
 }
 
 await buildV2WritingAssets();
 
-console.log(
-  moonBounds
-    ? `Writing assets built. Moon crop: ${moonBounds.width}×${moonBounds.height} at ${moonBounds.left},${moonBounds.top}.`
-    : "Writing section phase assets built from the existing moon strip.",
-);
+console.log("Writing assets restored from the existing lunar master.");
