@@ -40,6 +40,16 @@ test("homepage navigation does not depend on mock content records", () => {
   assert.match(orrery, /href="\/ideas"[\s\S]*?aria-label="进入 Ideas"/);
 });
 
+test("homepage redesign preserves each destination's signature visual", () => {
+  const projectsEarth = source("src/components/projects/RotatingEarth.astro");
+  const writing = source("src/pages/writing/index.astro");
+  const ideas = source("src/components/IdeasSingularity.astro");
+
+  assert.match(projectsEarth, /data-projects-earth-motion/);
+  assert.match(writing, /archiveAssets\.writing\.atlas/);
+  assert.match(ideas, /ideas-gravity-orbit/);
+});
+
 test("runtime content directories contain no mock Writing or Projects records", () => {
   const writingDirectory = resolve(root, "src/content/writing");
   const projectsDirectory = resolve(root, "src/content/projects");

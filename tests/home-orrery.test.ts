@@ -12,7 +12,7 @@ const readExisting = (relativePath: string) => {
   return readFileSync(absolutePath, "utf8");
 };
 
-test("homepage renders the semantic three-planet orrery instead of the artifact collage", () => {
+test("homepage renders one unified celestial system with three semantic destinations", () => {
   const homepage = readExisting("src/pages/index.astro");
 
   assert.match(homepage, /import HomeOrrery/);
@@ -24,7 +24,7 @@ test("homepage renders the semantic three-planet orrery instead of the artifact 
 
   const component = readExisting("src/components/HomeOrrery.astro");
   assert.equal(
-    (component.match(/class="home-planet home-planet--/g) ?? []).length,
+    (component.match(/class="home-celestial home-celestial--/g) ?? []).length,
     3,
   );
   assert.match(
@@ -41,65 +41,105 @@ test("homepage renders the semantic three-planet orrery instead of the artifact 
   );
   assert.match(component, /data-home-orrery/);
   assert.match(component, /data-artifact-stage/);
+  assert.match(component, /home-cosmos__stardust/);
+  assert.match(component, /home-cosmos__earth-track/);
+  assert.match(component, /home-cosmos__singularity-inner/);
+  assert.doesNotMatch(
+    component,
+    /home-planet-(?:writing|projects|ideas)-v1/,
+  );
 });
 
-test("home orrery manifest names generated planets and the existing satellite", () => {
+test("home orrery manifest names every unified cosmic asset family", () => {
   const manifest = readExisting("src/data/home-orrery-assets.ts");
 
-  for (const kind of ["writing", "projects", "ideas"]) {
-    assert.match(
-      manifest,
-      new RegExp(`home-planet-${kind}-v1-480\\.webp`),
-    );
-    assert.match(
-      manifest,
-      new RegExp(`home-planet-${kind}-v1-960\\.webp`),
-    );
+  for (const asset of [
+    "home-cosmos-stardust-main-v2",
+    "home-cosmos-dust-near-v2",
+    "home-cosmos-writing-moon-v2",
+    "home-cosmos-projects-earth-surface-v2",
+    "home-cosmos-projects-earth-atmosphere-v2",
+    "home-cosmos-ideas-core-v2",
+    "home-cosmos-ideas-warp-v2",
+    "home-cosmos-satellite-v2",
+  ]) {
+    assert.match(manifest, new RegExp(asset));
   }
-
-  assert.match(manifest, /projects-satellite-v2\.webp/);
 });
 
-test("generated home planets are square transparent WebPs within their byte budget", async () => {
-  for (const kind of ["writing", "projects", "ideas"]) {
-    const relativePath = `public/assets/home-planet-${kind}-v1-960.webp`;
+test("unified cosmic assets keep exact dimensions, alpha, and transfer budgets", async () => {
+  const assets = [
+    ["home-cosmos-stardust-main-v2-960.webp", 960, 480, true],
+    ["home-cosmos-stardust-main-v2-1600.webp", 1600, 800, true],
+    ["home-cosmos-dust-near-v2-960.webp", 960, 480, true],
+    ["home-cosmos-dust-near-v2-1600.webp", 1600, 800, true],
+    ["home-cosmos-writing-moon-v2-480.webp", 480, 480, true],
+    ["home-cosmos-writing-moon-v2-960.webp", 960, 960, true],
+    ["home-cosmos-projects-earth-surface-v2-1024.webp", 1024, 512, false],
+    ["home-cosmos-projects-earth-surface-v2-2048.webp", 2048, 1024, false],
+    ["home-cosmos-projects-earth-atmosphere-v2-480.webp", 480, 480, true],
+    ["home-cosmos-projects-earth-atmosphere-v2-960.webp", 960, 960, true],
+    ["home-cosmos-ideas-core-v2-480.webp", 480, 480, true],
+    ["home-cosmos-ideas-core-v2-960.webp", 960, 960, true],
+    ["home-cosmos-ideas-warp-v2-960.webp", 960, 540, true],
+    ["home-cosmos-ideas-warp-v2-1600.webp", 1600, 900, true],
+    ["home-cosmos-satellite-v2-320.webp", 320, 320, true],
+    ["home-cosmos-satellite-v2-640.webp", 640, 640, true],
+  ] as const;
+
+  for (const [filename, width, height, hasAlpha] of assets) {
+    const relativePath = `public/assets/home-cosmic-system-v2/${filename}`;
     const absolutePath = resolve(root, relativePath);
     assert.ok(existsSync(absolutePath), `${relativePath} must exist`);
 
     const metadata = await sharp(absolutePath).metadata();
-    assert.equal(metadata.width, 960, `${relativePath} width`);
-    assert.equal(metadata.height, 960, `${relativePath} height`);
-    assert.equal(metadata.hasAlpha, true, `${relativePath} alpha channel`);
-    assert.ok(
-      statSync(absolutePath).size < 500_000,
-      `${relativePath} must stay below 500 KB`,
-    );
+    assert.equal(metadata.width, width, `${relativePath} width`);
+    assert.equal(metadata.height, height, `${relativePath} height`);
+    assert.equal(metadata.hasAlpha, hasAlpha, `${relativePath} alpha channel`);
 
-    const { data, info } = await sharp(absolutePath)
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    const alphaAt = (x: number, y: number) =>
-      data[(y * info.width + x) * info.channels + 3];
+    if (hasAlpha) {
+      const { data, info } = await sharp(absolutePath)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const alphaAt = (x: number, y: number) =>
+        data[(y * info.width + x) * info.channels + 3];
 
-    assert.ok(alphaAt(0, 0) <= 4, `${relativePath} top-left transparent`);
-    assert.ok(
-      alphaAt(info.width - 1, 0) <= 4,
-      `${relativePath} top-right transparent`,
-    );
-    assert.ok(
-      alphaAt(0, info.height - 1) <= 4,
-      `${relativePath} bottom-left transparent`,
-    );
-    assert.ok(
-      alphaAt(info.width - 1, info.height - 1) <= 4,
-      `${relativePath} bottom-right transparent`,
-    );
-    assert.ok(
-      alphaAt(Math.floor(info.width / 2), Math.floor(info.height / 2)) >= 220,
-      `${relativePath} center must be opaque`,
-    );
+      for (const [x, y] of [
+        [0, 0],
+        [info.width - 1, 0],
+        [0, info.height - 1],
+        [info.width - 1, info.height - 1],
+      ]) {
+        assert.ok(alphaAt(x, y) <= 4, `${relativePath} corners transparent`);
+      }
+    }
   }
+
+  const bytesFor = (filename: string) =>
+    statSync(resolve(root, "public/assets/home-cosmic-system-v2", filename)).size;
+  const desktopBytes = [
+    "home-cosmos-stardust-main-v2-1600.webp",
+    "home-cosmos-dust-near-v2-1600.webp",
+    "home-cosmos-writing-moon-v2-480.webp",
+    "home-cosmos-projects-earth-surface-v2-1024.webp",
+    "home-cosmos-projects-earth-atmosphere-v2-960.webp",
+    "home-cosmos-ideas-core-v2-480.webp",
+    "home-cosmos-ideas-warp-v2-960.webp",
+    "home-cosmos-satellite-v2-320.webp",
+  ].reduce((total, filename) => total + bytesFor(filename), 0);
+  const mobileBytes = [
+    "home-cosmos-stardust-main-v2-960.webp",
+    "home-cosmos-writing-moon-v2-480.webp",
+    "home-cosmos-projects-earth-surface-v2-1024.webp",
+    "home-cosmos-projects-earth-atmosphere-v2-480.webp",
+    "home-cosmos-ideas-core-v2-480.webp",
+    "home-cosmos-ideas-warp-v2-960.webp",
+    "home-cosmos-satellite-v2-320.webp",
+  ].reduce((total, filename) => total + bytesFor(filename), 0);
+
+  assert.ok(desktopBytes <= 700_000, `desktop assets use ${desktopBytes} bytes`);
+  assert.ok(mobileBytes <= 360_000, `mobile assets use ${mobileBytes} bytes`);
 });
 
 test("orrery ambient motion is layered, pausable, and reduced-motion safe", () => {
@@ -107,23 +147,29 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   const layout = readExisting("src/layouts/BaseLayout.astro");
 
   assert.match(layout, /import "\.\.\/styles\/home-orrery\.css"/);
-  assert.match(css, /home-dust-orbit 78s/);
-  assert.match(css, /home-projects-turn 48s/);
-  assert.match(css, /home-satellite-orbit 18s/);
-  assert.match(css, /home-ideas-turn 88s/);
-  assert.match(css, /home-ideas-breathe 9s/);
-  assert.match(css, /home-writing-breathe 12s/);
+  assert.match(css, /home-stardust-drift 54s/);
+  assert.match(css, /home-near-dust-drift 38s/);
+  assert.match(css, /home-earth-surface-turn 108s/);
+  assert.match(css, /home-satellite-drift 18s/);
+  assert.match(css, /home-singularity-inner 38s/);
+  assert.match(css, /home-singularity-outer 60s/);
+  assert.match(css, /home-moon-breathe 12s/);
   assert.match(css, /data-motion-running="true"/);
   assert.match(css, /html\[data-artifact-navigating\][\s\S]*animation-play-state:\s*paused/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
+
+  const keyframes = css.slice(css.indexOf("@keyframes home-stardust-drift"));
+  assert.doesNotMatch(keyframes, /\bfilter\s*:/);
+  assert.doesNotMatch(keyframes, /\bbackground-position\s*:/);
+  assert.doesNotMatch(keyframes, /\bbox-shadow\s*:/);
 });
 
 test("planetary route openings replace paper transforms with compositor-only expansion", () => {
   const css = readExisting("src/styles/home-orrery.css");
 
-  assert.match(css, /\.home-planet--projects\s*{[\s\S]*?view-transition-name:\s*artifact-repo/);
-  assert.match(css, /\.home-planet--writing\s*{[\s\S]*?view-transition-name:\s*artifact-document/);
-  assert.match(css, /\.home-planet--ideas\s*{[\s\S]*?view-transition-name:\s*artifact-idea/);
+  assert.match(css, /\.home-celestial--projects\s*{[\s\S]*?view-transition-name:\s*artifact-repo/);
+  assert.match(css, /\.home-celestial--writing\s*{[\s\S]*?view-transition-name:\s*artifact-document/);
+  assert.match(css, /\.home-celestial--ideas\s*{[\s\S]*?view-transition-name:\s*artifact-idea/);
   assert.match(
     css,
     /::view-transition-old\(artifact-document\)[\s\S]*?planet-open-writing 880ms/,
