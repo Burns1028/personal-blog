@@ -169,6 +169,19 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   assert.doesNotMatch(keyframes, /\bbox-shadow\s*:/);
 });
 
+test("active celestial state stays legible without a circular selection ring", () => {
+  const css = readExisting("src/styles/home-orrery.css");
+
+  assert.match(
+    css,
+    /\.home-orrery\[data-active-artifact="document"\] \.home-celestial:not\(\.home-celestial--writing\),[\s\S]*?opacity:\s*0\.82;/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.home-orrery\[data-active-artifact="document"\] \.home-celestial--writing::after,[\s\S]*?border-color:/,
+  );
+});
+
 test("planetary route openings replace paper transforms with compositor-only expansion", () => {
   const css = readExisting("src/styles/home-orrery.css");
 

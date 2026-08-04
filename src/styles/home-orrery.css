@@ -391,20 +391,13 @@
 .home-orrery[data-active-artifact="document"] .home-celestial:not(.home-celestial--writing),
 .home-orrery[data-active-artifact="repo"] .home-celestial:not(.home-celestial--projects),
 .home-orrery[data-active-artifact="idea"] .home-celestial:not(.home-celestial--ideas) {
-  opacity: 0.55;
+  opacity: 0.82;
 }
 
 .home-orrery[data-active-artifact="document"] .home-cosmos__path--writing,
 .home-orrery[data-active-artifact="repo"] .home-cosmos__path--projects,
 .home-orrery[data-active-artifact="idea"] .home-cosmos__path--ideas {
   opacity: 0.92;
-}
-
-.home-orrery[data-active-artifact="document"] .home-celestial--writing::after,
-.home-orrery[data-active-artifact="repo"] .home-celestial--projects::after,
-.home-orrery[data-active-artifact="idea"] .home-celestial--ideas::after {
-  border-color: rgba(233, 190, 108, 0.46);
-  transform: scale(1.04);
 }
 
 .home-celestial--projects:hover .home-cosmos__satellite img,
