@@ -1,4 +1,6 @@
 ---
+import { homeOrreryAssets } from "../data/home-orrery-assets";
+
 interface Props {
   mode?: "full" | "stars";
 }
@@ -20,11 +22,11 @@ const { mode = "full" } = Astro.props;
       <picture>
         <source
           media="(max-width: 1280px)"
-          srcset="/assets/home-space-1280.webp"
+          srcset={homeOrreryAssets.background.starfield.mobile}
         />
         <img
           class="cosmic-field__space"
-          src="/assets/home-space-2048.webp"
+          src={homeOrreryAssets.background.starfield.desktop}
           alt=""
           width="2048"
           height="1152"
@@ -40,25 +42,7 @@ const { mode = "full" } = Astro.props;
 
   {
     mode === "full" && (
-      <>
-        <picture class="cosmic-field__rings">
-          <source
-            media="(max-width: 1280px)"
-            srcset="/assets/home-rings-composed-v5-1280.webp"
-          />
-          <img
-            src="/assets/home-rings-composed-v5-2048.webp"
-            alt=""
-            width="1403"
-            height="609"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </picture>
-
-        <div class="cosmic-field__atmosphere" />
-      </>
+      <div class="cosmic-field__atmosphere" />
     )
   }
 </div>

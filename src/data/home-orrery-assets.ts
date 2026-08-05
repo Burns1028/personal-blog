@@ -1,41 +1,32 @@
-const assetRoot = "/assets/home-cosmic-system-v2";
+const assetRoot = "/assets/home-cosmic-system-v3";
 
 export const homeOrreryAssets = {
-  stardust: {
-    main: {
-      mobile: `${assetRoot}/home-cosmos-stardust-main-v2-960.webp`,
-      desktop: `${assetRoot}/home-cosmos-stardust-main-v2-1600.webp`,
+  background: {
+    starfield: {
+      mobile: `${assetRoot}/home-cosmos-starfield-v3-1280.webp`,
+      desktop: `${assetRoot}/home-cosmos-starfield-v3-2048.webp`,
     },
-    near: {
-      mobile: `${assetRoot}/home-cosmos-dust-near-v2-960.webp`,
-      desktop: `${assetRoot}/home-cosmos-dust-near-v2-1600.webp`,
+    approvedScene: {
+      standard: `${assetRoot}/home-cosmos-approved-scene-v9-881.webp`,
+      retina: `${assetRoot}/home-cosmos-approved-scene-v9-1762.webp`,
     },
   },
   writing: {
-    moon: {
-      standard: `${assetRoot}/home-cosmos-writing-moon-v2-480.webp`,
-      retina: `${assetRoot}/home-cosmos-writing-moon-v2-960.webp`,
+    moonSurface: {
+      standard: `${assetRoot}/home-cosmos-writing-moon-inner-v11-140.webp`,
+      retina: `${assetRoot}/home-cosmos-writing-moon-inner-v11-280.webp`,
     },
   },
   projects: {
-    earthSurface: `${assetRoot}/home-cosmos-projects-earth-surface-v2-1024.webp`,
-    earthAtmosphere: {
-      standard: `${assetRoot}/home-cosmos-projects-earth-atmosphere-v2-480.webp`,
-      retina: `${assetRoot}/home-cosmos-projects-earth-atmosphere-v2-960.webp`,
-    },
-    satellite: {
-      standard: `${assetRoot}/home-cosmos-satellite-v2-320.webp`,
-      retina: `${assetRoot}/home-cosmos-satellite-v2-640.webp`,
+    earthSurface: {
+      standard: `${assetRoot}/home-cosmos-projects-earth-inner-v11-312.webp`,
+      retina: `${assetRoot}/home-cosmos-projects-earth-inner-v11-624.webp`,
     },
   },
   ideas: {
-    core: {
-      standard: `${assetRoot}/home-cosmos-ideas-core-v2-480.webp`,
-      retina: `${assetRoot}/home-cosmos-ideas-core-v2-960.webp`,
-    },
-    warp: {
-      standard: `${assetRoot}/home-cosmos-ideas-warp-v2-960.webp`,
-      wide: `${assetRoot}/home-cosmos-ideas-warp-v2-1600.webp`,
+    blackHole: {
+      standard: `${assetRoot}/home-cosmos-ideas-inner-v11-96.webp`,
+      retina: `${assetRoot}/home-cosmos-ideas-inner-v11-192.webp`,
     },
   },
 } as const;
