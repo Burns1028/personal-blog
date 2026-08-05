@@ -1,95 +1,126 @@
-# Workplace Identity Sutra Rewrite Implementation Plan
+# Workplace Identity Sutra Voice Rewrite Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rewrite the essay so readers can use the “role–narrative–commitment” model to understand identity changes at work.
+**Goal:** Rewrite the essay so its judgment grows from a truthful personal observation, with less structural and sentence-level AI voice.
 
-**Architecture:** Keep the existing Markdown frontmatter and Buddhist source notes, but replace the argument spine. The new draft starts from a failed prediction after success, explains identity as a lightweight self-narrative model, uses the Heart Sutra and Diamond Sutra for two distinct moves, and ends with observable action rules.
+**Architecture:** Preserve the Markdown metadata and verified CBETA sources, but replace the current model-first body. The new version opens with the author’s real self-introduction, lets the two sutras enter as remembered ways of seeing, and keeps the role–narrative–choice framework implicit rather than displaying it in tables and definitions.
 
 **Tech Stack:** Markdown, CBETA source links, shell-based text checks
 
 ## Global Constraints
 
-- Keep the draft between 2,500 and 3,200 Chinese characters excluding frontmatter and source notes.
-- Use personal experience only as evidence; keep “我” to 2–5 occurrences.
-- Do not present the systems analogy as a settled psychological or neuroscientific theory.
-- Do not turn either sutra into a workplace manual or claim the article is the only interpretation.
-- Preserve the title `应无所住，而生其心` and `draft: true`.
+- Keep the body between 2,200 and 2,700 Chinese characters excluding frontmatter and source notes.
+- Use no more than 3 level-two headings and no Markdown tables or numbered frameworks.
+- Do not invent a promotion, failure, meeting, dialogue, or emotional event as personal experience.
+- Use the supplied facts exactly: ByteDance colleague, high performance rating, and a top offer.
+- Use each of these abstract terms no more than twice: `身份认知`, `自我叙事`, `价值承诺`, `解释模型`, `社会坐标`.
+- Use the “不是 X，而是 Y” construction no more than twice.
+- Preserve the title `应无所住，而生其心`, `draft: true`, and the two CBETA source links.
 
 ---
 
-### Task 1: Replace the Essay’s Argument Spine
+### Task 1: Rebuild the Opening and Narrative Movement
 
 **Files:**
 - Modify: `/tmp/burns-workplace-sutra.TNyjM0/draft.md`
 
 **Interfaces:**
-- Consumes: the approved design in `docs/superpowers/specs/2026-08-05-workplace-identity-sutra-rewrite-design.md`
-- Produces: a complete Markdown essay whose sections progress from role to narrative to commitment
+- Consumes: `docs/superpowers/specs/2026-08-05-workplace-identity-sutra-rewrite-design.md`
+- Produces: a complete essay whose first half moves from a real self-introduction to the recurring need for proof
 
-- [ ] **Step 1: Rewrite the opening around a failed prediction**
+- [ ] **Step 1: Open with the supplied personal fact**
 
-Open with the familiar thought “等我升上去，就证明自己了,” followed by the discovery that the title changed while anxiety remained. State the main judgment within the first three paragraphs:
+Begin from this truthful material without inventing a surrounding scene:
 
-> 真正动摇身份认知的，往往不是事件本身，而是事件让原来的自我叙事失效了。
+> 字节的同学，拿过高绩效，也拿到过顶级 offer。
 
-- [ ] **Step 2: Explain identity as a lightweight model**
+Let the prose notice that the sentence is useful and true before asking why it has become so easy to use as a complete answer.
 
-Use the engineering analogy carefully: roles are coordinates; the self-narrative compresses past events and predicts future ones; repeated positive feedback hides the distinction between the coordinate and the person. Mention that this is an explanatory analogy, not a literal claim about how the brain is implemented.
+- [ ] **Step 2: Let the problem emerge before naming it**
 
-- [ ] **Step 3: Give the two sutras separate jobs**
+Describe the ordinary rhythm of proof: a desired result brings relief, then quietly raises the standard for the next result. Do not announce a model or framework in the opening. Use `自我叙事` at most once, only after the reader has already felt the pattern.
 
-Use “照见五蕴皆空” to explain conditionality: a role is real and useful but depends on organization, timing, relationships, and evaluation. Use “应无所住而生其心” to explain continued agency after the old model fails: do not ask a result to prove the whole person, but continue choosing and acting.
+- [ ] **Step 3: Remove visible scaffolding**
 
-- [ ] **Step 4: Convert value labels into action rules**
+Delete the current system analogy, both Markdown tables, and headings that separately announce the Heart Sutra, Diamond Sutra, and value commitment. Keep at most three broad headings whose language sounds like the essay rather than a lesson.
 
-Contrast “我是一个有好奇心的人” with an observable rule such as:
+### Task 2: Let the Sutras Change the Thought
 
-> 遇到暂时解释不了的问题时，先靠近它，形成自己的判断；证据变化时，允许判断一起变化；作出选择以后，把风险和后果接回来。
+**Files:**
+- Modify: `/tmp/burns-workplace-sutra.TNyjM0/draft.md`
 
-Explain that values are recurring decisions, not a more flattering identity label.
+**Interfaces:**
+- Consumes: the narrative movement from Task 1
+- Produces: a second half in which each sutra resolves a different part of the author’s question
 
-- [ ] **Step 5: End on the distinction between coordinates and direction**
+- [ ] **Step 1: Bring in the Heart Sutra through the concrete conditions of achievement**
 
-Return to the opening. The final movement must show that an expired role does not reveal a hidden permanent self; it creates another opportunity to choose. End with a compact variation of:
+Quote `照见五蕴皆空`, then write what a performance result actually contains: personal effort, project timing, collaborators, management judgment, and the evaluation cycle. Arrive once at this sentence-level judgment without turning it into a definition:
 
-> 坐标会失效，方向要一次次选择。
+> 一个结果可以说明一段经历，不能替整个人下结论。
 
-### Task 2: Run Burns Content and Format Checks
+- [ ] **Step 2: Bring in the Diamond Sutra through continued action**
+
+Quote `应无所住而生其心`. Emphasize `生其心`: the author still works, competes, protects credit, chooses, and accepts consequences. Do not use the prior `事实—叙事—承诺` table.
+
+- [ ] **Step 3: Rewrite values as lived verbs without a comparison table**
+
+Write curiosity, revising judgment, and responsibility inside prose. Retain this judgment once:
+
+> 价值不是更好听的自我介绍，是下一次遇到事情时仍愿意怎样做。
+
+Do not turn the three verbs into bullets, labels, or a checklist.
+
+- [ ] **Step 4: Return to the original introduction**
+
+End with ByteDance, high performance, and the offer still intact. Do not say “这些都是我，也都不是我.” Let the achievements remain part of the sentence, but not its period.
+
+### Task 3: Verify Truthfulness, Restraint, and Voice
 
 **Files:**
 - Verify: `/tmp/burns-workplace-sutra.TNyjM0/draft.md`
 
 **Interfaces:**
-- Consumes: the rewritten essay from Task 1
-- Produces: a review-ready Markdown draft with verified sources and no Burns hard-rule violations
+- Consumes: the complete rewrite from Tasks 1–2
+- Produces: a review-ready Markdown draft
 
-- [ ] **Step 1: Check metadata, length, headings, and banned phrases**
-
-Run:
-
-```bash
-rg -n '^# |在当今|近年来|随着.*发展|说白了|本质上|综上所述|值得注意的是|不难发现|让我们来看看|。。。|？？？|= =' /tmp/burns-workplace-sutra.TNyjM0/draft.md
-awk 'BEGIN{body=0} /^---$/{n++; if(n==2){body=1; next}} body{print}' /tmp/burns-workplace-sutra.TNyjM0/draft.md | wc -m
-rg -o '我' /tmp/burns-workplace-sutra.TNyjM0/draft.md | wc -l
-```
-
-Expected: no forbidden phrase or body-level H1 matches; body length is 2,500–3,200 Chinese characters; “我” occurs 2–5 times.
-
-- [ ] **Step 2: Check the argument contract**
+- [ ] **Step 1: Check structure and length**
 
 Run:
 
 ```bash
-rg -n '自我叙事|角色|价值承诺|照见五蕴皆空|应无所住而生其心|坐标|方向' /tmp/burns-workplace-sutra.TNyjM0/draft.md
+ARTICLE=/tmp/burns-workplace-sutra.TNyjM0/draft.md
+H2_COUNT=$(rg -c '^## ' "$ARTICLE")
+TABLE_COUNT=$(rg -c '^\|' "$ARTICLE" || true)
+BODY_CHARS=$(awk 'BEGIN{body=0} /^---$/{n++; if(n==2){body=1; next}} body{print}' "$ARTICLE" | wc -m | tr -d ' ')
+test "$H2_COUNT" -le 3
+test "$TABLE_COUNT" -eq 0
+test "$BODY_CHARS" -ge 2200 -a "$BODY_CHARS" -le 2700
 ```
 
-Expected: the opening names self-narrative failure; both sutra quotations support distinct sections; the final section returns to coordinates and direction.
+Expected: at most 3 H2 headings, zero table rows, and 2,200–2,700 body characters.
 
-- [ ] **Step 3: Verify source links and truthfulness boundaries**
+- [ ] **Step 2: Check sentence-level AI markers**
 
-Confirm that the footnotes link to CBETA `T08n0235` and `T08n0251`, that the systems analogy is marked as an analogy, and that no unprovided personal event is narrated as fact.
+Run:
 
-- [ ] **Step 4: Present the full draft for review**
+```bash
+rg -n '这提供了一个很实用的检查方式|放到职业语境里|所以，更准确的变化|首先|其次|最后|综上所述|值得注意的是|不难发现' "$ARTICLE"
+rg -n '不是.+而是' "$ARTICLE"
+for TERM in 身份认知 自我叙事 价值承诺 解释模型 社会坐标; do printf '%s ' "$TERM"; rg -o "$TERM" "$ARTICLE" | wc -l; done
+```
 
-Show the article without YAML frontmatter. State that images remain a separate production step and do not claim the article is final until the user approves the argument and voice.
+Expected: no standard transition matches; at most two `不是…而是…` matches; every abstract term count is at most two.
+
+- [ ] **Step 3: Check truthfulness and source boundaries**
+
+Confirm that the only first-person career facts are those supplied by the user, both source links point to CBETA `T08n0235` and `T08n0251`, and the closing note preserves the Buddhist-interpretation boundary.
+
+- [ ] **Step 4: Read aloud once and remove over-finished sentences**
+
+During the final read, remove any paragraph-ending aphorism that merely repeats the previous sentence. Keep no more than three standalone short sentences in the full body. Do not introduce deliberate typos or malformed punctuation.
+
+- [ ] **Step 5: Present the full draft for review**
+
+Show the article without YAML frontmatter. State that images remain a later production step and ask the user to judge whether the voice now feels lived-in rather than merely less formal.
