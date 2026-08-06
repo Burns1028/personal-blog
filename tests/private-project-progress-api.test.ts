@@ -51,8 +51,8 @@ const payload = {
   },
   activity: {
     source: "github",
-    sourceKey: "personal-blog:2026-08-02:deploy",
-    occurredAt: "2026-08-02T21:00:00+08:00",
+    sourceKey: "personal-blog:2024-11-02:deploy",
+    occurredAt: "2024-11-02T21:00:00+08:00",
     projectSlug: "personal-blog",
     kind: "progress",
     title: "部署生产发布链",
@@ -90,11 +90,18 @@ test("project progress validation is read-only and publish is idempotent", async
       assert.equal(response.status, 200);
       const data = (await response.json()).data;
       assert.equal(data.project.slug, "personal-blog");
-      assert.equal(data.activity.sourceKey, "personal-blog:2026-08-02:deploy");
+      assert.equal(data.activity.sourceKey, "personal-blog:2024-11-02:deploy");
     }
     const after = createArticleDatabase(process.env.BLOG_DB_PATH);
     assert.equal((after.prepare("SELECT count(*) AS count FROM projects").get() as { count: number }).count, 1);
     assert.equal((after.prepare("SELECT count(*) AS count FROM activities").get() as { count: number }).count, 1);
+    const historical = after
+      .prepare(
+        "SELECT occurred_at AS occurredAt, activity_day AS activityDay FROM activities",
+      )
+      .get() as { occurredAt: string; activityDay: string };
+    assert.equal(historical.occurredAt, "2024-11-02T21:00:00+08:00");
+    assert.equal(historical.activityDay, "2024-11-02");
     after.close();
   } finally {
     closeArticleDatabase();

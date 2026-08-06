@@ -60,12 +60,24 @@ test("GitHub progress Skill records verified project facts and activity", () => 
     "burns-update-github-progress",
     "scripts/upload.mjs",
   );
+  const projectRunner = skillFile(
+    "burns-update-github-progress",
+    "scripts/register-project.mjs",
+  );
 
   assert.match(instructions, /name: burns-update-github-progress/);
   assert.match(instructions, /description: Use when/);
   assert.match(instructions, /verified|核对/i);
+  assert.match(instructions, /Register a repository only/);
+  assert.match(instructions, /does not create an activity/i);
+  assert.match(instructions, /历史日期/);
+  assert.match(runner, /occurred-at/);
   assert.match(interfaceYaml, /\$burns-update-github-progress/);
+  assert.match(interfaceYaml, /项目与进度/);
   assert.match(runner, /_shared\/publish-client\.mjs/);
+  assert.match(projectRunner, /_shared\/publish-client\.mjs/);
+  assert.match(projectRunner, /\/api\/publish\/projects/);
+  assert.doesNotMatch(projectRunner, /activity|source-key|occurred-at/);
   assert.doesNotMatch(runner, /import-github-progress|BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
   assert.doesNotMatch(instructions, /BURNS_BLOG_ROOT|project-root|BLOG_DB_PATH/);
 });
