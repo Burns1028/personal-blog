@@ -98,7 +98,24 @@ const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
               aria-current={isCurrentRoute(item.href) ? "page" : undefined}
               data-artifact={artifactForRoute[item.href]}
             >
-              {item.label}
+              <span
+                class:list={[
+                  "site-nav__celestial",
+                  `site-nav__celestial--${item.celestial.kind}`,
+                ]}
+                aria-hidden="true"
+              >
+                <img
+                  src={item.celestial.src}
+                  srcset={item.celestial.srcset}
+                  width={item.celestial.width}
+                  height={item.celestial.height}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                />
+              </span>
+              <span class="site-nav__label">{item.label}</span>
             </a>
           ))
         }

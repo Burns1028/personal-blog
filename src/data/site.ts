@@ -28,7 +28,40 @@ export const contacts = [
 ] as const;
 
 export const nav = [
-  { href: "/writing", label: "Writing" },
-  { href: "/projects", label: "Projects" },
-  { href: "/ideas", label: "Ideas" },
-];
+  {
+    href: "/writing",
+    label: "Writing",
+    celestial: {
+      kind: "moon",
+      src: "/assets/navigation-celestials/nav-writing-moon-v1-64.webp",
+      srcset:
+        "/assets/navigation-celestials/nav-writing-moon-v1-64.webp 1x, /assets/navigation-celestials/nav-writing-moon-v1-128.webp 2x",
+      width: 64,
+      height: 64,
+    },
+  },
+  {
+    href: "/projects",
+    label: "Projects",
+    celestial: {
+      kind: "earth",
+      src: "/assets/navigation-celestials/nav-projects-earth-v1-64.webp",
+      srcset:
+        "/assets/navigation-celestials/nav-projects-earth-v1-64.webp 1x, /assets/navigation-celestials/nav-projects-earth-v1-128.webp 2x",
+      width: 64,
+      height: 64,
+    },
+  },
+  {
+    href: "/ideas",
+    label: "Ideas",
+    celestial: {
+      kind: "black-hole",
+      src: "/assets/navigation-celestials/nav-ideas-black-hole-v2-80.webp",
+      srcset:
+        "/assets/navigation-celestials/nav-ideas-black-hole-v2-80.webp 1x, /assets/navigation-celestials/nav-ideas-black-hole-v2-160.webp 2x",
+      width: 80,
+      height: 64,
+    },
+  },
+] as const;

@@ -12,7 +12,7 @@ Generate three dedicated miniature celestial assets with ImageGen, using the app
 - `Projects`: a complete deep-navy Earth with restrained antique-gold details and asymmetric blue rim light.
 - `Ideas`: a complete black-hole phenomenon with a pure-black core, thin photon ring, asymmetric accretion flow, and short particle sweep.
 
-The three generated sources use a flat chroma-key background that is removed locally to produce transparent project assets. This approach avoids the two weaker alternatives:
+The three generated sources were created against a flat chroma-key background, then cleaned locally into transparent masters. This approach avoids the two weaker alternatives:
 
 1. Cropping the complete visual master would carry starfield, connection-line, or rectangular background pixels into the icons.
 2. Shrinking the existing large-object layers would preserve detail meant for hundreds of pixels and turn the black hole into a hard-edged gold disc at navigation scale.
@@ -57,11 +57,11 @@ Keyboard focus stays on the full link using the existing focus treatment. The ic
 
 Use the dedicated transparent assets below:
 
-- `/assets/navigation-celestials/nav-writing-moon-v1.png`
-- `/assets/navigation-celestials/nav-projects-earth-v1.png`
-- `/assets/navigation-celestials/nav-ideas-black-hole-v1.png`
+- `/assets/navigation-celestials/nav-writing-moon-v1-64.webp` with a `128px` retina derivative
+- `/assets/navigation-celestials/nav-projects-earth-v1-64.webp` with a `128px` retina derivative
+- `/assets/navigation-celestials/nav-ideas-black-hole-v2-80.webp` with a `160px` retina derivative
 
-Their chroma-key masters remain in `design-source/navigation-celestials/` for future controlled regeneration. The implementation must not modify, regenerate, or overwrite any current home-orbit source or output asset.
+Their transparent masters remain in `design-source/navigation-celestials/` for future controlled regeneration. The implementation must not modify, regenerate, or overwrite any current home-orbit source or output asset.
 
 ## Verification
 

@@ -10,6 +10,7 @@
     "assets:cutouts": "node scripts/build-artifact-cutouts.mjs",
     "assets:home": "node scripts/build-home-assets.mjs",
     "assets:home:orrery": "node scripts/build-home-orrery-assets.mjs",
+    "assets:navigation": "node scripts/build-navigation-celestial-assets.mjs",
     "assets:projects": "node scripts/build-project-assets.mjs",
     "assets:writing": "node scripts/build-writing-assets.mjs",
     "article:upload": "node skills/burns-upload-article/scripts/upload.mjs",
