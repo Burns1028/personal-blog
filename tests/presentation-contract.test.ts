@@ -353,6 +353,25 @@ test("Projects keeps the search, three cards, and activity orbit within a compac
   assert.match(css, /top:\s*clamp\(-136px,\s*-8\.5vw,\s*-104px\)/);
 });
 
+test("Projects activity orbit emerges clear of the left Earth", () => {
+  const orbit = readFileSync(
+    resolve(projectRoot, "src/components/projects/ActivityOrbit.astro"),
+    "utf8",
+  );
+  const css = readFileSync(
+    resolve(projectRoot, "src/styles/projects-archive-v2.css"),
+    "utf8",
+  );
+
+  assert.match(orbit, /\[13,\s*30\]/);
+  assert.match(orbit, /d="M0 38 C180 240 520 260 1000 32"/);
+  assert.doesNotMatch(orbit, /\[8,\s*30\]/);
+  assert.match(css, /--projects-earth-safe:\s*clamp\(112px,\s*18svh,\s*210px\)/);
+  assert.match(css, /\.activity-orbit__line\s*\{[^}]*clip-path:\s*inset\(0 0 0 var\(--projects-earth-safe\)\)/);
+  assert.match(css, /\.activity-orbit li:first-child\s*\{[^}]*left:\s*max\(13%,\s*calc\(var\(--projects-earth-safe\) \+ 12px\)\)/);
+  assert.match(css, /\.activity-orbit li:first-child\s*\{[^}]*transform:\s*translate\(0,\s*-50%\)/);
+});
+
 test("shared GitHub contact points to Burns1028", () => {
   assert.equal(site.github, "https://github.com/Burns1028");
   assert.deepEqual(

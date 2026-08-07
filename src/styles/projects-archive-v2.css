@@ -7,6 +7,9 @@ body[data-route="/projects"] .site-footer {
 }
 
 .projects-v2 {
+  --projects-earth-top: clamp(182px, 20svh, 258px);
+  --projects-earth-safe: clamp(112px, 18svh, 210px);
+
   position: relative;
   min-height: 100svh;
   overflow: hidden;
@@ -41,8 +44,6 @@ body[data-route="/projects"] .site-footer {
 }
 
 .projects-v2 .projects-v2__earth {
-  --projects-earth-top: clamp(182px, 20svh, 258px);
-
   position: absolute;
   z-index: -1;
   top: var(--projects-earth-top);
@@ -413,6 +414,7 @@ body[data-route="/projects"] .site-footer {
   inset: 0;
   width: 100%;
   height: 100%;
+  clip-path: inset(0 0 0 var(--projects-earth-safe));
 }
 
 .activity-orbit__line path {
@@ -444,6 +446,11 @@ body[data-route="/projects"] .site-footer {
   outline: none;
   pointer-events: auto;
   transform: translate(-50%, -50%);
+}
+
+.activity-orbit li:first-child {
+  left: max(13%, calc(var(--projects-earth-safe) + 12px));
+  transform: translate(0, -50%);
 }
 
 .activity-orbit__dot {
@@ -773,6 +780,11 @@ html[data-page-settled="true"] .activity-orbit li {
     inset: auto;
     min-width: 0;
     padding-left: 22px;
+    transform: none;
+  }
+
+  .activity-orbit li:first-child {
+    left: auto;
     transform: none;
   }
 
