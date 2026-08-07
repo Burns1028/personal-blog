@@ -92,7 +92,7 @@ test("shared navigation renders decorative responsive celestial images", () => {
   assert.match(layout, /<span class="site-nav__label">\{item\.label\}<\/span>/);
 });
 
-test("celestial navigation spacing is responsive and never moves the icons", () => {
+test("celestial navigation stays bright, responsive, and never moves the icons", () => {
   const css = readFileSync(resolve(projectRoot, "src/styles/global.css"), "utf8");
   const celestialRuleBodies = [
     ...css.matchAll(/\.site-nav__celestial[^{}]*\{([^}]*)\}/g),
@@ -101,10 +101,34 @@ test("celestial navigation spacing is responsive and never moves the icons", () 
   assert.match(css, /--site-nav-celestial-size:\s*22px/);
   assert.match(css, /--site-nav-celestial-gap:\s*8px/);
   assert.match(css, /site-nav__celestial--black-hole[\s\S]*?width:\s*27px/);
-  assert.match(css, /\.site-nav__celestial\s*\{[^}]*opacity:\s*0\.82/);
+  assert.match(css, /\.site-nav__celestial\s*\{[^}]*opacity:\s*0\.96/);
+  assert.match(
+    css,
+    /\.site-nav__celestial--moon\s*\{[^}]*--site-nav-celestial-brightness:\s*1\.12/,
+  );
+  assert.match(
+    css,
+    /\.site-nav__celestial--earth\s*\{[^}]*--site-nav-celestial-brightness:\s*1\.3/,
+  );
+  assert.match(
+    css,
+    /\.site-nav__celestial--black-hole\s*\{[^}]*--site-nav-celestial-brightness:\s*1\.18/,
+  );
   assert.match(
     css,
     /\.site-nav a:hover \.site-nav__celestial[\s\S]*?opacity:\s*1/,
+  );
+  assert.match(
+    css,
+    /\.is-paper \.site-nav__celestial\s*\{[^}]*brightness\(var\(--site-nav-celestial-brightness\)\)/,
+  );
+  assert.match(
+    css,
+    /\.is-paper[\s\S]*?a\[aria-current="page"\][\s\S]*?brightness\(var\(--site-nav-celestial-active-brightness\)\)/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.is-paper \.site-nav__celestial\s*\{[^}]*brightness\(0\.76\)/,
   );
   assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*?--site-nav-celestial-size:\s*18px/);
   assert.doesNotMatch(celestialRuleBodies, /\b(?:animation|transform)\s*:/);
