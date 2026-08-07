@@ -297,9 +297,6 @@ import { contacts } from "../data/site";
     let typewriterTimer = 0;
     let contactStatusTimer = 0;
 
-    const clamp = (value: number, min = 0, max = 1) =>
-      Math.min(max, Math.max(min, value));
-
     const startTypewriter = () => {
       if (!typewriter) return;
 
@@ -375,71 +372,6 @@ import { contacts } from "../data/site";
       document.addEventListener("DOMContentLoaded", setReady, { once: true });
     } else {
       setReady();
-    }
-
-    if (stage && !reduceMotion.matches) {
-      let frame = 0;
-      let stageBounds = stage.getBoundingClientRect();
-
-      const setStageParallax = (x: number, y: number) => {
-        stage.style.setProperty("--stage-near-x", `${(x * 18).toFixed(2)}px`);
-        stage.style.setProperty("--stage-near-y", `${(y * 12).toFixed(2)}px`);
-        stage.style.setProperty("--stage-mid-x", `${(x * 12).toFixed(2)}px`);
-        stage.style.setProperty("--stage-mid-y", `${(y * 8).toFixed(2)}px`);
-        stage.style.setProperty("--stage-far-x", `${(x * 8).toFixed(2)}px`);
-        stage.style.setProperty("--stage-far-y", `${(y * 5).toFixed(2)}px`);
-      };
-
-      const updatePointer = (event: PointerEvent) => {
-        if (frame) cancelAnimationFrame(frame);
-
-        frame = requestAnimationFrame(() => {
-          frame = 0;
-          const x = clamp(
-            (event.clientX - stageBounds.left) / stageBounds.width,
-            0,
-            1,
-          );
-          const y = clamp(
-            (event.clientY - stageBounds.top) / stageBounds.height,
-            0,
-            1,
-          );
-
-          const pointerX = x - 0.5;
-          const pointerY = y - 0.5;
-          stage.style.setProperty("--stage-pointer-x", pointerX.toFixed(3));
-          stage.style.setProperty("--stage-pointer-y", pointerY.toFixed(3));
-          setStageParallax(pointerX, pointerY);
-        });
-      };
-
-      const resetPointer = () => {
-        stage.style.setProperty("--stage-pointer-x", "0");
-        stage.style.setProperty("--stage-pointer-y", "0");
-        setStageParallax(0, 0);
-      };
-
-      const stageResizeObserver = new ResizeObserver(() => {
-        stageBounds = stage.getBoundingClientRect();
-      });
-      stageResizeObserver.observe(stage);
-
-      const pauseStageMotion = () => {
-        if (frame) cancelAnimationFrame(frame);
-        frame = 0;
-        stage.removeEventListener("pointermove", updatePointer);
-        stage.removeEventListener("pointerleave", resetPointer);
-        stageResizeObserver.disconnect();
-      };
-
-      stage.addEventListener("pointermove", updatePointer, { passive: true });
-      stage.addEventListener("pointerleave", resetPointer);
-      document.addEventListener(
-        "burns:artifact-navigation-start",
-        pauseStageMotion,
-        { once: true },
-      );
     }
 
     if (stage) {

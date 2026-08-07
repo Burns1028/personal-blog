@@ -9,22 +9,18 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-artifact-stage
   data-active-artifact="none"
 >
-  <div class="home-cosmos__approved-frame">
-    <picture class="home-cosmos__approved-scene" data-approved-scene aria-hidden="true">
-      <source
-        media="(min-resolution: 1.5dppx)"
-        srcset={homeOrreryAssets.background.approvedScene.retina}
-      />
+  <div class="home-cosmos__stage">
+    <picture class="home-cosmos__connection-base" aria-hidden="true">
+      <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.connectionBase.retina} />
       <img
-        src={homeOrreryAssets.background.approvedScene.standard}
+        src={homeOrreryAssets.connectionBase.standard}
         alt=""
         width="881"
         height="732"
         loading="eager"
-        decoding="sync"
+        decoding="async"
       />
     </picture>
-
     <canvas
       class="home-cosmos__particle-canvas"
       data-particle-river-canvas
@@ -38,24 +34,24 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       data-artifact="document"
     >
       <span class="home-celestial__motion home-celestial__motion--writing">
-        <span
-          class="home-cosmos__sphere home-cosmos__sphere--moon"
-          aria-hidden="true"
-        >
-          <span class="home-cosmos__surface-viewport">
-            <picture class="home-cosmos__motion-surface">
-              <source
-                media="(min-resolution: 1.5dppx)"
-                srcset={homeOrreryAssets.writing.moonSurface.retina}
-              />
-              <img
-                src={homeOrreryAssets.writing.moonSurface.standard}
-                alt=""
-                width="140"
-                height="116"
-              />
-            </picture>
-          </span>
+        <span class="home-cosmos__sphere home-cosmos__sphere--moon" aria-hidden="true">
+          <picture class="home-cosmos__moon-base">
+            <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.writing.moon.retina} />
+            <img
+              src={homeOrreryAssets.writing.moon.standard}
+              alt=""
+              width="480"
+              height="480"
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+          <canvas
+            class="home-cosmos__moon-motion-canvas"
+            data-home-moon-motion
+            data-texture-url={homeOrreryAssets.writing.motion.texture}
+          ></canvas>
+          <span class="home-cosmos__moon-light"></span>
         </span>
       </span>
       <span class="sr-only">Writing</span>
@@ -68,24 +64,47 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       data-artifact="repo"
     >
       <span class="home-celestial__motion home-celestial__motion--projects">
-        <span
-          class="home-cosmos__sphere home-cosmos__sphere--earth"
-          aria-hidden="true"
-        >
-          <span class="home-cosmos__surface-viewport">
-            <picture class="home-cosmos__motion-surface">
-              <source
-                media="(min-resolution: 1.5dppx)"
-                srcset={homeOrreryAssets.projects.earthSurface.retina}
-              />
-              <img
-                src={homeOrreryAssets.projects.earthSurface.standard}
-                alt=""
-                width="312"
-                height="264"
-              />
-            </picture>
-          </span>
+        <picture class="home-cosmos__earth-directional-glow" aria-hidden="true">
+          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.projects.earthGlow.retina} />
+          <img
+            src={homeOrreryAssets.projects.earthGlow.standard}
+            alt=""
+            width="480"
+            height="480"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+        <span class="home-cosmos__sphere home-cosmos__sphere--earth" aria-hidden="true">
+          <picture class="home-cosmos__earth-base">
+            <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.projects.earth.retina} />
+            <img
+              src={homeOrreryAssets.projects.earth.standard}
+              alt=""
+              width="480"
+              height="480"
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+          <canvas
+            class="home-cosmos__earth-motion-canvas"
+            data-home-earth-motion
+            data-texture-url={homeOrreryAssets.projects.motion.texture}
+          ></canvas>
+        </span>
+        <span class="home-cosmos__satellite-orbit" aria-hidden="true">
+          <picture class="home-cosmos__satellite">
+            <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.projects.satellite.retina} />
+            <img
+              src={homeOrreryAssets.projects.satellite.standard}
+              alt=""
+              width="320"
+              height="320"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
         </span>
       </span>
       <span class="sr-only">Projects</span>
@@ -98,20 +117,40 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       data-artifact="idea"
     >
       <span class="home-celestial__motion home-celestial__motion--ideas">
-        <picture class="home-cosmos__accretion-disc" aria-hidden="true">
-          <source
-            media="(min-resolution: 1.5dppx)"
-            srcset={homeOrreryAssets.ideas.blackHole.retina}
-          />
+        <picture class="home-cosmos__black-hole-field" aria-hidden="true">
+          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.field.retina} />
           <img
-            src={homeOrreryAssets.ideas.blackHole.standard}
+            src={homeOrreryAssets.ideas.field.standard}
             alt=""
-            width="96"
-            height="96"
+            width="960"
+            height="540"
             loading="eager"
             decoding="async"
           />
         </picture>
+        <picture class="home-cosmos__black-hole-core" aria-hidden="true">
+          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.core.retina} />
+          <img
+            src={homeOrreryAssets.ideas.core.standard}
+            alt=""
+            width="480"
+            height="480"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+        <picture class="home-cosmos__black-hole-rotor" aria-hidden="true">
+          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.rotor.retina} />
+          <img
+            src={homeOrreryAssets.ideas.rotor.standard}
+            alt=""
+            width="480"
+            height="480"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+        <span class="home-cosmos__black-hole-dark-core" aria-hidden="true"></span>
       </span>
       <span class="sr-only">Ideas</span>
     </a>
@@ -123,6 +162,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     createOrreryParticleController,
     type OrreryArtifact,
   } from "../lib/home-orrery-particles";
+  import { createCelestialSphereController } from "../lib/home-celestial-sphere";
+  import { homeOrreryAssets } from "../data/home-orrery-assets";
 
   const orrery = document.querySelector<HTMLElement>("[data-home-orrery]");
 
@@ -135,6 +176,34 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     const savesData = connection?.saveData === true;
     const canvas = orrery.querySelector<HTMLCanvasElement>("[data-particle-river-canvas]");
     const particles = canvas ? createOrreryParticleController(canvas) : null;
+    const createSurfaceMotion = (
+      selector: string,
+      options: {
+        durationMs: number;
+        initialRotation: number;
+        ambientLight: number;
+        diffuseLight: number;
+      },
+    ) => {
+      const surface = orrery.querySelector<HTMLCanvasElement>(selector);
+      const textureUrl = surface?.dataset.textureUrl;
+      if (!surface || !textureUrl) return null;
+      return createCelestialSphereController(surface, {
+        textureUrl,
+        durationMs: options.durationMs,
+        initialRotation: options.initialRotation,
+        ambientLight: options.ambientLight,
+        diffuseLight: options.diffuseLight,
+      });
+    };
+    const moonMotion = createSurfaceMotion(
+      "[data-home-moon-motion]",
+      homeOrreryAssets.writing.motion,
+    );
+    const earthMotion = createSurfaceMotion(
+      "[data-home-earth-motion]",
+      homeOrreryAssets.projects.motion,
+    );
     let visible = true;
     let navigationPaused = false;
 
@@ -152,6 +221,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         delete orrery.dataset.motionRunning;
       }
       particles?.setRunning(running);
+      moonMotion?.setRunning(running);
+      earthMotion?.setRunning(running);
     };
 
     const updateActiveArtifact = () => {
@@ -191,6 +262,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         observer.disconnect();
         activeObserver.disconnect();
         particles?.destroy();
+        moonMotion?.destroy();
+        earthMotion?.destroy();
         document.removeEventListener("visibilitychange", updateMotionState);
         document.removeEventListener(
           "burns:artifact-navigation-start",
