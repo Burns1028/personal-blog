@@ -461,24 +461,49 @@ body[data-route="/projects"] .site-footer {
 
 .activity-orbit__dot {
   position: absolute;
-  top: 9px;
-  left: 9px;
-  width: 9px;
-  height: 9px;
-  border: 2px solid #9ac2d0;
-  border-radius: 50%;
-  background: #071014;
-  box-shadow: 0 0 0 3px rgba(98, 165, 193, 0.12);
+  top: 5px;
+  left: 5px;
+  width: 18px;
+  height: 18px;
+  background:
+    url("/assets/projects-activity-star-cyan.png") center / contain no-repeat,
+    radial-gradient(
+      circle,
+      #dff8ff 0 8%,
+      rgba(100, 188, 218, 0.72) 9% 18%,
+      transparent 40%
+    );
+  filter: brightness(0.92);
+  transform-origin: center;
+  transition: filter 160ms ease, transform 160ms ease;
 }
 
 .activity-orbit__day.is-current .activity-orbit__dot {
-  border-color: #d7a44a;
-  box-shadow: 0 0 0 3px rgba(185, 133, 49, 0.14);
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background:
+    url("/assets/projects-activity-star-amber.png") center / contain no-repeat,
+    radial-gradient(
+      circle,
+      #fff4d8 0 8%,
+      rgba(215, 164, 74, 0.72) 9% 18%,
+      transparent 40%
+    );
 }
 
 .activity-orbit__trigger:focus-visible .activity-orbit__dot {
   outline: 1px solid rgba(151, 208, 228, 0.9);
-  outline-offset: 5px;
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.activity-orbit__trigger:hover .activity-orbit__dot,
+.activity-orbit__trigger:focus-visible .activity-orbit__dot,
+.activity-orbit__day[data-open="true"] .activity-orbit__dot {
+  filter: brightness(1.14);
+  transform: scale(1.08);
 }
 
 .activity-orbit__summary {
@@ -827,11 +852,20 @@ html[data-page-settled="true"] .activity-orbit__day {
 
 @keyframes latest-activity-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(185, 133, 49, 0.55);
+    filter: brightness(1.5) drop-shadow(0 0 0 rgba(215, 164, 74, 0));
+    transform: scale(1);
+  }
+
+  55% {
+    filter: brightness(1.35)
+      drop-shadow(0 0 8px rgba(215, 164, 74, 0.72));
+    transform: scale(1.18);
   }
 
   100% {
-    box-shadow: 0 0 0 14px transparent;
+    filter: brightness(0.92)
+      drop-shadow(0 0 14px rgba(215, 164, 74, 0));
+    transform: scale(1);
   }
 }
 
@@ -841,11 +875,12 @@ html[data-page-settled="true"] .activity-orbit__day {
   .projects-satellite__signal,
   .activity-orbit__dot {
     animation: none !important;
+    transform: none !important;
+    transition: none;
   }
 
   .activity-orbit__day.is-located .activity-orbit__dot {
-    outline: 2px solid #b98531;
-    outline-offset: 4px;
+    filter: brightness(1.25);
   }
 
   .activity-orbit__detail {
@@ -976,6 +1011,11 @@ html[data-page-settled="true"] .activity-orbit__day {
   .activity-orbit__dot {
     top: 3px;
     left: -28px;
+  }
+
+  .activity-orbit__day.is-current .activity-orbit__dot {
+    top: 2px;
+    left: -29px;
   }
 
   .activity-orbit__summary,

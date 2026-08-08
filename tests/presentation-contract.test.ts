@@ -427,6 +427,34 @@ test("Projects activity stars are transparent high-density generated assets", as
   }
 });
 
+test("Projects activity nodes use four-point stars without restoring ring markers", () => {
+  const css = readFileSync(
+    resolve(projectRoot, "src/styles/projects-archive-v2.css"),
+    "utf8",
+  );
+  const dotRule = css.match(/\.activity-orbit__dot\s*\{[^}]*\}/)?.[0] ?? "";
+  const currentDotRule =
+    css.match(
+      /\.activity-orbit__day\.is-current \.activity-orbit__dot\s*\{[^}]*\}/,
+    )?.[0] ?? "";
+
+  assert.match(dotRule, /projects-activity-star-cyan\.png/);
+  assert.match(dotRule, /width:\s*18px/);
+  assert.match(dotRule, /height:\s*18px/);
+  assert.doesNotMatch(dotRule, /border:\s*2px solid/);
+  assert.match(currentDotRule, /projects-activity-star-amber\.png/);
+  assert.match(currentDotRule, /width:\s*20px/);
+  assert.match(currentDotRule, /height:\s*20px/);
+  assert.match(
+    css,
+    /\.activity-orbit__trigger:hover \.activity-orbit__dot[\s\S]*?transform:\s*scale\(1\.08\)/,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.activity-orbit__dot\s*\{[^}]*transform:\s*none\s*!important/,
+  );
+});
+
 test("Projects activity nodes expose every activity in an accessible detail archive", () => {
   const orbit = readFileSync(
     resolve(projectRoot, "src/components/projects/ActivityOrbit.astro"),
