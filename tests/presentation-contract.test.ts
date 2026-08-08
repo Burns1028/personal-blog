@@ -372,6 +372,37 @@ test("Projects activity orbit emerges clear of the left Earth", () => {
   assert.match(css, /\.activity-orbit li:first-child\s*\{[^}]*transform:\s*translate\(0,\s*-50%\)/);
 });
 
+test("Projects activity nodes expose every activity in an accessible detail archive", () => {
+  const orbit = readFileSync(
+    resolve(projectRoot, "src/components/projects/ActivityOrbit.astro"),
+    "utf8",
+  );
+
+  assert.match(orbit, /day\.items\.map/);
+  assert.match(orbit, /data-activity-node/);
+  assert.match(orbit, /data-activity-trigger/);
+  assert.match(orbit, /data-activity-detail/);
+  assert.match(orbit, /aria-controls/);
+  assert.match(orbit, /aria-expanded="false"/);
+  assert.match(orbit, /item\.summary/);
+  assert.match(orbit, /item\.url/);
+  assert.doesNotMatch(orbit, /const featured = day\.items\[0\]/);
+});
+
+test("Projects activity archives support pointer, keyboard, touch, and satellite location", () => {
+  const page = readFileSync(
+    resolve(projectRoot, "src/pages/projects/index.astro"),
+    "utf8",
+  );
+
+  assert.match(page, /function setActivityOpen/);
+  assert.match(page, /pointerenter/);
+  assert.match(page, /focusin/);
+  assert.match(page, /aria-expanded/);
+  assert.match(page, /event\.key === "Escape"/);
+  assert.match(page, /data-activity-trigger/);
+});
+
 test("shared GitHub contact points to Burns1028", () => {
   assert.equal(site.github, "https://github.com/Burns1028");
   assert.deepEqual(
