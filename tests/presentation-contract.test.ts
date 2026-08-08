@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import sharp from "sharp";
 import { contacts, site } from "../src/data/site.ts";
 
 const projectRoot = resolve(import.meta.dirname, "..");
@@ -408,6 +409,22 @@ test("Projects activity signal archives stay legible above the continuous orbit"
     css,
     /\.activity-orbit__line path\s*\{[^}]*stroke:\s*rgba\(173,\s*198,\s*205,\s*0\.7\)/,
   );
+});
+
+test("Projects activity stars are transparent high-density generated assets", async () => {
+  const assetPaths = [
+    "public/assets/projects-activity-star-cyan.png",
+    "public/assets/projects-activity-star-amber.png",
+  ];
+
+  for (const relativePath of assetPaths) {
+    const assetPath = resolve(projectRoot, relativePath);
+    assert.ok(existsSync(assetPath), `${relativePath} must exist`);
+    const metadata = await sharp(assetPath).metadata();
+    assert.equal(metadata.width, 128);
+    assert.equal(metadata.height, 128);
+    assert.equal(metadata.hasAlpha, true);
+  }
 });
 
 test("Projects activity nodes expose every activity in an accessible detail archive", () => {
