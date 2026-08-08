@@ -4,7 +4,7 @@ import node from "@astrojs/node";
 import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? "https://burns-blog.example.com",
+  site: process.env.SITE_URL ?? "https://burnsgao.me",
   adapter: node({
     mode: "standalone",
   }),
