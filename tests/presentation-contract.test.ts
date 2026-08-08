@@ -349,7 +349,7 @@ test("Projects keeps the search, three cards, and activity orbit within a compac
   assert.match(css, /\.projects-v2 \.project-card\s*\{[^}]*min-height:\s*146px/);
   assert.match(css, /\.project-card__title h2\s*\{[^}]*font:\s*16px/);
   assert.match(css, /\.activity-orbit\s*\{[^}]*height:\s*248px/);
-  assert.match(orbit, /\[91,\s*25\]/);
+  assert.match(orbit, /\[13,\s*25,\s*43,\s*61,\s*78,\s*91\]\.map\(activityOrbitPointAtX\)/);
   assert.match(css, /right:\s*clamp\(6px,\s*1\.2vw,\s*24px\)/);
   assert.match(css, /top:\s*clamp\(-136px,\s*-8\.5vw,\s*-104px\)/);
 });
@@ -364,9 +364,9 @@ test("Projects activity orbit emerges clear of the left Earth", () => {
     "utf8",
   );
 
-  assert.match(orbit, /\[13,\s*34\]/);
-  assert.match(orbit, /d="M0 44 C210 190 560 198 1000 38"/);
-  assert.doesNotMatch(orbit, /\[8,\s*34\]/);
+  assert.match(orbit, /activityOrbitPointAtX/);
+  assert.match(orbit, /d=\{activityOrbitPath\}/);
+  assert.doesNotMatch(orbit, /\[13,\s*34\]/);
   assert.match(css, /--projects-earth-safe:\s*clamp\(112px,\s*18svh,\s*210px\)/);
   assert.match(css, /\.activity-orbit__line\s*\{[^}]*clip-path:\s*inset\(0 0 0 var\(--projects-earth-safe\)\)/);
   assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
@@ -384,7 +384,7 @@ test("Projects activity signal archives stay legible above the continuous orbit"
   const lineRule =
     css.match(/\.activity-orbit__line path\s*\{[^}]*\}/)?.[0] ?? "";
 
-  assert.match(orbit, /d="M0 44 C210 190 560 198 1000 38"/);
+  assert.match(orbit, /d=\{activityOrbitPath\}/);
   assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
   assert.match(
     css,
