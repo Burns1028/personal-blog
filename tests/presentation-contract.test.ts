@@ -421,8 +421,8 @@ test("Projects activity stars are transparent high-density generated assets", as
     const assetPath = resolve(projectRoot, relativePath);
     assert.ok(existsSync(assetPath), `${relativePath} must exist`);
     const metadata = await sharp(assetPath).metadata();
-    assert.equal(metadata.width, 128);
-    assert.equal(metadata.height, 128);
+    assert.equal(metadata.width, 256);
+    assert.equal(metadata.height, 256);
     assert.equal(metadata.hasAlpha, true);
   }
 });
@@ -439,15 +439,17 @@ test("Projects activity nodes use four-point stars without restoring ring marker
     )?.[0] ?? "";
 
   assert.match(dotRule, /projects-activity-star-cyan\.png/);
-  assert.match(dotRule, /width:\s*18px/);
-  assert.match(dotRule, /height:\s*18px/);
+  assert.match(dotRule, /width:\s*22px/);
+  assert.match(dotRule, /height:\s*22px/);
   assert.doesNotMatch(dotRule, /border:\s*2px solid/);
+  assert.doesNotMatch(dotRule, /radial-gradient/);
   assert.match(currentDotRule, /projects-activity-star-amber\.png/);
-  assert.match(currentDotRule, /width:\s*20px/);
-  assert.match(currentDotRule, /height:\s*20px/);
+  assert.match(currentDotRule, /width:\s*24px/);
+  assert.match(currentDotRule, /height:\s*24px/);
+  assert.doesNotMatch(currentDotRule, /radial-gradient/);
   assert.match(
     css,
-    /\.activity-orbit__trigger:hover \.activity-orbit__dot[\s\S]*?transform:\s*scale\(1\.08\)/,
+    /\.activity-orbit__trigger:hover \.activity-orbit__dot[\s\S]*?transform:\s*scale\(1\.06\)/,
   );
   assert.match(
     css,
