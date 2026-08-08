@@ -117,9 +117,105 @@ const activityDays = listActivityDays(6);
       const latest = document.querySelector(
         "[data-latest-activity='true']",
       );
+      const activityNodes = [
+        ...document.querySelectorAll("[data-activity-node]"),
+      ].filter((node) => node instanceof HTMLElement);
       const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       );
+
+      function setActivityOpen(node, open) {
+        const trigger = node.querySelector("[data-activity-trigger]");
+        const detail = node.querySelector("[data-activity-detail]");
+        if (
+          !(trigger instanceof HTMLButtonElement) ||
+          !(detail instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        node.dataset.open = String(open);
+        trigger.setAttribute("aria-expanded", String(open));
+        detail.hidden = !open;
+      }
+
+      const closeActivitiesExcept = (current) => {
+        for (const node of activityNodes) {
+          if (node !== current) setActivityOpen(node, false);
+        }
+      };
+
+      for (const node of activityNodes) {
+        const trigger = node.querySelector("[data-activity-trigger]");
+        if (!(trigger instanceof HTMLButtonElement)) continue;
+
+        let touchActivation = false;
+        trigger.addEventListener("pointerdown", (event) => {
+          touchActivation = event.pointerType !== "mouse";
+        });
+        node.addEventListener("pointerenter", (event) => {
+          if (event.pointerType !== "mouse") return;
+          closeActivitiesExcept(node);
+          setActivityOpen(node, true);
+        });
+        node.addEventListener("pointerleave", (event) => {
+          if (event.pointerType !== "mouse") return;
+          if (!node.contains(document.activeElement)) {
+            setActivityOpen(node, false);
+          }
+        });
+        node.addEventListener("focusin", () => {
+          if (touchActivation) return;
+          closeActivitiesExcept(node);
+          setActivityOpen(node, true);
+        });
+        node.addEventListener("focusout", () => {
+          requestAnimationFrame(() => {
+            if (
+              !node.contains(document.activeElement) &&
+              !node.matches(":hover")
+            ) {
+              setActivityOpen(node, false);
+            }
+          });
+        });
+        trigger.addEventListener("click", () => {
+          const nextOpen = touchActivation
+            ? node.dataset.open !== "true"
+            : true;
+          touchActivation = false;
+          closeActivitiesExcept(node);
+          setActivityOpen(node, nextOpen);
+        });
+      }
+
+      document.addEventListener("pointerdown", (event) => {
+        const target = event.target;
+        if (
+          target instanceof Element &&
+          !target.closest("[data-activity-node]")
+        ) {
+          closeActivitiesExcept(null);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          const openNode = activityNodes.find(
+            (node) => node.dataset.open === "true",
+          );
+          const trigger = openNode?.querySelector(
+            "[data-activity-trigger]",
+          );
+          if (
+            openNode instanceof HTMLElement &&
+            trigger instanceof HTMLButtonElement
+          ) {
+            setActivityOpen(openNode, false);
+            trigger.focus({ preventScroll: true });
+          }
+        }
+      });
 
       if (
         satellite instanceof HTMLButtonElement &&
@@ -135,7 +231,14 @@ const activityDays = listActivityDays(6);
           latest?.classList.add("is-located");
 
           if (latest instanceof HTMLElement) {
-            latest.focus({ preventScroll: true });
+            const latestTrigger = latest.querySelector(
+              "[data-activity-trigger]",
+            );
+            closeActivitiesExcept(latest);
+            setActivityOpen(latest, true);
+            if (latestTrigger instanceof HTMLButtonElement) {
+              latestTrigger.focus({ preventScroll: true });
+            }
             if (window.innerWidth < 768 && !reducedMotion.matches) {
               latest.scrollIntoView({
                 block: "nearest",

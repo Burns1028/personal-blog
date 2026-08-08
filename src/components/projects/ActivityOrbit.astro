@@ -17,6 +17,13 @@ const positions = [
 ] as const;
 const chronological = days.slice(0, 6).reverse();
 const positionOffset = positions.length - chronological.length;
+const kindLabels = {
+  progress: "进展",
+  fix: "修复",
+  release: "发布",
+  research: "研究",
+  maintenance: "维护",
+} as const;
 ---
 
 <section class="activity-orbit" aria-label="近期活动">
@@ -35,28 +42,72 @@ const positionOffset = positions.length - chronological.length;
 
   {
     chronological.length > 0 ? (
-      <ol>
+      <ol class="activity-orbit__days">
         {chronological.map((day, index) => {
           const [left, top] = positions[index + positionOffset];
-          const featured = day.items[0];
+          const lead = day.items.at(0);
           const isLatest = index === chronological.length - 1;
+          const align = left <= 20 ? "start" : left >= 84 ? "end" : "center";
+          const detailId = `activity-day-${day.date}`;
 
           return (
             <li
-              class:list={{ "is-current": isLatest }}
+              class:list={["activity-orbit__day", { "is-current": isLatest }]}
               style={`--node-left:${left}%;--node-top:${top}%;--node-index:${index}`}
-              tabindex={isLatest ? -1 : undefined}
+              data-activity-node
+              data-align={align}
+              data-open="false"
               data-latest-activity={isLatest ? "true" : undefined}
             >
-              <span class="activity-orbit__dot" aria-hidden="true" />
-              <time datetime={day.date}>
-                {day.date.slice(5).replace("-", ".")}
-              </time>
-              <strong>{day.count} 项活动</strong>
-              <small>
-                {featured?.projectSlug ? `${featured.projectSlug}：` : ""}
-                {featured?.title}
-              </small>
+              <button
+                class="activity-orbit__trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls={detailId}
+                data-activity-trigger
+              >
+                <span class="activity-orbit__dot" aria-hidden="true" />
+                <span class="activity-orbit__summary">
+                  <time datetime={day.date}>
+                    {day.date.slice(5).replace("-", ".")}
+                  </time>
+                  <strong>{day.count} 项活动</strong>
+                  <small>
+                    {lead?.projectSlug ? `${lead.projectSlug}：` : ""}
+                    {lead?.title}
+                  </small>
+                </span>
+              </button>
+
+              <article
+                id={detailId}
+                class="activity-orbit__detail"
+                aria-label={`${day.date} 的 ${day.count} 项活动`}
+                data-activity-detail
+                hidden
+              >
+                <header class="activity-orbit__detail-header">
+                  <time datetime={day.date}>{day.date}</time>
+                  <strong>{day.count} 项活动</strong>
+                </header>
+                <ol class="activity-orbit__records">
+                  {day.items.map((item) => (
+                    <li class="activity-orbit__record">
+                      <p class="activity-orbit__record-meta">
+                        <span>{item.projectSlug ?? "独立记录"}</span>
+                        <span>{kindLabels[item.kind]}</span>
+                      </p>
+                      <h3>{item.title}</h3>
+                      <p>{item.summary}</p>
+                      {item.url ? (
+                        <a href={item.url} target="_blank" rel="noreferrer">
+                          查看 GitHub 记录 ↗
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              </article>
             </li>
           );
         })}
