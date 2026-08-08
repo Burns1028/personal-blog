@@ -420,10 +420,9 @@ body[data-route="/projects"] .site-footer {
 
 .activity-orbit__line path {
   fill: none;
-  stroke: rgba(173, 198, 205, 0.56);
+  stroke: rgba(173, 198, 205, 0.7);
   stroke-width: 1;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 2px rgba(111, 176, 197, 0.2));
   vector-effect: non-scaling-stroke;
 }
 
@@ -758,10 +757,6 @@ body[data-route="/projects"] .site-footer {
   stroke-dashoffset: 1;
 }
 
-html[data-page-settled="true"] .activity-orbit__line path {
-  animation: orbit-draw 760ms ease-out forwards;
-}
-
 html[data-page-settled="true"] .activity-orbit__day {
   animation: orbit-node-in 240ms
     calc(300ms + var(--node-index, 0) * 70ms) ease-out both;
@@ -781,12 +776,6 @@ html[data-page-settled="true"] .activity-orbit__day {
 
 .activity-orbit__day.is-located .activity-orbit__dot {
   animation: latest-activity-pulse 620ms ease-out;
-}
-
-@keyframes orbit-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
 }
 
 @keyframes orbit-node-in {
@@ -847,10 +836,6 @@ html[data-page-settled="true"] .activity-orbit__day {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .activity-orbit__line path {
-    stroke-dashoffset: 0;
-  }
-
   .activity-orbit__day,
   .projects-satellite img,
   .projects-satellite__signal,

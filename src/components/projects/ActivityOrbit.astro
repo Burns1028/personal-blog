@@ -24,6 +24,11 @@ const kindLabels = {
   research: "研究",
   maintenance: "维护",
 } as const;
+const alignmentFor = (left: number) => {
+  if (left <= 20) return "start";
+  if (left >= 84) return "end";
+  return "center";
+};
 ---
 
 <section class="activity-orbit" aria-label="近期活动">
@@ -47,7 +52,7 @@ const kindLabels = {
           const [left, top] = positions[index + positionOffset];
           const lead = day.items.at(0);
           const isLatest = index === chronological.length - 1;
-          const align = left <= 20 ? "start" : left >= 84 ? "end" : "center";
+          const align = alignmentFor(left);
           const detailId = `activity-day-${day.date}`;
 
           return (

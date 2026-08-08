@@ -380,6 +380,8 @@ test("Projects activity signal archives stay legible above the continuous orbit"
     resolve(projectRoot, "src/styles/projects-archive-v2.css"),
     "utf8",
   );
+  const lineRule =
+    css.match(/\.activity-orbit__line path\s*\{[^}]*\}/)?.[0] ?? "";
 
   assert.match(orbit, /d="M0 44 C210 190 560 198 1000 38"/);
   assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
@@ -398,6 +400,13 @@ test("Projects activity signal archives stay legible above the continuous orbit"
   assert.match(
     css,
     /@media \(max-width:\s*767px\)[\s\S]*?\.activity-orbit__detail\s*\{[^}]*position:\s*relative/,
+  );
+  assert.doesNotMatch(lineRule, /stroke-dasharray:\s*1/);
+  assert.doesNotMatch(lineRule, /stroke-dashoffset:\s*1/);
+  assert.doesNotMatch(css, /@keyframes orbit-draw/);
+  assert.match(
+    css,
+    /\.activity-orbit__line path\s*\{[^}]*stroke:\s*rgba\(173,\s*198,\s*205,\s*0\.7\)/,
   );
 });
 
