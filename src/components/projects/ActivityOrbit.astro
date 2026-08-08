@@ -1,5 +1,9 @@
 ---
 import type { ActivityDay } from "../../lib/server/activity-store";
+import {
+  activityOrbitPath,
+  activityOrbitPointAtX,
+} from "../../lib/activity-orbit-geometry";
 import SatelliteControl from "./SatelliteControl.astro";
 
 interface Props {
@@ -7,14 +11,7 @@ interface Props {
 }
 
 const { days } = Astro.props;
-const positions = [
-  [13, 34],
-  [25, 51],
-  [43, 62],
-  [61, 58],
-  [78, 43],
-  [91, 25],
-] as const;
+const positions = [13, 25, 43, 61, 78, 91].map(activityOrbitPointAtX);
 const chronological = days.slice(0, 6).reverse();
 const positionOffset = positions.length - chronological.length;
 const kindLabels = {
@@ -40,7 +37,7 @@ const alignmentFor = (left: number) => {
   >
     <path
       data-orbit-path
-      d="M0 44 C210 190 560 198 1000 38"
+      d={activityOrbitPath}
       pathLength="1"
     ></path>
   </svg>
@@ -49,7 +46,7 @@ const alignmentFor = (left: number) => {
     chronological.length > 0 ? (
       <ol class="activity-orbit__days">
         {chronological.map((day, index) => {
-          const [left, top] = positions[index + positionOffset];
+          const { left, top } = positions[index + positionOffset];
           const lead = day.items.at(0);
           const isLatest = index === chronological.length - 1;
           const align = alignmentFor(left);
