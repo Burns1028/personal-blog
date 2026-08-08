@@ -348,7 +348,7 @@ test("Projects keeps the search, three cards, and activity orbit within a compac
   assert.match(css, /\.projects-v2 \.project-card\s*\{[^}]*min-height:\s*146px/);
   assert.match(css, /\.project-card__title h2\s*\{[^}]*font:\s*16px/);
   assert.match(css, /\.activity-orbit\s*\{[^}]*height:\s*248px/);
-  assert.match(orbit, /\[91,\s*24\]/);
+  assert.match(orbit, /\[91,\s*25\]/);
   assert.match(css, /right:\s*clamp\(6px,\s*1\.2vw,\s*24px\)/);
   assert.match(css, /top:\s*clamp\(-136px,\s*-8\.5vw,\s*-104px\)/);
 });
@@ -363,13 +363,42 @@ test("Projects activity orbit emerges clear of the left Earth", () => {
     "utf8",
   );
 
-  assert.match(orbit, /\[13,\s*30\]/);
-  assert.match(orbit, /d="M0 38 C180 240 520 260 1000 32"/);
-  assert.doesNotMatch(orbit, /\[8,\s*30\]/);
+  assert.match(orbit, /\[13,\s*34\]/);
+  assert.match(orbit, /d="M0 44 C210 190 560 198 1000 38"/);
+  assert.doesNotMatch(orbit, /\[8,\s*34\]/);
   assert.match(css, /--projects-earth-safe:\s*clamp\(112px,\s*18svh,\s*210px\)/);
   assert.match(css, /\.activity-orbit__line\s*\{[^}]*clip-path:\s*inset\(0 0 0 var\(--projects-earth-safe\)\)/);
-  assert.match(css, /\.activity-orbit li:first-child\s*\{[^}]*left:\s*max\(13%,\s*calc\(var\(--projects-earth-safe\) \+ 12px\)\)/);
-  assert.match(css, /\.activity-orbit li:first-child\s*\{[^}]*transform:\s*translate\(0,\s*-50%\)/);
+  assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
+});
+
+test("Projects activity signal archives stay legible above the continuous orbit", () => {
+  const orbit = readFileSync(
+    resolve(projectRoot, "src/components/projects/ActivityOrbit.astro"),
+    "utf8",
+  );
+  const css = readFileSync(
+    resolve(projectRoot, "src/styles/projects-archive-v2.css"),
+    "utf8",
+  );
+
+  assert.match(orbit, /d="M0 44 C210 190 560 198 1000 38"/);
+  assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
+  assert.match(
+    css,
+    /\.activity-orbit__detail\s*\{[^}]*background:\s*rgba\(3,\s*8,\s*10,\s*0\.96\)/,
+  );
+  assert.match(
+    css,
+    /\.activity-orbit__detail::before[\s\S]*?background:\s*#d3a04a/,
+  );
+  assert.match(
+    css,
+    /\.activity-orbit__day\[data-open="true"\][\s\S]*?opacity:\s*1/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width:\s*767px\)[\s\S]*?\.activity-orbit__detail\s*\{[^}]*position:\s*relative/,
+  );
 });
 
 test("Projects activity nodes expose every activity in an accessible detail archive", () => {
