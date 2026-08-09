@@ -107,7 +107,7 @@ test("Ideas date filtering uses a custom archive index instead of the native sel
   assert.match(page, /searchForm\?\.requestSubmit\(\)/);
   assert.match(page, /aria-current=\{!selectedDate \? "page" : undefined\}/);
   assert.match(page, /aria-current=\{date === selectedDate \? "page" : undefined\}/);
-  assert.match(page, /日期索引/);
+  assert.doesNotMatch(page, /日期索引/);
   assert.match(page, /event\.key === "Escape"/);
   assert.match(css, /\.ideas-journal__date-filter\s*>\s*summary/);
   assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*position:\s*absolute/);
@@ -117,6 +117,7 @@ test("Ideas date filtering uses a custom archive index instead of the native sel
     /\.ideas-journal__date-filter\s*>\s*summary:focus-visible\s*\{[^}]*outline:\s*0/,
   );
   assert.match(css, /\.ideas-journal__date-option\[aria-current="page"\]::before/);
+  assert.doesNotMatch(css, /\.ideas-journal__date-menu-title/);
   assert.doesNotMatch(css, /#[0-9a-fA-F]{0,2}4096ff|dodgerblue/);
 });
 
@@ -202,6 +203,10 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
   );
   assert.match(
     css,
+    /\.ideas-journal__search\s*\{[^}]*position:\s*relative/,
+  );
+  assert.doesNotMatch(
+    css,
     /\.ideas-journal__search\s*\{[^}]*position:\s*sticky/,
   );
   assert.match(
@@ -218,10 +223,7 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
     css,
     /\.ideas-journal__singularity\s*\{[^}]*right:\s*clamp\(24px,\s*3vw,\s*64px\)/,
   );
-  assert.match(
-    css,
-    /\.ideas-journal__search\s*\{[^}]*top:\s*calc\(clamp\(92px,\s*11\.8056vh,\s*136px\)\s*\+\s*10px\)/,
-  );
+  assert.doesNotMatch(css, /\.ideas-journal__search\s*\{[^}]*\btop\s*:/);
   assert.match(
     css,
     /\.ideas-journal__entry h2\s*\{[^}]*font-size:\s*clamp\(15px,\s*1\.02vw,\s*17px\)/,
@@ -229,7 +231,7 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
   assert.match(css, /grid-template-columns:\s*132px 42px minmax\(0,\s*700px\)/);
   assert.match(css, /@media \(max-width:\s*980px\)/);
   assert.match(css, /@media \(max-width:\s*619px\)/);
-  assert.match(
+  assert.doesNotMatch(
     css,
     /@media \(max-width:\s*619px\)[\s\S]*?\.ideas-journal__search\s*\{[^}]*top:\s*104px/,
   );

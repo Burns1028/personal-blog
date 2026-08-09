@@ -108,9 +108,8 @@ body[data-route="/ideas"] .site-footer {
 }
 
 .ideas-journal__search {
-  position: sticky;
+  position: relative;
   z-index: 20;
-  top: calc(clamp(92px, 11.8056vh, 136px) + 10px);
   display: grid;
   width: min(760px, 100%);
   height: 50px;
@@ -202,7 +201,7 @@ body[data-route="/ideas"] .site-footer {
   top: calc(100% + 9px);
   right: -7px;
   width: 190px;
-  padding: 10px 11px 8px;
+  padding: 8px 11px;
   border: 1px solid rgba(92, 58, 23, 0.52);
   border-radius: 2px;
   background: linear-gradient(
@@ -213,16 +212,6 @@ body[data-route="/ideas"] .site-footer {
   box-shadow:
     0 16px 28px rgba(76, 45, 15, 0.16),
     inset 0 0 0 1px rgba(250, 229, 194, 0.42);
-}
-
-.ideas-journal__date-menu-title {
-  display: block;
-  margin: 0 5px 5px;
-  padding-bottom: 7px;
-  border-bottom: 1px solid rgba(90, 57, 24, 0.28);
-  color: rgba(73, 45, 19, 0.68);
-  font: 600 9px/1 var(--mono);
-  letter-spacing: 0.2em;
 }
 
 .ideas-journal__date-option {
@@ -520,7 +509,6 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__search {
-    top: 104px;
     width: 100%;
     height: 46px;
     grid-template-columns: 19px minmax(0, 1fr) 1px 122px;
