@@ -47,7 +47,7 @@ test("homepage redesign preserves each destination's signature visual", () => {
 
   assert.match(projectsEarth, /data-projects-earth-motion/);
   assert.match(writing, /archiveAssets\.writing\.atlas/);
-  assert.match(ideas, /ideas-gravity-orbit/);
+  assert.match(ideas, /ideas-journal__singularity/);
 });
 
 test("runtime content directories contain no mock Writing or Projects records", () => {
