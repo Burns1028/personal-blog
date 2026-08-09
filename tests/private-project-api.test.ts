@@ -51,6 +51,7 @@ const payload = {
   language: "TypeScript",
   status: "active",
   featured: true,
+  displayOrder: 10,
   publishedAt: "2026-08-02T00:00:00Z",
   updatedAt: "2026-08-06T08:00:00Z",
 };
@@ -88,8 +89,21 @@ test("project-only validation is read-only and publication never creates activit
         request: signedRequest("PUT", "/api/publish/projects", payload),
       } as never);
       assert.equal(response.status, 200);
-      assert.equal((await response.json()).data.project.slug, "personal-blog");
+      const project = (await response.json()).data.project;
+      assert.equal(project.slug, "personal-blog");
+      assert.equal(project.displayOrder, 10);
     }
+
+    const { displayOrder: _displayOrder, ...metadataOnlyPayload } = payload;
+    const metadataResponse = await PUT({
+      request: signedRequest(
+        "PUT",
+        "/api/publish/projects",
+        metadataOnlyPayload,
+      ),
+    } as never);
+    assert.equal(metadataResponse.status, 200);
+    assert.equal((await metadataResponse.json()).data.project.displayOrder, 10);
 
     const after = createArticleDatabase(process.env.BLOG_DB_PATH);
     assert.equal(
@@ -115,6 +129,7 @@ test("project-only validation is read-only and publication never creates activit
     assert.equal(listed.meta.storage, "sqlite");
     assert.equal(listed.meta.count, 1);
     assert.equal(listed.data[0].repoUrl, payload.repoUrl);
+    assert.equal(listed.data[0].displayOrder, 10);
   } finally {
     closeArticleDatabase();
     delete process.env.BLOG_DB_PATH;
