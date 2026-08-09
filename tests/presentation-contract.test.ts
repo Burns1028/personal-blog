@@ -79,7 +79,7 @@ test("the Ideas archive restores its original black hole without restoring artif
 
   assert.match(ideasPage, /import IdeasSingularity/);
   assert.match(ideasPage, /<IdeasSingularity\s*\/>/);
-  assert.match(singularity, /ideas-singularity-engraving-v1\.webp/);
+  assert.match(singularity, /ideas-black-hole-overlay-v4\.webp/);
   assert.doesNotMatch(singularity, /data-route-artifact/);
 });
 
