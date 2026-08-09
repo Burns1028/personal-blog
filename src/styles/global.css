@@ -9917,6 +9917,27 @@ body[data-route^="/writing/"] .site-footer {
   margin: 48px 0;
 }
 
+.article-shell--writing .prose .article-figure-grid {
+  display: grid;
+  margin: 48px 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
+.article-shell--writing .prose .article-figure-grid figure,
+.article-shell--writing .prose .article-figure-grid figure:has(.article-media--portrait) {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.article-shell--writing .prose .article-figure-grid figure img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
 .article-shell--writing .prose figure:has(.article-media--portrait) {
   width: min(100%, 500px);
   margin-right: auto;
@@ -10315,6 +10336,16 @@ body[data-route^="/writing/"] .site-footer {
     overflow-x: auto;
     white-space: nowrap;
     scrollbar-width: thin;
+  }
+
+  .article-shell--writing .prose .article-figure-grid {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+
+  .article-shell--writing .prose .article-figure-grid figure img {
+    aspect-ratio: auto;
+    object-fit: contain;
   }
 
   .writing-end {
