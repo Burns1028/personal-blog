@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { signedPublishRequest } from "../../_shared/publish-client.mjs";
+import { applyDisplayOrder } from "./project-options.mjs";
 
 function parseArguments(argv) {
   const options = { featured: false, validate: false };
@@ -73,7 +74,7 @@ const slug = (options.slug?.trim() || metadata.name)
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, "-")
   .replace(/^-|-$/g, "");
-const project = {
+const baseProject = {
   slug,
   githubFullName: metadata.full_name,
   title: options["project-title"]?.trim() || metadata.name,
@@ -94,6 +95,7 @@ const project = {
     metadata.pushed_at ||
     metadata.updated_at,
 };
+const project = applyDisplayOrder(baseProject, options["display-order"]);
 
 const result = await signedPublishRequest(
   options.validate ? "/api/publish/projects/validate" : "/api/publish/projects",

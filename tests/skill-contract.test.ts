@@ -72,6 +72,9 @@ test("GitHub progress Skill records verified project facts and activity", () => 
   assert.match(instructions, /does not create an activity/i);
   assert.match(instructions, /历史日期/);
   assert.match(runner, /occurred-at/);
+  assert.match(instructions, /display-order/);
+  assert.match(runner, /display-order/);
+  assert.match(projectRunner, /display-order/);
   assert.match(interfaceYaml, /\$burns-update-github-progress/);
   assert.match(interfaceYaml, /项目与进度/);
   assert.match(runner, /_shared\/publish-client\.mjs/);

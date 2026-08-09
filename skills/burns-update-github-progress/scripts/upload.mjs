@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { signedPublishRequest } from "../../_shared/publish-client.mjs";
+import { applyDisplayOrder } from "./project-options.mjs";
 
 function parseArguments(argv) {
   const options = { featured: false, validate: false };
@@ -41,20 +42,21 @@ const slug = options.slug?.trim() || repo.fullName.split("/")[1]
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, "-")
   .replace(/^-|-$/g, "");
+const baseProject = {
+  slug,
+  githubFullName: repo.fullName,
+  title: required(options, "project-title"),
+  summary: required(options, "project-summary"),
+  repoUrl: repo.url,
+  demoUrl: options["demo-url"]?.trim() || null,
+  language: required(options, "language"),
+  status: required(options, "project-status"),
+  featured: options.featured,
+  publishedAt: options["project-published-at"]?.trim() || occurredAt.slice(0, 10),
+  updatedAt: options["project-updated-at"]?.trim() || occurredAt,
+};
 const payload = {
-  project: {
-    slug,
-    githubFullName: repo.fullName,
-    title: required(options, "project-title"),
-    summary: required(options, "project-summary"),
-    repoUrl: repo.url,
-    demoUrl: options["demo-url"]?.trim() || null,
-    language: required(options, "language"),
-    status: required(options, "project-status"),
-    featured: options.featured,
-    publishedAt: options["project-published-at"]?.trim() || occurredAt.slice(0, 10),
-    updatedAt: options["project-updated-at"]?.trim() || occurredAt,
-  },
+  project: applyDisplayOrder(baseProject, options["display-order"]),
   activity: {
     source: "github",
     sourceKey: required(options, "source-key"),

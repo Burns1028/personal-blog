@@ -20,7 +20,9 @@ node skills/burns-update-github-progress/scripts/register-project.mjs \
   --repo https://github.com/Burns1028/repository --validate
 ```
 
-The command reads the repository's public metadata once, validates the SQLite payload, and does not create an activity. Remove `--validate` only after the response matches the requested repository. Optional overrides are `--project-title`, `--project-summary`, `--language`, `--project-status`, `--demo-url`, `--featured`, `--project-published-at`, and `--project-updated-at`.
+The command reads the repository's public metadata once, validates the SQLite payload, and does not create an activity. Remove `--validate` only after the response matches the requested repository. Optional overrides are `--project-title`, `--project-summary`, `--language`, `--project-status`, `--demo-url`, `--featured`, `--display-order`, `--project-published-at`, and `--project-updated-at`.
+
+`--display-order` accepts an integer from `1` through `100000`; smaller values appear first. Use `--display-order none` to clear an existing manual position. Omit the option to preserve an existing position during metadata updates. The same option is available when recording a curated progress event.
 
 ## Record a curated progress event
 
