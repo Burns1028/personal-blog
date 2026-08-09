@@ -201,6 +201,10 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
     css,
     /body\[data-route="\/ideas"\] \.site-header\s*\{[^}]*position:\s*fixed/,
   );
+  assert.doesNotMatch(
+    css,
+    /body\[data-route="\/ideas"\] \.site-header::after/,
+  );
   assert.match(
     css,
     /\.ideas-journal__search\s*\{[^}]*position:\s*relative/,

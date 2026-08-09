@@ -15,20 +15,6 @@ body[data-route="/ideas"] .site-header {
   transform: translateX(-50%);
 }
 
-body[data-route="/ideas"] .site-header::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0 -28px -18px;
-  content: "";
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(224, 194, 150, 0.96),
-    rgba(224, 194, 150, 0.74) 68%,
-    transparent
-  );
-}
-
 body[data-route="/ideas"] .site-footer {
   display: none;
 }
@@ -499,10 +485,6 @@ body[data-route="/ideas"] .site-footer {
 }
 
 @media (max-width: 619px) {
-  body[data-route="/ideas"] .site-header::after {
-    inset-inline: -8px;
-  }
-
   .ideas-journal__content {
     width: calc(100vw - 28px);
     padding: 104px 0 72px;
