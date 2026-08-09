@@ -563,7 +563,7 @@ test("six lunar phase assets are available for article section ornaments", () =>
   }
 });
 
-test("article body headings do not repeat in the side rail", () => {
+test("Writing articles expose their top-level body headings in the side rail", () => {
   const route = readFileSync(
     resolve(projectRoot, "src/pages/writing/[...slug].astro"),
     "utf8",
@@ -573,9 +573,15 @@ test("article body headings do not repeat in the side rail", () => {
     "utf8",
   );
 
-  assert.match(route, /showTableOfContents=\{false\}/);
+  assert.match(route, /showTableOfContents(?:=\{true\})?/);
+  assert.doesNotMatch(route, /showTableOfContents=\{false\}/);
   assert.match(layout, /showTableOfContents\?: boolean/);
-  assert.match(layout, /showTableOfContents && \(/);
+  assert.match(layout, /writingTocHeadings = selectTopLevelArticleHeadings\(headings\)/);
+  assert.match(
+    layout,
+    /showTableOfContents && writingTocHeadings\.length > 0 && \(/,
+  );
+  assert.doesNotMatch(layout, /原稿未设置章节标题/);
 });
 
 test("writing articles end without an editorial slogan", () => {
