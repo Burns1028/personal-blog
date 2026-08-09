@@ -96,23 +96,42 @@ test("Ideas singularity is a decorative fixed-background component", () => {
   );
 
   assert.match(singularity, /ideas-journal__singularity/);
-  assert.match(singularity, /ideas-singularity-engraving-v1\.webp/);
+  assert.match(singularity, /ideas-black-hole-overlay-v4\.webp/);
   assert.match(singularity, /aria-hidden="true"/);
+  assert.doesNotMatch(singularity, /ideas-journal__singularity-core/);
   assert.doesNotMatch(singularity, /window\.addEventListener\("scroll"/);
 });
 
-test("Ideas singularity engraving is a transparent high-resolution asset", async () => {
+test("Ideas journal restores the transparent wide black-hole asset", async () => {
   const asset = resolve(
     projectRoot,
-    "public/assets/ideas-singularity-engraving-v1.webp",
+    "public/assets/ideas-black-hole-overlay-v4.webp",
   );
   assert.ok(existsSync(asset));
 
   const metadata = await sharp(asset).metadata();
-  assert.equal(metadata.width, 1254);
-  assert.equal(metadata.height, 1254);
+  assert.equal(metadata.width, 1206);
+  assert.equal(metadata.height, 676);
   assert.equal(metadata.hasAlpha, true);
   assert.ok(statSync(asset).size < 600_000);
+});
+
+test("Ideas timeline uses an explicit right-pointing cursor instead of a second dot", () => {
+  const page = readFileSync(
+    resolve(projectRoot, "src/pages/ideas/index.astro"),
+    "utf8",
+  );
+
+  assert.match(
+    page,
+    /<path[\s\S]*?class="ideas-journal__track-cursor"[\s\S]*?d="M 0 -6 L 11 0 L 0 6 Z"[\s\S]*?data-ideas-track-cursor/,
+  );
+  assert.match(
+    page,
+    /cursor\.setAttribute\(\s*"transform",\s*`translate\(\$\{cursorPoint\.x\} \$\{cursorPoint\.y\}\)`/,
+  );
+  assert.doesNotMatch(page, /cursor\.setAttribute\("cx"/);
+  assert.doesNotMatch(page, /cursor\.setAttribute\("cy"/);
 });
 
 test("Ideas journal draws and advances its measured timeline on scroll", () => {
@@ -153,6 +172,20 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
   assert.match(
     css,
     /\.ideas-journal__search\s*\{[^}]*position:\s*sticky/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__search\s*\{[^}]*background:\s*transparent/,
+  );
+  assert.doesNotMatch(css, /\.ideas-journal__search::before/);
+  assert.doesNotMatch(css, /\.ideas-journal__search\s*\{[^}]*backdrop-filter/);
+  assert.match(
+    css,
+    /\.ideas-journal__singularity\s*\{[^}]*aspect-ratio:\s*1206\s*\/\s*676/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__singularity\s*\{[^}]*right:\s*clamp\(24px,\s*3vw,\s*64px\)/,
   );
   assert.match(
     css,

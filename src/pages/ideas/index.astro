@@ -100,9 +100,9 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
                 data-ideas-track-progress
                 pathLength="1"
               />
-              <circle
+              <path
                 class="ideas-journal__track-cursor"
-                r="4.5"
+                d="M 0 -6 L 11 0 L 0 6 Z"
                 data-ideas-track-cursor
               />
             </svg>
@@ -183,7 +183,7 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
       const progressPath = timeline.querySelector<SVGPathElement>(
         "[data-ideas-track-progress]",
       );
-      const cursor = timeline.querySelector<SVGCircleElement>(
+      const cursor = timeline.querySelector<SVGPathElement>(
         "[data-ideas-track-cursor]",
       );
       const nodes = [
@@ -222,8 +222,10 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
         progressPath.style.strokeDashoffset = String(1 - progress);
 
         const cursorPoint = progressPath.getPointAtLength(pathLength * progress);
-        cursor.setAttribute("cx", String(cursorPoint.x));
-        cursor.setAttribute("cy", String(cursorPoint.y));
+        cursor.setAttribute(
+          "transform",
+          `translate(${cursorPoint.x} ${cursorPoint.y})`,
+        );
 
         const nodeDistances = nodes.map((node) => {
           const nodeBounds = node.getBoundingClientRect();
