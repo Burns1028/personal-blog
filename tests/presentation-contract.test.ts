@@ -79,7 +79,7 @@ test("the Ideas archive keeps its singularity without restoring artifacts", () =
 
   assert.match(ideasPage, /import IdeasSingularity/);
   assert.match(ideasPage, /<IdeasSingularity\s*\/>/);
-  assert.match(singularity, /ideas-black-hole-overlay-v4\.webp/);
+  assert.match(singularity, /ideas-singularity-engraving-v1\.webp/);
   assert.doesNotMatch(singularity, /data-route-artifact/);
 });
 
@@ -89,14 +89,14 @@ test("Ideas preserves intentional SQLite line breaks while retaining natural wra
     "utf8",
   );
   const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
+    resolve(projectRoot, "src/styles/ideas-journal.css"),
     "utf8",
   );
 
-  assert.match(page, /<h2>\{idea\.text\}<\/h2>/);
+  assert.match(page, /<h2>[\s\S]*?\{idea\.text\}[\s\S]*?<\/h2>/);
   assert.match(
     css,
-    /\.signal-card h2\s*\{[^}]*white-space:\s*pre-line/,
+    /\.ideas-journal__entry h2\s*\{[^}]*white-space:\s*pre-line/,
   );
 });
 
@@ -237,30 +237,27 @@ test("project earth stays static on constrained devices", () => {
   assert.match(source, /has-static-earth/);
 });
 
-test("Ideas defers its entrance animation and avoids fixed oversized textures", () => {
+test("Ideas fixes its decorative layer without pinning a body texture", () => {
   const singularitySource = readFileSync(
     resolve(projectRoot, "src/components/IdeasSingularity.astro"),
     "utf8",
   );
   const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
+    resolve(projectRoot, "src/styles/ideas-journal.css"),
     "utf8",
   );
 
-  assert.match(singularitySource, /burns:page-settled/);
-  assert.match(singularitySource, /dataset\.motionReady/);
+  assert.match(singularitySource, /ideas-singularity-engraving-v1\.webp/);
+  assert.doesNotMatch(singularitySource, /addEventListener\(["']scroll/);
   assert.match(
     css,
-    /\.ideas-signals\[data-motion-ready="true"\][\s\S]*?ideas-navigation-flow-in/,
+    /\.ideas-journal__backdrop\s*\{[^}]*position:\s*fixed/,
   );
   assert.match(
     css,
     /@media \(max-width:\s*1440px\)[\s\S]*?ideas-atlas-1280\.webp/,
   );
-  assert.doesNotMatch(
-    css,
-    /body\[data-route="\/ideas"\][\s\S]{0,900}?background-attachment:\s*fixed/,
-  );
+  assert.doesNotMatch(css, /background-attachment:\s*fixed/);
 });
 
 test("secondary star fields use the lower continuous-rendering budget", () => {

@@ -1,14 +1,27 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
 import IdeasSingularity from "../../components/IdeasSingularity.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  filterIdeas,
+  ideaDateKey,
+  listIdeaDates,
+} from "../../lib/idea-archive";
+import { normalizeSearch } from "../../lib/archive-query";
 import { listPublishedIdeas } from "../../lib/server/idea-store";
+import "../../styles/ideas-journal.css";
 
 export const prerender = false;
 
-const ideas = listPublishedIdeas();
-const formatDate = (date: string) => new Date(date).toISOString().slice(0, 10);
-const formatIdeaNumber = (index: number) =>
-  String(index + 1).padStart(2, "0");
+const allIdeas = listPublishedIdeas();
+const query = normalizeSearch(Astro.url.searchParams.get("q"));
+const selectedDate = ideaDateKey(Astro.url.searchParams.get("date") ?? "");
+const dates = listIdeaDates(allIdeas);
+const ideas = filterIdeas(allIdeas, query, selectedDate);
+const sequenceByKey = new Map(
+  allIdeas.map((idea, index) => [idea.sourceKey, index + 1]),
+);
+const orbitOffsets = [0, 10, 15, 12, 2, -8, -13, -9, 0];
+const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
 ---
 
 <BaseLayout
@@ -16,112 +29,287 @@ const formatIdeaNumber = (index: number) =>
   description="在它们变成文章、文档或代码之前，先保留那些值得记住的小观察。"
   theme="ochre"
 >
-  <section class="ideas-signals" aria-labelledby="ideas-title">
-    <h1 id="ideas-title" class="ideas-signals__title">灵感</h1>
+  <section
+    class="ideas-journal"
+    aria-labelledby="ideas-title"
+    data-ideas-journal
+  >
+    <h1 id="ideas-title" class="sr-only">灵感</h1>
 
-    <div class="ideas-signals__inner">
-      <div class="ideas-navigation-field" aria-hidden="true">
-        <svg
-          viewBox="0 0 1600 900"
-          preserveAspectRatio="none"
-          focusable="false"
-        >
-          <path
-            class="ideas-navigation-route ideas-navigation-route--track"
-            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            class="ideas-navigation-route ideas-navigation-route--flow"
-            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            class="ideas-navigation-route ideas-navigation-route--signal"
-            d="M-40 230C280 216 520 245 760 232S1190 330 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-
-          <path
-            class="ideas-navigation-route ideas-navigation-route--track"
-            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            class="ideas-navigation-route ideas-navigation-route--flow ideas-navigation-route--secondary"
-            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            class="ideas-navigation-route ideas-navigation-route--signal ideas-navigation-route--secondary"
-            d="M-30 655C300 680 500 630 790 650S1190 440 1420 385"
-            pathLength="1000"
-            vector-effect="non-scaling-stroke"
-          />
-
-          <g
-            class="ideas-navigation-waypoint"
-            transform="translate(680 235)"
-          >
-            <circle r="4" />
-            <path d="M-13 0H-7M7 0H13M0-13V-7M0 7V13" />
-          </g>
-          <g
-            class="ideas-navigation-waypoint ideas-navigation-waypoint--late"
-            transform="translate(1150 442)"
-          >
-            <circle r="4" />
-            <path d="M-13 0H-7M7 0H13M0-13V-7M0 7V13" />
-          </g>
-        </svg>
-      </div>
-
+    <div class="ideas-journal__backdrop" aria-hidden="true">
       <IdeasSingularity />
+    </div>
 
-      <div class="ideas-board" id="ideas">
-        {
-          ideas.length > 0 ? (
-            <ol class="signal-card-grid">
+    <div class="ideas-journal__content">
+      <form
+        class="ideas-journal__search"
+        method="get"
+        action="/ideas"
+        role="search"
+        data-ideas-search
+      >
+        <label class="sr-only" for="ideas-query">搜索灵感或关键词</label>
+        <svg class="ideas-journal__search-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.4"></circle>
+          <path d="m15.3 15.3 4.6 4.6"></path>
+        </svg>
+        <input
+          id="ideas-query"
+          type="search"
+          name="q"
+          value={query}
+          placeholder="搜索灵感或关键词"
+          autocomplete="off"
+        />
+
+        <span class="ideas-journal__search-divider" aria-hidden="true"></span>
+
+        <svg class="ideas-journal__calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 7.5h14v12H5z"></path>
+          <path d="M8 4.5v5M16 4.5v5M5 11h14"></path>
+        </svg>
+        <label class="sr-only" for="ideas-date">按日期筛选</label>
+        <select id="ideas-date" name="date" aria-label="按日期筛选">
+          <option value="" selected={!selectedDate}>全部日期</option>
+          {
+            dates.map((date) => (
+              <option value={date} selected={date === selectedDate}>
+                {date}
+              </option>
+            ))
+          }
+        </select>
+        <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="m4 6 4 4 4-4"></path>
+        </svg>
+        <button class="sr-only" type="submit">筛选灵感</button>
+      </form>
+
+      {
+        ideas.length > 0 ? (
+          <div class="ideas-journal__timeline" data-ideas-timeline>
+            <svg
+              class="ideas-journal__track"
+              aria-hidden="true"
+              data-ideas-track
+              preserveAspectRatio="none"
+            >
+              <path class="ideas-journal__track-base" data-ideas-track-base />
+              <path
+                class="ideas-journal__track-progress"
+                data-ideas-track-progress
+                pathLength="1"
+              />
+              <circle
+                class="ideas-journal__track-cursor"
+                r="4.5"
+                data-ideas-track-cursor
+              />
+            </svg>
+
+            <ol class="ideas-journal__entries" aria-label="灵感时间线">
               {ideas.map((idea, index) => (
-                <li class="signal-card-item">
-                  <article class="signal-card" id={idea.sourceKey}>
-                    <header class="signal-card__meta">
-                      <span class="signal-card__catalog">
-                        <span class="signal-card__index" aria-hidden="true">
-                          {formatIdeaNumber(index)}
-                        </span>
+                <li
+                  id={idea.sourceKey}
+                  class="ideas-journal__entry"
+                  data-idea-entry
+                  style={`--orbit-shift:${orbitOffsets[index % orbitOffsets.length]}px`}
+                >
+                  <article>
+                    <header class="ideas-journal__meta">
+                      <span>
+                        <b aria-hidden="true">
+                          {formatIdeaNumber(sequenceByKey.get(idea.sourceKey) ?? index + 1)}
+                        </b>
                         <span>{idea.theme}</span>
                       </span>
                       <time datetime={idea.capturedAt}>
-                        {formatDate(idea.capturedAt)}
+                        {ideaDateKey(idea.capturedAt)}
                       </time>
                     </header>
-                    <h2>{idea.text}</h2>
-                    <a
-                      class="signal-card__permalink"
-                      href={`#${idea.sourceKey}`}
-                      aria-label={`此条灵感的固定链接：${idea.text}`}
-                    >
-                      <span aria-hidden="true">#</span>
-                    </a>
+
+                    <span
+                      class="ideas-journal__node"
+                      aria-hidden="true"
+                      data-idea-node
+                    ></span>
+
+                    <h2>
+                      <a href={`#${idea.sourceKey}`}>{idea.text}</a>
+                    </h2>
                   </article>
                 </li>
               ))}
             </ol>
-          ) : (
-            <div class="ideas-empty-state" role="status">
-              <span aria-hidden="true">∅</span>
-              <p>还没有被记录下来的灵感。</p>
-              <small>新的观察会从 SQLite 档案中出现在这里。</small>
-            </div>
-          )
-        }
-      </div>
+          </div>
+        ) : (
+          <div class="ideas-journal__empty" role="status">
+            <p>这段时间里没有找到对应的灵感。</p>
+            <a href="/ideas">清空搜索与日期</a>
+          </div>
+        )
+      }
     </div>
   </section>
+
+  <script>
+    const searchForm = document.querySelector<HTMLFormElement>(
+      "[data-ideas-search]",
+    );
+    const queryInput = document.querySelector<HTMLInputElement>("#ideas-query");
+    const dateSelect = document.querySelector<HTMLSelectElement>("#ideas-date");
+
+    dateSelect?.addEventListener("change", () => searchForm?.requestSubmit());
+
+    document.addEventListener("keydown", (event) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault();
+        queryInput?.focus();
+      }
+    });
+
+    const timeline = document.querySelector<HTMLElement>(
+      "[data-ideas-timeline]",
+    );
+
+    if (timeline) {
+      const track = timeline.querySelector<SVGSVGElement>("[data-ideas-track]");
+      const basePath = timeline.querySelector<SVGPathElement>(
+        "[data-ideas-track-base]",
+      );
+      const progressPath = timeline.querySelector<SVGPathElement>(
+        "[data-ideas-track-progress]",
+      );
+      const cursor = timeline.querySelector<SVGCircleElement>(
+        "[data-ideas-track-cursor]",
+      );
+      const nodes = [
+        ...timeline.querySelectorAll<HTMLElement>("[data-idea-node]"),
+      ];
+      const entries = [
+        ...timeline.querySelectorAll<HTMLElement>("[data-idea-entry]"),
+      ];
+      let pathLength = 0;
+      let updateFrame = 0;
+      let resizeFrame = 0;
+
+      const smoothPathThrough = (
+        points: Array<{ x: number; y: number }>,
+      ): string => {
+        if (points.length === 0) return "";
+        return points.slice(1).reduce((path, point, index) => {
+          const previous = points[index];
+          const controlY = (previous.y + point.y) / 2;
+          return `${path} C ${previous.x} ${controlY}, ${point.x} ${controlY}, ${point.x} ${point.y}`;
+        }, `M ${points[0].x} ${points[0].y}`);
+      };
+
+      const updateProgress = () => {
+        updateFrame = 0;
+        if (!progressPath || !cursor || pathLength <= 0 || nodes.length === 0) {
+          return;
+        }
+
+        const bounds = timeline.getBoundingClientRect();
+        const focusY = window.innerHeight * 0.44;
+        const progress = Math.min(
+          1,
+          Math.max(0, (focusY - bounds.top) / Math.max(bounds.height, 1)),
+        );
+        progressPath.style.strokeDashoffset = String(1 - progress);
+
+        const cursorPoint = progressPath.getPointAtLength(pathLength * progress);
+        cursor.setAttribute("cx", String(cursorPoint.x));
+        cursor.setAttribute("cy", String(cursorPoint.y));
+
+        const nodeDistances = nodes.map((node) => {
+          const nodeBounds = node.getBoundingClientRect();
+          return nodeBounds.top + nodeBounds.height / 2 - focusY;
+        });
+        const currentIndex = nodeDistances.reduce(
+          (closest, distance, index) =>
+            Math.abs(distance) < Math.abs(nodeDistances[closest])
+              ? index
+              : closest,
+          0,
+        );
+
+        entries.forEach((entry, index) => {
+          if (index === currentIndex) entry.dataset.current = "true";
+          else delete entry.dataset.current;
+
+          if (nodeDistances[index] < 0) entry.dataset.past = "true";
+          else delete entry.dataset.past;
+        });
+      };
+
+      const scheduleProgress = () => {
+        if (updateFrame) return;
+        updateFrame = window.requestAnimationFrame(updateProgress);
+      };
+
+      const drawTrack = () => {
+        resizeFrame = 0;
+        if (!track || !basePath || !progressPath || !cursor || nodes.length === 0) {
+          return;
+        }
+
+        const timelineBounds = timeline.getBoundingClientRect();
+        const width = timeline.clientWidth;
+        const height = timeline.scrollHeight;
+        const measuredPoints = nodes.map((node) => {
+          const nodeBounds = node.getBoundingClientRect();
+          return {
+            x: nodeBounds.left + nodeBounds.width / 2 - timelineBounds.left,
+            y: nodeBounds.top + nodeBounds.height / 2 - timelineBounds.top,
+          };
+        });
+        const first = measuredPoints[0];
+        const last = measuredPoints.at(-1) ?? first;
+        const points = [
+          { x: first.x - 10, y: 0 },
+          ...measuredPoints,
+          { x: last.x + 10, y: height },
+        ];
+        const pathData = smoothPathThrough(points);
+
+        track.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        track.setAttribute("width", String(width));
+        track.setAttribute("height", String(height));
+        basePath.setAttribute("d", pathData);
+        progressPath.setAttribute("d", pathData);
+        pathLength = progressPath.getTotalLength();
+        updateProgress();
+      };
+
+      const scheduleTrack = () => {
+        if (resizeFrame) return;
+        resizeFrame = window.requestAnimationFrame(drawTrack);
+      };
+
+      const observer = new ResizeObserver(scheduleTrack);
+      observer.observe(timeline);
+      nodes.forEach((node) => observer.observe(node.closest("li") ?? node));
+      window.addEventListener("scroll", scheduleProgress, { passive: true });
+      window.addEventListener("resize", scheduleTrack);
+      document.fonts?.ready.then(scheduleTrack);
+      scheduleTrack();
+
+      window.addEventListener(
+        "pagehide",
+        (event) => {
+          if (event.persisted) return;
+          observer.disconnect();
+          window.removeEventListener("scroll", scheduleProgress);
+          window.removeEventListener("resize", scheduleTrack);
+          if (updateFrame) window.cancelAnimationFrame(updateFrame);
+          if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+        },
+        { once: true },
+      );
+    }
+  </script>
 </BaseLayout>
