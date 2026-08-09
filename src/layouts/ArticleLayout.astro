@@ -1,5 +1,6 @@
 ---
 import Breadcrumbs from "../components/Breadcrumbs.astro";
+import { selectTopLevelArticleHeadings } from "../lib/article-headings";
 import BaseLayout from "./BaseLayout.astro";
 
 interface Heading {
@@ -60,6 +61,7 @@ const theme =
   kind === "文档" ? "document" : kind === "思考" ? "stone" : "code";
 const articleKind =
   kind === "文档" ? "document" : kind === "思考" ? "writing" : "project";
+const writingTocHeadings = selectTopLevelArticleHeadings(headings);
 const tocHeadings = headings.filter(
   ({ depth, slug }) =>
     depth >= 2 && depth <= 3 && slug !== "footnote-label",
@@ -109,7 +111,7 @@ const tagLine = tags.join(" · ");
                 )}
               </nav>
 
-              {showTableOfContents && (
+              {showTableOfContents && writingTocHeadings.length > 0 && (
                 <nav
                   class="writing-toc"
                   aria-labelledby="writing-toc-title"
@@ -118,25 +120,21 @@ const tagLine = tags.join(" · ");
                   <span id="writing-toc-title" class="writing-toc__label">
                     目录
                   </span>
-                  {tocHeadings.length > 0 ? (
-                    <ol>
-                      {tocHeadings.map((heading, index) => (
-                        <li class:list={{ "is-sub": heading.depth === 3 }}>
-                          <a
-                            href={`#${heading.slug}`}
-                            data-writing-toc-link
-                          >
-                            <span aria-hidden="true">
-                              {String(index + 1)}
-                            </span>
-                            <span>{heading.text}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p class="muted">原稿未设置章节标题。</p>
-                  )}
+                  <ol>
+                    {writingTocHeadings.map((heading, index) => (
+                      <li>
+                        <a
+                          href={`#${heading.slug}`}
+                          data-writing-toc-link
+                        >
+                          <span aria-hidden="true">
+                            {String(index + 1)}
+                          </span>
+                          <span>{heading.text}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
                 </nav>
               )}
             </div>
@@ -344,6 +342,22 @@ const tagLine = tags.join(" · ");
       if (targets[0]) {
         markCurrent(targets[0].link);
       }
+
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
+
+      targets.forEach(({ heading, link }) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          heading.scrollIntoView({
+            behavior: reduceMotion.matches ? "auto" : "smooth",
+            block: "start",
+          });
+          window.history.pushState(null, "", link.hash);
+          markCurrent(link);
+        });
+      });
 
       const observer = new IntersectionObserver(
         (entries) => {
