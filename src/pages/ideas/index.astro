@@ -64,24 +64,52 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
 
         <span class="ideas-journal__search-divider" aria-hidden="true"></span>
 
-        <svg class="ideas-journal__calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 7.5h14v12H5z"></path>
-          <path d="M8 4.5v5M16 4.5v5M5 11h14"></path>
-        </svg>
-        <label class="sr-only" for="ideas-date">按日期筛选</label>
-        <select id="ideas-date" name="date" aria-label="按日期筛选">
-          <option value="" selected={!selectedDate}>全部日期</option>
-          {
-            dates.map((date) => (
-              <option value={date} selected={date === selectedDate}>
-                {date}
-              </option>
-            ))
-          }
-        </select>
-        <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="m4 6 4 4 4-4"></path>
-        </svg>
+        <input
+          type="hidden"
+          name="date"
+          value={selectedDate}
+          data-ideas-date-value
+        />
+        <details class="ideas-journal__date-filter" data-ideas-date-filter>
+          <summary aria-label={`按日期筛选，当前：${selectedDate || "全部日期"}`}>
+            <svg class="ideas-journal__calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 7.5h14v12H5z"></path>
+              <path d="M8 4.5v5M16 4.5v5M5 11h14"></path>
+            </svg>
+            <span>{selectedDate || "全部日期"}</span>
+            <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m4 6 4 4 4-4"></path>
+            </svg>
+          </summary>
+
+          <div class="ideas-journal__date-menu">
+            <span class="ideas-journal__date-menu-title">日期索引</span>
+            <div role="group" aria-label="选择灵感日期">
+              <button
+                class="ideas-journal__date-option"
+                type="button"
+                data-ideas-date-option
+                data-date-value=""
+                aria-current={!selectedDate ? "page" : undefined}
+              >
+                全部日期
+              </button>
+              {
+                dates.map((date) => (
+                  <button
+                    class="ideas-journal__date-option"
+                    type="button"
+                    data-ideas-date-option
+                    data-date-value={date}
+                    aria-current={date === selectedDate ? "page" : undefined}
+                  >
+                    {date}
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+        </details>
         <button class="sr-only" type="submit">筛选灵感</button>
       </form>
 
@@ -157,11 +185,42 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
       "[data-ideas-search]",
     );
     const queryInput = document.querySelector<HTMLInputElement>("#ideas-query");
-    const dateSelect = document.querySelector<HTMLSelectElement>("#ideas-date");
+    const dateFilter = document.querySelector<HTMLDetailsElement>(
+      "[data-ideas-date-filter]",
+    );
+    const dateValue = document.querySelector<HTMLInputElement>(
+      "[data-ideas-date-value]",
+    );
+    const dateOptions = document.querySelectorAll<HTMLButtonElement>(
+      "[data-ideas-date-option]",
+    );
 
-    dateSelect?.addEventListener("change", () => searchForm?.requestSubmit());
+    dateOptions.forEach((option) => {
+      option.addEventListener("click", () => {
+        if (!dateValue) return;
+        dateValue.value = option.dataset.dateValue ?? "";
+        dateFilter?.removeAttribute("open");
+        searchForm?.requestSubmit();
+      });
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (
+        dateFilter?.open &&
+        event.target instanceof Node &&
+        !dateFilter.contains(event.target)
+      ) {
+        dateFilter.removeAttribute("open");
+      }
+    });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && dateFilter?.open) {
+        dateFilter.removeAttribute("open");
+        dateFilter.querySelector("summary")?.focus();
+        return;
+      }
+
       if (
         (event.metaKey || event.ctrlKey) &&
         event.key.toLowerCase() === "k"

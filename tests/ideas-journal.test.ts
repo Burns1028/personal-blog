@@ -89,6 +89,37 @@ test("Ideas page renders URL-backed search and an unboxed timeline journal", () 
   assert.doesNotMatch(page, /signal-card__permalink/);
 });
 
+test("Ideas date filtering uses a custom archive index instead of the native select popup", () => {
+  const page = readFileSync(
+    resolve(projectRoot, "src/pages/ideas/index.astro"),
+    "utf8",
+  );
+  const css = readFileSync(
+    resolve(projectRoot, "src/styles/ideas-journal.css"),
+    "utf8",
+  );
+
+  assert.doesNotMatch(page, /<select\b/);
+  assert.match(page, /<details[\s\S]*?data-ideas-date-filter/);
+  assert.match(page, /<input[\s\S]*?type="hidden"[\s\S]*?name="date"[\s\S]*?data-ideas-date-value/);
+  assert.match(page, /data-ideas-date-option/);
+  assert.match(page, /dateValue\.value = option\.dataset\.dateValue \?\? ""/);
+  assert.match(page, /searchForm\?\.requestSubmit\(\)/);
+  assert.match(page, /aria-current=\{!selectedDate \? "page" : undefined\}/);
+  assert.match(page, /aria-current=\{date === selectedDate \? "page" : undefined\}/);
+  assert.match(page, /日期索引/);
+  assert.match(page, /event\.key === "Escape"/);
+  assert.match(css, /\.ideas-journal__date-filter\s*>\s*summary/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*position:\s*absolute/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*background:\s*linear-gradient/);
+  assert.match(
+    css,
+    /\.ideas-journal__date-filter\s*>\s*summary:focus-visible\s*\{[^}]*outline:\s*0/,
+  );
+  assert.match(css, /\.ideas-journal__date-option\[aria-current="page"\]::before/);
+  assert.doesNotMatch(css, /#[0-9a-fA-F]{0,2}4096ff|dodgerblue/);
+});
+
 test("Ideas singularity is a decorative fixed-background component", () => {
   const singularity = readFileSync(
     resolve(projectRoot, "src/components/IdeasSingularity.astro"),
