@@ -65,7 +65,7 @@ test("archive destinations do not render the persistent artifact stack", () => {
   }
 });
 
-test("the Ideas archive keeps its singularity without restoring artifacts", () => {
+test("the Ideas archive restores its original black hole without restoring artifacts", () => {
   const singularityPath = resolve(
     projectRoot,
     "src/components/IdeasSingularity.astro",
@@ -237,7 +237,7 @@ test("project earth stays static on constrained devices", () => {
   assert.match(source, /has-static-earth/);
 });
 
-test("Ideas fixes its decorative layer without pinning a body texture", () => {
+test("Ideas fixes its restored black hole without pinning a body texture", () => {
   const singularitySource = readFileSync(
     resolve(projectRoot, "src/components/IdeasSingularity.astro"),
     "utf8",
@@ -247,7 +247,7 @@ test("Ideas fixes its decorative layer without pinning a body texture", () => {
     "utf8",
   );
 
-  assert.match(singularitySource, /ideas-singularity-engraving-v1\.webp/);
+  assert.match(singularitySource, /ideas-black-hole-overlay-v4\.webp/);
   assert.doesNotMatch(singularitySource, /addEventListener\(["']scroll/);
   assert.match(
     css,
