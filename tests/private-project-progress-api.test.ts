@@ -46,6 +46,7 @@ const payload = {
     language: "TypeScript",
     status: "active",
     featured: true,
+    displayOrder: 20,
     publishedAt: "2026-08-02",
     updatedAt: "2026-08-02T21:00:00+08:00",
   },
@@ -90,6 +91,7 @@ test("project progress validation is read-only and publish is idempotent", async
       assert.equal(response.status, 200);
       const data = (await response.json()).data;
       assert.equal(data.project.slug, "personal-blog");
+      assert.equal(data.project.displayOrder, 20);
       assert.equal(data.activity.sourceKey, "personal-blog:2024-11-02:deploy");
     }
     const after = createArticleDatabase(process.env.BLOG_DB_PATH);

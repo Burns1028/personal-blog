@@ -56,7 +56,14 @@ test("repository registration resolves one GitHub URL into a project-only payloa
     );
     const child = spawn(
       process.execPath,
-      [runner, "--repo", "https://github.com/Burns1028/personal-blog", "--validate"],
+      [
+        runner,
+        "--repo",
+        "https://github.com/Burns1028/personal-blog",
+        "--display-order",
+        "20",
+        "--validate",
+      ],
       {
         env: {
           ...process.env,
@@ -90,6 +97,7 @@ test("repository registration resolves one GitHub URL into a project-only payloa
       language: "TypeScript",
       status: "active",
       featured: false,
+      displayOrder: 20,
       publishedAt: "2026-08-02T00:00:00Z",
       updatedAt: "2026-08-06T08:00:00Z",
     });

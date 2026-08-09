@@ -17,12 +17,14 @@ export interface ProjectInput {
   language: string;
   status: ProjectStatus;
   featured: boolean;
+  displayOrder?: number | null;
   publishedAt: string;
   updatedAt: string;
 }
 
-export interface StoredProject extends ProjectInput {
+export interface StoredProject extends Omit<ProjectInput, "displayOrder"> {
   id: number;
+  displayOrder: number | null;
   createdAt: string;
   modifiedAt: string;
 }
@@ -38,6 +40,7 @@ interface ProjectRow {
   language: string;
   status: ProjectStatus;
   featured: number;
+  displayOrder: number | null;
   publishedAt: string;
   updatedAt: string;
   createdAt: string;
@@ -58,6 +61,8 @@ const projectSchema = `
     status TEXT NOT NULL DEFAULT 'active'
       CHECK (status IN ('active', 'maintained', 'experiment', 'archived')),
     featured INTEGER NOT NULL DEFAULT 0 CHECK (featured IN (0, 1)),
+    display_order INTEGER
+      CHECK (display_order IS NULL OR display_order BETWEEN 1 AND 100000),
     published_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     created_at TEXT NOT NULL,
@@ -68,8 +73,31 @@ const projectSchema = `
     ON projects(status, featured DESC, updated_at DESC, id DESC);
 `;
 
+const projectDisplayOrderIndex = `
+  CREATE INDEX IF NOT EXISTS idx_projects_display_order
+    ON projects(
+      status,
+      (display_order IS NULL),
+      display_order,
+      featured DESC,
+      updated_at DESC,
+      id DESC
+    );
+`;
+
 function ensureProjectSchema(database: DatabaseSync): void {
   database.exec(projectSchema);
+  const columns = database
+    .prepare("PRAGMA table_info(projects)")
+    .all() as unknown as Array<{ name: string }>;
+  if (!columns.some((column) => column.name === "display_order")) {
+    database.exec(`
+      ALTER TABLE projects
+      ADD COLUMN display_order INTEGER
+        CHECK (display_order IS NULL OR display_order BETWEEN 1 AND 100000)
+    `);
+  }
+  database.exec(projectDisplayOrderIndex);
 }
 
 function normalizeSlug(value: string): string {
@@ -120,6 +148,21 @@ function validateProject(input: ProjectInput): ProjectInput {
   if (!["active", "maintained", "experiment", "archived"].includes(input.status)) {
     throw new TypeError("Project status is invalid.");
   }
+  const hasDisplayOrder = Object.prototype.hasOwnProperty.call(
+    input,
+    "displayOrder",
+  );
+  if (
+    hasDisplayOrder &&
+    input.displayOrder !== null &&
+    (!Number.isInteger(input.displayOrder) ||
+      (input.displayOrder as number) < 1 ||
+      (input.displayOrder as number) > 100000)
+  ) {
+    throw new TypeError(
+      "Project displayOrder must be null or an integer from 1 to 100000.",
+    );
+  }
 
   return {
     ...input,
@@ -147,6 +190,7 @@ function mapProjectRow(row: ProjectRow): StoredProject {
     language: row.language,
     status: row.status,
     featured: row.featured === 1,
+    displayOrder: row.displayOrder,
     publishedAt: row.publishedAt,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
@@ -166,6 +210,7 @@ const projectSelect = `
     language,
     status,
     featured,
+    display_order AS displayOrder,
     published_at AS publishedAt,
     updated_at AS updatedAt,
     created_at AS createdAt,
@@ -179,6 +224,10 @@ export function upsertProject(
 ): StoredProject {
   ensureProjectSchema(database);
   const normalized = validateProject(input);
+  const hasDisplayOrder = Object.prototype.hasOwnProperty.call(
+    normalized,
+    "displayOrder",
+  );
   const now = new Date().toISOString();
 
   database
@@ -186,9 +235,10 @@ export function upsertProject(
       `
         INSERT INTO projects (
           slug, github_full_name, title, summary, repo_url, demo_url, language,
-          status, featured, published_at, updated_at, created_at, modified_at
+          status, featured, display_order, published_at, updated_at, created_at,
+          modified_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(slug) DO UPDATE SET
           github_full_name = excluded.github_full_name,
           title = excluded.title,
@@ -198,6 +248,10 @@ export function upsertProject(
           language = excluded.language,
           status = excluded.status,
           featured = excluded.featured,
+          display_order = CASE
+            WHEN ? = 1 THEN excluded.display_order
+            ELSE projects.display_order
+          END,
           published_at = excluded.published_at,
           updated_at = excluded.updated_at,
           modified_at = excluded.modified_at
@@ -213,10 +267,12 @@ export function upsertProject(
       normalized.language,
       normalized.status,
       normalized.featured ? 1 : 0,
+      normalized.displayOrder ?? null,
       normalized.publishedAt,
       normalized.updatedAt,
       now,
       now,
+      hasDisplayOrder ? 1 : 0,
     );
 
   const stored = getStoredProjectBySlug(normalized.slug, database);
@@ -245,7 +301,12 @@ export function listPublishedProjects(
     .prepare(
       `${projectSelect}
        WHERE status != 'archived'
-       ORDER BY featured DESC, updated_at DESC, id DESC`,
+       ORDER BY
+         display_order IS NULL,
+         display_order ASC,
+         featured DESC,
+         updated_at DESC,
+         id DESC`,
     )
     .all() as unknown as ProjectRow[];
   return rows.map(mapProjectRow);

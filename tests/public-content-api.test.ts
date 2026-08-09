@@ -43,6 +43,7 @@ test("Ideas and Projects public APIs expose SQLite metadata", async () => {
         language: "TypeScript",
         status: "active",
         featured: false,
+        displayOrder: 40,
         publishedAt: "2026-08-02",
         updatedAt: "2026-08-02",
       },
@@ -59,6 +60,7 @@ test("Ideas and Projects public APIs expose SQLite metadata", async () => {
     assert.equal(ideas.data[0].sourceKey, "api-observation");
     assert.equal(projects.meta.storage, "sqlite");
     assert.equal(projects.data[0].slug, "api-project");
+    assert.equal(projects.data[0].displayOrder, 40);
   } finally {
     closeArticleDatabase();
     if (previousPath === undefined) delete process.env.BLOG_DB_PATH;

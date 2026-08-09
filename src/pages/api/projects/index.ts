@@ -18,6 +18,7 @@ export function GET(): Response {
         language: project.language,
         status: project.status,
         featured: project.featured,
+        displayOrder: project.displayOrder,
         publishedAt: project.publishedAt,
         updatedAt: project.updatedAt,
       })),

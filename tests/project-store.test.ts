@@ -108,3 +108,139 @@ test("project input validation requires a matching GitHub repository URL", () =>
     database.close();
   }
 });
+
+test("project schema migrates legacy tables with display order", () => {
+  const database = createArticleDatabase(":memory:");
+
+  try {
+    database.exec(`
+      CREATE TABLE projects (
+        id INTEGER PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        github_full_name TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        repo_url TEXT NOT NULL UNIQUE,
+        demo_url TEXT,
+        language TEXT NOT NULL,
+        status TEXT NOT NULL,
+        featured INTEGER NOT NULL,
+        published_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        modified_at TEXT NOT NULL
+      ) STRICT
+    `);
+
+    upsertProject(makeProject({ displayOrder: 20 }), database);
+
+    const columns = database
+      .prepare("PRAGMA table_info(projects)")
+      .all() as Array<{ name: string }>;
+    assert.equal(
+      columns.some((column) => column.name === "display_order"),
+      true,
+    );
+    assert.equal(
+      getStoredProjectBySlug("burns-blog", database)?.displayOrder,
+      20,
+    );
+  } finally {
+    database.close();
+  }
+});
+
+test("manual project order precedes the existing fallback order", () => {
+  const database = createArticleDatabase(":memory:");
+
+  try {
+    upsertProject(
+      makeProject({
+        slug: "akka",
+        githubFullName: "Burns1028/akka",
+        repoUrl: "https://github.com/Burns1028/akka",
+        displayOrder: 30,
+        updatedAt: "2026-03-10",
+      }),
+      database,
+    );
+    upsertProject(
+      makeProject({
+        slug: "anyhark",
+        githubFullName: "Burns1028/anyhark",
+        repoUrl: "https://github.com/Burns1028/anyhark",
+        displayOrder: 10,
+        updatedAt: "2026-08-08",
+      }),
+      database,
+    );
+    upsertProject(
+      makeProject({
+        slug: "burns-skill",
+        githubFullName: "Burns1028/burns-skill",
+        repoUrl: "https://github.com/Burns1028/burns-skill",
+        displayOrder: 20,
+        updatedAt: "2026-08-09",
+      }),
+      database,
+    );
+    upsertProject(
+      makeProject({
+        slug: "newest",
+        githubFullName: "Burns1028/newest",
+        repoUrl: "https://github.com/Burns1028/newest",
+        updatedAt: "2026-08-10",
+      }),
+      database,
+    );
+
+    assert.deepEqual(
+      listPublishedProjects(database).map((project) => project.slug),
+      ["anyhark", "burns-skill", "akka", "newest"],
+    );
+  } finally {
+    database.close();
+  }
+});
+
+test("omitted display order preserves it and explicit null clears it", () => {
+  const database = createArticleDatabase(":memory:");
+
+  try {
+    upsertProject(makeProject({ displayOrder: 10 }), database);
+    upsertProject(makeProject({ summary: "Metadata-only update" }), database);
+    assert.equal(
+      getStoredProjectBySlug("burns-blog", database)?.displayOrder,
+      10,
+    );
+
+    upsertProject(makeProject({ displayOrder: null }), database);
+    assert.equal(
+      getStoredProjectBySlug("burns-blog", database)?.displayOrder,
+      null,
+    );
+  } finally {
+    database.close();
+  }
+});
+
+test("display order rejects non-integers and out-of-range values", () => {
+  const database = createArticleDatabase(":memory:");
+
+  try {
+    assert.throws(
+      () => upsertProject(makeProject({ displayOrder: 0 }), database),
+      /displayOrder/,
+    );
+    assert.throws(
+      () => upsertProject(makeProject({ displayOrder: 1.5 }), database),
+      /displayOrder/,
+    );
+    assert.throws(
+      () => upsertProject(makeProject({ displayOrder: 100001 }), database),
+      /displayOrder/,
+    );
+  } finally {
+    database.close();
+  }
+});
