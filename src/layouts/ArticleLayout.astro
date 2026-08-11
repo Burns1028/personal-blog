@@ -378,5 +378,108 @@ const tagLine = tags.join(" · ");
 
       targets.forEach(({ heading }) => observer.observe(heading));
     }
+
+    const prose = document.querySelector(".prose");
+    if (!prose) return;
+
+    const figureImages = Array.from(
+      prose.querySelectorAll<HTMLImageElement>("figure img"),
+    );
+
+    if (figureImages.length === 0) return;
+
+    let lightbox: HTMLDivElement | null = null;
+    let currentIndex = -1;
+
+    function openLightbox(index: number) {
+      if (lightbox) closeLightbox();
+
+      const img = figureImages[index];
+      if (!img) return;
+      currentIndex = index;
+
+      const src = img.getAttribute("src") ?? "";
+      const alt = img.getAttribute("alt") ?? "";
+
+      lightbox = document.createElement("div");
+      lightbox.className = "article-lightbox";
+      lightbox.setAttribute("role", "dialog");
+      lightbox.setAttribute("aria-label", alt || "图片预览");
+
+      const lbImg = document.createElement("img");
+      lbImg.src = src;
+      lbImg.alt = alt;
+
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "lightbox-close";
+      closeBtn.setAttribute("aria-label", "关闭");
+      closeBtn.textContent = "✕";
+
+      const caption = document.createElement("div");
+      caption.className = "lightbox-caption";
+      caption.textContent = alt;
+
+      lightbox.appendChild(lbImg);
+      lightbox.appendChild(closeBtn);
+      if (alt) lightbox.appendChild(caption);
+
+      if (figureImages.length > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "lightbox-nav lightbox-nav--prev";
+        prevBtn.setAttribute("aria-label", "上一张");
+        prevBtn.textContent = "←";
+        prevBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const prev = (currentIndex - 1 + figureImages.length) % figureImages.length;
+          openLightbox(prev);
+        });
+
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "lightbox-nav lightbox-nav--next";
+        nextBtn.setAttribute("aria-label", "下一张");
+        nextBtn.textContent = "→";
+        nextBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const next = (currentIndex + 1) % figureImages.length;
+          openLightbox(next);
+        });
+
+        lightbox.appendChild(prevBtn);
+        lightbox.appendChild(nextBtn);
+      }
+
+      closeBtn.addEventListener("click", closeLightbox);
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      document.body.appendChild(lightbox);
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      if (!lightbox) return;
+      lightbox.remove();
+      lightbox = null;
+      currentIndex = -1;
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!lightbox) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") {
+        const prev = (currentIndex - 1 + figureImages.length) % figureImages.length;
+        openLightbox(prev);
+      }
+      if (e.key === "ArrowRight") {
+        const next = (currentIndex + 1) % figureImages.length;
+        openLightbox(next);
+      }
+    });
+
+    figureImages.forEach((img, index) => {
+      img.addEventListener("click", () => openLightbox(index));
+    });
   </script>
 </BaseLayout>

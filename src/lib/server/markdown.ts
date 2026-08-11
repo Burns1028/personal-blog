@@ -95,6 +95,87 @@ function rehypeArticleDetails() {
         visit(child);
       }
 
+      let index = 0;
+      while (index < node.children.length) {
+        const imageRun: Array<{ img: ArticleNode; paragraphIndex: number }> = [];
+        let scanIndex = index;
+
+        while (scanIndex < node.children.length) {
+          const paragraph = node.children[scanIndex];
+          if (!isElement(paragraph, "p")) break;
+          const pc = meaningfulChildren(paragraph);
+          if (pc.length === 1 && isElement(pc[0], "img")) {
+            imageRun.push({ img: pc[0], paragraphIndex: scanIndex });
+            scanIndex += 1;
+            while (
+              scanIndex < node.children.length &&
+              isWhitespace(node.children[scanIndex])
+            ) {
+              scanIndex += 1;
+            }
+            continue;
+          }
+          break;
+        }
+
+        if (imageRun.length <= 1) {
+          index = scanIndex || index + 1;
+          continue;
+        }
+
+        const runImages = imageRun.map(({ img }) => {
+          img.properties = {
+            ...img.properties,
+            loading: "lazy",
+            decoding: "async",
+          };
+          return img;
+        });
+
+        let captionIndex = scanIndex;
+        while (
+          captionIndex < node.children.length &&
+          isWhitespace(node.children[captionIndex])
+        ) {
+          captionIndex += 1;
+        }
+
+        const caption =
+          captionIndex < node.children.length
+            ? captionChildren(node.children[captionIndex])
+            : undefined;
+
+        const figureChildren: ArticleNode[] = [...runImages];
+        if (caption) {
+          figureChildren.push({
+            type: "element",
+            tagName: "figcaption",
+            properties: {},
+            children: caption,
+          });
+        }
+
+        const endIndex = caption
+          ? captionIndex + 1
+          : imageRun[imageRun.length - 1].paragraphIndex + 1;
+
+        const figure: ArticleNode = {
+          type: "element",
+          tagName: "figure",
+          properties: {
+            className: ["image-row"],
+          },
+          children: figureChildren,
+        };
+
+        node.children.splice(
+          imageRun[0].paragraphIndex,
+          endIndex - imageRun[0].paragraphIndex,
+          figure,
+        );
+        index = imageRun[0].paragraphIndex + 1;
+      }
+
       for (let index = 0; index < node.children.length; index += 1) {
         const paragraph = node.children[index];
         if (!isElement(paragraph, "p")) continue;

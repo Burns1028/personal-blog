@@ -6,33 +6,42 @@ import { renderArticleMarkdown } from "../src/lib/server/markdown.ts";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 
-test("article figure grids keep two captioned images together", async () => {
+test("consecutive images auto-group into an image-row without any wrapper syntax", async () => {
   const markdown = [
-    '<div class="article-figure-grid">',
-    "",
     "![项目分享现场](/media/talk.webp)",
-    "",
-    "*图 1：项目分享现场。*",
     "",
     "![比赛合影](/media/team.webp)",
     "",
-    "*图 2：比赛现场留影。*",
-    "",
-    "</div>",
+    "*图 1：项目分享现场，图 2：比赛现场留影。*",
   ].join("\n");
 
   const rendered = await renderArticleMarkdown(markdown);
 
-  assert.match(rendered.html, /<div class="article-figure-grid">/);
+  assert.match(rendered.html, /<figure class="image-row">/);
+  assert.match(rendered.html, /<figcaption>/);
   assert.equal(
-    (rendered.html.match(/<figure class="article-figure">/g) ?? []).length,
+    (rendered.html.match(/<img /g) ?? []).length,
     2,
   );
-  assert.match(rendered.html, /<figcaption>图 1：项目分享现场。<\/figcaption>/);
-  assert.match(rendered.html, /<figcaption>图 2：比赛现场留影。<\/figcaption>/);
 });
 
-test("article figure grids use two desktop columns and stack on phones", () => {
+test("single images remain as article-figure", async () => {
+  const markdown = [
+    "![单张图片](/media/single.webp)",
+    "",
+    "*图 1：单张配图。*",
+  ].join("\n");
+
+  const rendered = await renderArticleMarkdown(markdown);
+
+  assert.match(rendered.html, /<figure class="article-figure">/);
+  assert.equal(
+    (rendered.html.match(/<img /g) ?? []).length,
+    1,
+  );
+});
+
+test("image-row uses flex on desktop and stacks on narrow screens", () => {
   const css = readFileSync(
     resolve(projectRoot, "src/styles/global.css"),
     "utf8",
@@ -40,10 +49,10 @@ test("article figure grids use two desktop columns and stack on phones", () => {
 
   assert.match(
     css,
-    /\.article-shell--writing \.prose \.article-figure-grid\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s,
+    /\.article-shell--writing \.prose \.image-row\s*\{[^}]*display:\s*flex/s,
   );
   assert.match(
     css,
-    /@media \(max-width:\s*620px\)[\s\S]*?\.article-shell--writing \.prose \.article-figure-grid\s*\{[^}]*grid-template-columns:\s*1fr/s,
+    /@media \(max-width:\s*640px\)[\s\S]*?\.article-shell--writing \.prose \.image-row\s*\{[^}]*flex-direction:\s*column/s,
   );
 });
