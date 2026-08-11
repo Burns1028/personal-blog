@@ -145,7 +145,14 @@ function rehypeArticleDetails() {
             ? captionChildren(node.children[captionIndex])
             : undefined;
 
-        const figureChildren: ArticleNode[] = [...runImages];
+        const figureChildren: ArticleNode[] = [
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["image-row__imgs"] },
+            children: runImages,
+          },
+        ];
         if (caption) {
           figureChildren.push({
             type: "element",
@@ -279,6 +286,10 @@ function addAssetDimensions(
       asset.width && asset.height
         ? ` width="${asset.width}" height="${asset.height}"`
         : "";
+    const arStyle =
+      asset.width && asset.height
+        ? ` style="--ar:${(asset.width / asset.height).toFixed(3)}"`
+        : "";
     const orientation =
       asset.width && asset.height && asset.height > asset.width * 1.15
         ? "article-media--portrait"
@@ -286,7 +297,7 @@ function addAssetDimensions(
 
     result = result.replaceAll(
       sourceAttribute,
-      `${sourceAttribute}${geometry} class="article-media ${orientation}"`,
+      `${sourceAttribute}${geometry}${arStyle} class="article-media ${orientation}"`,
     );
   }
 

@@ -9962,32 +9962,43 @@ body[data-route^="/writing/"] .site-footer {
 }
 
 .article-shell--writing .prose .image-row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  display: block;
   margin: 48px 0;
 }
 
-.article-shell--writing .prose .image-row img {
-  flex: 1;
+.article-shell--writing .prose .image-row__imgs {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.article-shell--writing .prose .image-row__imgs img {
+  flex: var(--ar, 1) 1 0;
   min-width: 0;
-  max-height: 600px;
+  max-height: 420px;
   object-fit: contain;
   border: 1px solid var(--article-line);
   mix-blend-mode: multiply;
 }
 
-.article-shell--writing .prose .image-row img.article-media--landscape {
+.article-shell--writing .prose .image-row__imgs img.article-media--landscape {
   mix-blend-mode: normal;
 }
 
+.article-shell--writing .prose .image-row > figcaption {
+  text-align: center;
+  margin-top: 12px;
+}
+
 @media (max-width: 640px) {
-  .article-shell--writing .prose .image-row {
+  .article-shell--writing .prose .image-row__imgs {
     flex-direction: column;
   }
 
-  .article-shell--writing .prose .image-row img {
+  .article-shell--writing .prose .image-row__imgs img {
     max-height: none;
+    flex: none;
+    width: 100%;
   }
 }
 
