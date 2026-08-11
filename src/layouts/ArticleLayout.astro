@@ -379,6 +379,7 @@ const tagLine = tags.join(" · ");
       targets.forEach(({ heading }) => observer.observe(heading));
     }
 
+    (function () {
     const prose = document.querySelector(".prose");
     if (!prose) return;
 
@@ -481,5 +482,6 @@ const tagLine = tags.join(" · ");
     figureImages.forEach((img, index) => {
       img.addEventListener("click", () => openLightbox(index));
     });
+    })();
   </script>
 </BaseLayout>
