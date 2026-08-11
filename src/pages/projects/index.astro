@@ -32,7 +32,7 @@ const filtered = entries.filter((entry) =>
     query,
   ),
 );
-const result = paginate(filtered, requestedPage, 3);
+const result = paginate(filtered, requestedPage, 12);
 const hrefFor = (page: number) => pageHref("/projects", page, query);
 const activityDays = listActivityDays(6);
 ---

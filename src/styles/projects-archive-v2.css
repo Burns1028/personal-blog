@@ -195,10 +195,12 @@ body[data-route="/projects"] .site-footer {
 
 .projects-v2 .project-card-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
+  max-height: calc(100dvh - 380px);
+  overflow-y: auto;
   view-transition-name: project-results;
 }
 
@@ -879,10 +881,6 @@ html[data-page-settled="true"] .activity-orbit__day {
   .projects-v2__workbench {
     width: min(860px, calc(100vw - 64px));
     padding-bottom: 278px;
-  }
-
-  .projects-v2 .project-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
