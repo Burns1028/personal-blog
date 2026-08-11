@@ -119,7 +119,7 @@ function rehypeArticleDetails() {
         }
 
         if (imageRun.length <= 1) {
-          index = scanIndex || index + 1;
+          index = scanIndex > index ? scanIndex : index + 1;
           continue;
         }
 
