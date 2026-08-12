@@ -509,6 +509,11 @@ body[data-route="/projects"] .site-footer {
   transition: color 160ms ease;
 }
 
+.activity-orbit__day[data-align="start"] .activity-orbit__summary,
+.activity-orbit__day[data-align="end"] .activity-orbit__summary {
+  bottom: 58px;
+}
+
 .activity-orbit__day[data-align="center"] .activity-orbit__summary {
   transform: translateX(-50%);
 }
