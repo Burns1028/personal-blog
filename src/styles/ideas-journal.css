@@ -3,6 +3,16 @@ body[data-route="/ideas"] {
   --ideas-journal-muted: #694d2c;
   --ideas-journal-faint: rgba(92, 63, 30, 0.34);
   --ideas-journal-accent: #8b5a1b;
+  --ideas-search-top: calc(clamp(92px, 11.8056vh, 136px) + 10px);
+  --ideas-search-height: 50px;
+  --ideas-timeline-gap: 24px;
+  --ideas-content-width: min(1040px, calc(100vw - 460px));
+  --ideas-content-left: clamp(62px, 9.7vw, 198px);
+  --ideas-search-width: min(760px, var(--ideas-content-width));
+  --ideas-top-mask-height: calc(
+    var(--ideas-search-top) + var(--ideas-search-height) +
+      var(--ideas-timeline-gap)
+  );
   background: #d9b27b;
 }
 
@@ -13,14 +23,6 @@ body[data-route="/ideas"] .site-header {
   left: 50%;
   margin: 0;
   transform: translateX(-50%);
-  background-color: #d9b27b;
-  background-image:
-    linear-gradient(rgba(250, 228, 190, 0.2), rgba(116, 72, 25, 0.04)),
-    url("/assets/ideas-atlas-2048.webp");
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
 }
 
 body[data-route="/ideas"] .site-footer {
@@ -73,6 +75,16 @@ body[data-route="/ideas"] .site-footer {
   mix-blend-mode: multiply;
 }
 
+.ideas-journal__top-mask {
+  z-index: 10;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% var(--ideas-top-mask-height),
+    0 var(--ideas-top-mask-height)
+  );
+}
+
 .ideas-journal__singularity {
   position: absolute;
   z-index: 1;
@@ -95,18 +107,20 @@ body[data-route="/ideas"] .site-footer {
 .ideas-journal__content {
   position: relative;
   z-index: 2;
-  width: min(1040px, calc(100vw - 460px));
+  width: var(--ideas-content-width);
   min-height: 100svh;
-  margin-left: clamp(62px, 9.7vw, 198px);
-  padding: calc(clamp(92px, 11.8056vh, 136px) + 10px) 0 110px;
+  margin-left: var(--ideas-content-left);
+  padding: calc(var(--ideas-search-top) + var(--ideas-search-height)) 0 110px;
 }
 
 .ideas-journal__search {
-  position: relative;
+  position: fixed;
   z-index: 20;
+  top: var(--ideas-search-top);
+  left: var(--ideas-content-left);
   display: grid;
-  width: min(760px, 100%);
-  height: 50px;
+  width: var(--ideas-search-width);
+  height: var(--ideas-search-height);
   grid-template-columns: 24px minmax(250px, 1fr) 1px minmax(168px, 184px);
   align-items: center;
   gap: 14px;
@@ -273,7 +287,7 @@ body[data-route="/ideas"] .site-footer {
 .ideas-journal__timeline {
   position: relative;
   width: min(980px, 100%);
-  margin-top: 24px;
+  margin-top: var(--ideas-timeline-gap);
 }
 
 .ideas-journal__track {
@@ -444,27 +458,23 @@ body[data-route="/ideas"] .site-footer {
 }
 
 @media (max-width: 1440px) {
+  body[data-route="/ideas"] {
+    --ideas-content-width: min(940px, calc(100vw - 390px));
+  }
+
   .ideas-journal__backdrop {
     background-image:
       linear-gradient(rgba(250, 228, 190, 0.2), rgba(116, 72, 25, 0.04)),
       url("/assets/ideas-atlas-1280.webp");
   }
-
-  .ideas-journal__content {
-    width: min(940px, calc(100vw - 390px));
-  }
-
 }
 
 @media (max-width: 980px) {
-  .ideas-journal__content {
-    width: calc(100vw - 64px);
-    margin-inline: auto;
-    padding-top: 112px;
-  }
-
-  .ideas-journal__search {
-    width: min(720px, 100%);
+  body[data-route="/ideas"] {
+    --ideas-search-top: 112px;
+    --ideas-content-width: calc(100vw - 64px);
+    --ideas-content-left: 32px;
+    --ideas-search-width: min(720px, var(--ideas-content-width));
   }
 
   .ideas-journal__timeline {
@@ -493,14 +503,20 @@ body[data-route="/ideas"] .site-footer {
 }
 
 @media (max-width: 619px) {
+  body[data-route="/ideas"] {
+    --ideas-search-top: 104px;
+    --ideas-search-height: 46px;
+    --ideas-timeline-gap: 16px;
+    --ideas-content-width: calc(100vw - 28px);
+    --ideas-content-left: 14px;
+    --ideas-search-width: var(--ideas-content-width);
+  }
+
   .ideas-journal__content {
-    width: calc(100vw - 28px);
-    padding: 104px 0 72px;
+    padding-bottom: 72px;
   }
 
   .ideas-journal__search {
-    width: 100%;
-    height: 46px;
     grid-template-columns: 19px minmax(0, 1fr) 1px 122px;
     gap: 8px;
   }
@@ -531,7 +547,7 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__timeline {
-    margin-top: 16px;
+    margin-top: var(--ideas-timeline-gap);
   }
 
   .ideas-journal__entry article {

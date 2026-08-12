@@ -41,6 +41,13 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
     </div>
 
     <div class="ideas-journal__content">
+      <div
+        class="ideas-journal__backdrop ideas-journal__top-mask"
+        aria-hidden="true"
+      >
+        <IdeasSingularity />
+      </div>
+
       <form
         class="ideas-journal__search"
         method="get"
