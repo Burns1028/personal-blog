@@ -13,7 +13,14 @@ body[data-route="/ideas"] .site-header {
   left: 50%;
   margin: 0;
   transform: translateX(-50%);
-  background: #d9b27b;
+  background-color: #d9b27b;
+  background-image:
+    linear-gradient(rgba(250, 228, 190, 0.2), rgba(116, 72, 25, 0.04)),
+    url("/assets/ideas-atlas-2048.webp");
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 body[data-route="/ideas"] .site-footer {

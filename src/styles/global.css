@@ -168,7 +168,6 @@ select {
 .site-header {
   position: relative;
   z-index: 20;
-  background: var(--paper);
   display: grid;
   width: var(--page);
   min-height: 72px;
