@@ -168,8 +168,7 @@ select {
 .site-header {
   position: relative;
   z-index: 20;
-  backdrop-filter: blur(12px);
-  background: rgba(233, 224, 207, 0.72);
+  background: var(--paper);
   display: grid;
   width: var(--page);
   min-height: 72px;
