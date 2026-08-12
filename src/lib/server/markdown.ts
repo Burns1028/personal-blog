@@ -2,6 +2,8 @@ import {
   createMarkdownProcessor,
   type MarkdownHeading,
 } from "@astrojs/markdown-remark";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import type { StoredArticleAsset } from "./content-store";
 
 interface ArticleNode {
@@ -269,7 +271,8 @@ const processorPromise = createMarkdownProcessor({
   },
   gfm: true,
   smartypants: true,
-  rehypePlugins: [rehypeArticleDetails],
+  remarkPlugins: [remarkMath],
+  rehypePlugins: [rehypeArticleDetails, rehypeKatex],
 });
 
 function addAssetDimensions(
