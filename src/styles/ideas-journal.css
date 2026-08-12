@@ -13,6 +13,7 @@ body[data-route="/ideas"] .site-header {
   left: 50%;
   margin: 0;
   transform: translateX(-50%);
+  background: #d9b27b;
 }
 
 body[data-route="/ideas"] .site-footer {
