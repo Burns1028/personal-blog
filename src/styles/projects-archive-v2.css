@@ -511,7 +511,7 @@ body[data-route="/projects"] .site-footer {
 
 .activity-orbit__day[data-align="start"] .activity-orbit__summary,
 .activity-orbit__day[data-align="end"] .activity-orbit__summary {
-  bottom: 58px;
+  bottom: 76px;
 }
 
 .activity-orbit__day[data-align="center"] .activity-orbit__summary {
@@ -1010,6 +1010,7 @@ html[data-page-settled="true"] .activity-orbit__day {
   }
 
   .activity-orbit__summary,
+  .activity-orbit__day[data-align="start"] .activity-orbit__summary,
   .activity-orbit__day[data-align="center"] .activity-orbit__summary,
   .activity-orbit__day[data-align="end"] .activity-orbit__summary {
     position: relative;
