@@ -368,8 +368,10 @@ test("Projects activity orbit emerges clear of the left Earth", () => {
   assert.match(css, /\.activity-orbit__line\s*\{[^}]*clip-path:\s*inset\(0 0 0 var\(--projects-earth-safe\)\)/);
   assert.match(
     css,
-    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*var\(--activity-summary-bottom,\s*24px\)/,
+    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*36px/,
   );
+  assert.match(orbit, /positionIndex % 2 === 0 \? "above" : "below"/);
+  assert.match(orbit, /data-summary-side=\{summarySide\}/);
 });
 
 test("Projects activity signal archives stay legible above the continuous orbit", () => {
@@ -391,11 +393,14 @@ test("Projects activity signal archives stay legible above the continuous orbit"
   assert.match(orbit, /d=\{activityOrbitPath\}/);
   assert.match(
     css,
-    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*var\(--activity-summary-bottom,\s*24px\)/,
+    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*36px/,
   );
-  assert.match(page, /function layoutActivitySummaries\(\)/);
-  assert.match(page, /bounds\.right > previous\.left - 12/);
-  assert.match(page, /bounds\.bottom - previous\.top \+ 12/);
+  assert.match(
+    css,
+    /\.activity-orbit__day\[data-summary-side="below"\] \.activity-orbit__summary\s*\{[^}]*top:\s*36px;[^}]*bottom:\s*auto/,
+  );
+  assert.doesNotMatch(page, /layoutActivitySummaries/);
+  assert.doesNotMatch(page, /--activity-summary-bottom/);
   assert.match(
     css,
     /\.activity-orbit__detail\s*\{[^}]*background:\s*rgba\(3,\s*8,\s*10,\s*0\.96\)/,

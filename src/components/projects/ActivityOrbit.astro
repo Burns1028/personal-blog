@@ -46,10 +46,12 @@ const alignmentFor = (left: number) => {
     chronological.length > 0 ? (
       <ol class="activity-orbit__days">
         {chronological.map((day, index) => {
-          const { left, top } = positions[index + positionOffset];
+          const positionIndex = index + positionOffset;
+          const { left, top } = positions[positionIndex];
           const lead = day.items.at(0);
           const isLatest = index === chronological.length - 1;
           const align = alignmentFor(left);
+          const summarySide = positionIndex % 2 === 0 ? "above" : "below";
           const detailId = `activity-day-${day.date}`;
 
           return (
@@ -58,6 +60,7 @@ const alignmentFor = (left: number) => {
               style={`--node-left:${left}%;--node-top:${top}%;--node-index:${index}`}
               data-activity-node
               data-align={align}
+              data-summary-side={summarySide}
               data-open="false"
               data-latest-activity={isLatest ? "true" : undefined}
             >

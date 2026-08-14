@@ -498,7 +498,7 @@ body[data-route="/projects"] .site-footer {
 
 .activity-orbit__summary {
   position: absolute;
-  bottom: var(--activity-summary-bottom, 24px);
+  bottom: 36px;
   left: 14px;
   display: grid;
   width: clamp(142px, 11.5vw, 188px);
@@ -507,6 +507,11 @@ body[data-route="/projects"] .site-footer {
   text-align: left;
   pointer-events: none;
   transition: color 160ms ease;
+}
+
+.activity-orbit__day[data-summary-side="below"] .activity-orbit__summary {
+  top: 36px;
+  bottom: auto;
 }
 
 .activity-orbit__day[data-align="center"] .activity-orbit__summary {
