@@ -104,15 +104,19 @@ const smoothstep = (value) => {
 // Sphere textures contain albedo/material only. Directional light and atmosphere
 // stay in the WebGL/fixed-overlay layers; baking the approved front-lit sphere
 // into this map would make its bright limb travel across the globe as it turns.
-const outputSphereTexture = async ({ surfaceSource, output, toneGamma = 1 }) => {
-  const width = 2048;
-  const height = 1024;
+const outputSphereTexture = async ({
+  surfaceSource,
+  output,
+  width = 2048,
+  toneGamma = 1,
+}) => {
+  const height = width / 2;
   const { data, info } = await sharp(surfaceSource)
-    .resize({ width: 2048, height: 1024, fit: "fill", kernel: sharp.kernel.lanczos3 })
+    .resize({ width, height, fit: "fill", kernel: sharp.kernel.lanczos3 })
     .removeAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  const seamWidth = 32;
+  const seamWidth = Math.max(16, Math.round(width / 64));
 
   // The Earth material is intentionally near-black, but must not disappear
   // after the fixed scene light is applied. Lift only the material's dark
@@ -253,7 +257,18 @@ await outputCircularLayer({
 
 await outputSphereTexture({
   surfaceSource: resolve(starfieldSourceRoot, "moon-far-hemisphere-v1.png"),
+  output: "home-orrery-writing-moon-surface-v7-1024.webp",
+  width: 1024,
+});
+await outputSphereTexture({
+  surfaceSource: resolve(starfieldSourceRoot, "moon-far-hemisphere-v1.png"),
   output: "home-orrery-writing-moon-surface-v7-2048.webp",
+});
+await outputSphereTexture({
+  surfaceSource: resolve(starfieldSourceRoot, "earth-surface-painterly-v2.png"),
+  output: "home-orrery-projects-earth-surface-v9-1024.webp",
+  width: 1024,
+  toneGamma: 0.9,
 });
 await outputSphereTexture({
   surfaceSource: resolve(starfieldSourceRoot, "earth-surface-painterly-v2.png"),

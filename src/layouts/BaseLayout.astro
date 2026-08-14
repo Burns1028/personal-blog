@@ -1,5 +1,6 @@
 ---
 import { nav, site } from "../data/site";
+import { homeOrreryAssets } from "../data/home-orrery-assets";
 import "../styles/global.css";
 import "../styles/home-orrery.css";
 import "katex/dist/katex.min.css";
@@ -59,6 +60,26 @@ const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="canonical" href={canonical} />
+    {
+      path === "/" ? (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            type="image/webp"
+            href={homeOrreryAssets.writing.motion.texture}
+            fetchpriority="high"
+          />
+          <link
+            rel="preload"
+            as="image"
+            type="image/webp"
+            href={homeOrreryAssets.projects.motion.texture}
+            fetchpriority="high"
+          />
+        </>
+      ) : null
+    }
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />

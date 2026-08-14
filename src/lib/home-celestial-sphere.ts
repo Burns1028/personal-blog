@@ -1,4 +1,5 @@
 export interface CelestialSphereController {
+  prepare(): Promise<boolean>;
   setRunning(running: boolean): void;
   destroy(): void;
 }
@@ -159,7 +160,7 @@ export const createCelestialSphereController = (
   gl.clearColor(0, 0, 0, 0);
 
   let textureReady = false;
-  let loading: Promise<void> | null = null;
+  let loading: Promise<boolean> | null = null;
   let desiredRunning = false;
   let destroyed = false;
   let contextLost = false;
@@ -238,11 +239,12 @@ export const createCelestialSphereController = (
     animationFrame = window.requestAnimationFrame(tick);
   };
 
-  const load = () => {
-    if (loading || destroyed || contextLost) return loading;
+  const load = (): Promise<boolean> => {
+    if (loading) return loading;
+    if (destroyed || contextLost) return Promise.resolve(false);
     loading = (async () => {
       const image = await loadImage(options.textureUrl);
-      if (destroyed || contextLost) return;
+      if (destroyed || contextLost) return false;
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
       gl.texImage2D(
@@ -266,9 +268,11 @@ export const createCelestialSphereController = (
       render();
       sphere?.classList.add("is-motion-ready");
       start();
+      return true;
     })().catch(() => {
       textureReady = false;
       removeReadyState();
+      return false;
     });
     return loading;
   };
@@ -279,6 +283,9 @@ export const createCelestialSphereController = (
     textureReady = false;
     stop();
     removeReadyState();
+    sphere?.dispatchEvent(
+      new CustomEvent("burns:celestial-surface-failed", { bubbles: true }),
+    );
   };
 
   const resizeObserver = new ResizeObserver(() => {
@@ -288,14 +295,18 @@ export const createCelestialSphereController = (
   canvas.addEventListener("webglcontextlost", handleContextLost);
 
   return {
+    prepare() {
+      return load();
+    },
     setRunning(running) {
       desiredRunning = running;
       if (!running) {
         stop();
         return;
       }
-      void load();
-      start();
+      void load().then((ready) => {
+        if (ready) start();
+      });
     },
     destroy() {
       destroyed = true;

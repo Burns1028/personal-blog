@@ -24,6 +24,8 @@ test("sphere renderer preserves a fixed limb and falls back atomically", () => {
   assert.match(source, /smoothstep\(0\.965, 0\.998, sqrt\(r2\)\)/);
   assert.match(source, /classList\.add\("is-motion-ready"\)/);
   assert.match(source, /classList\.remove\("is-motion-ready"\)/);
+  assert.match(source, /prepare\(\)\s*\{[\s\S]*?return load\(\)/);
+  assert.match(source, /burns:celestial-surface-failed/);
   assert.match(source, /webglcontextlost/);
 });
 

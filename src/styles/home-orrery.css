@@ -17,7 +17,16 @@
   width: 100%;
   aspect-ratio: 881 / 732;
   overflow: visible;
+  opacity: 0;
+  visibility: hidden;
   isolation: isolate;
+  transition: opacity 220ms ease;
+}
+
+.home-orrery[data-scene-state="ready"] .home-cosmos__stage,
+.home-orrery[data-scene-state="static"] .home-cosmos__stage {
+  opacity: 1;
+  visibility: visible;
 }
 
 .home-orrery::before {
@@ -157,7 +166,7 @@
 
 .home-cosmos__moon-base {
   z-index: 1;
-  opacity: 1;
+  opacity: 0;
 }
 
 .home-cosmos__moon-base img {
@@ -175,11 +184,11 @@
   opacity: 0;
 }
 
-.home-cosmos__sphere--moon.is-motion-ready .home-cosmos__moon-base {
-  opacity: 0;
+.home-cosmos__sphere--moon.is-motion-ready .home-cosmos__moon-motion-canvas {
+  opacity: 1;
 }
 
-.home-cosmos__sphere--moon.is-motion-ready .home-cosmos__moon-motion-canvas {
+.home-orrery[data-scene-state="static"] .home-cosmos__moon-base {
   opacity: 1;
 }
 
@@ -208,7 +217,7 @@
 
 .home-cosmos__earth-base {
   z-index: 1;
-  opacity: 1;
+  opacity: 0;
 }
 
 .home-cosmos__earth-base img {
@@ -227,11 +236,11 @@
   opacity: 0;
 }
 
-.home-cosmos__sphere--earth.is-motion-ready .home-cosmos__earth-base {
-  opacity: 0;
+.home-cosmos__sphere--earth.is-motion-ready .home-cosmos__earth-motion-canvas {
+  opacity: 1;
 }
 
-.home-cosmos__sphere--earth.is-motion-ready .home-cosmos__earth-motion-canvas {
+.home-orrery[data-scene-state="static"] .home-cosmos__earth-base {
   opacity: 1;
 }
 

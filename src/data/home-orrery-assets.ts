@@ -19,7 +19,7 @@ export const homeOrreryAssets = {
       retina: `${matchedLayerRoot}/home-orrery-writing-moon-v4-960.webp`,
     },
     motion: {
-      texture: `${matchedLayerRoot}/home-orrery-writing-moon-surface-v7-2048.webp`,
+      texture: `${matchedLayerRoot}/home-orrery-writing-moon-surface-v7-1024.webp`,
       durationMs: 180_000,
       initialRotation: 0,
       ambientLight: 0.76,
@@ -36,7 +36,7 @@ export const homeOrreryAssets = {
       retina: `${matchedLayerRoot}/home-orrery-projects-earth-glow-v4-960.webp`,
     },
     motion: {
-      texture: `${matchedLayerRoot}/home-orrery-projects-earth-surface-v9-2048.webp`,
+      texture: `${matchedLayerRoot}/home-orrery-projects-earth-surface-v9-1024.webp`,
       durationMs: 150_000,
       initialRotation: 1.15,
       ambientLight: 0.82,

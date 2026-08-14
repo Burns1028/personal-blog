@@ -81,6 +81,8 @@ test("home orrery asset build deterministically separates the approved mother in
   assert.match(builder, /outputKeyedLayer/);
   assert.match(builder, /outputSphereTexture/);
   assert.match(builder, /surfaceSource/);
+  assert.match(builder, /home-orrery-writing-moon-surface-v7-1024\.webp/);
+  assert.match(builder, /home-orrery-projects-earth-surface-v9-1024\.webp/);
   assert.doesNotMatch(builder, /unwrapVisibleHemisphere|sphereSource/);
   assert.doesNotMatch(builder, /outputSphereTurnSequence|renderSphereTurnFrame/);
   assert.doesNotMatch(builder, /approved-scene|inner-v11/);
@@ -162,6 +164,14 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /homeOrreryAssets\.writing\.motion/);
   assert.match(component, /homeOrreryAssets\.projects\.motion/);
   assert.match(component, /data-texture-url/);
+  assert.match(component, /data-scene-state="preparing"/);
+  assert.match(component, /data-fallback-src=/);
+  assert.match(component, /data-fallback-srcset=/);
+  assert.match(component, /moonMotion\.prepare\(\)/);
+  assert.match(component, /earthMotion\.prepare\(\)/);
+  assert.match(component, /orrery\.dataset\.sceneState = "ready"/);
+  assert.match(component, /burns:page-settled/);
+  assert.match(css, /data-scene-state="ready"[\s\S]*?opacity:\s*1/);
   assert.doesNotMatch(component, /createCelestialFrameController|data-frame-prefix|data-frame-count/);
   assert.doesNotMatch(css, /home-moon-texture-travel/);
   assert.doesNotMatch(css, /home-earth-texture-travel/);
@@ -314,6 +324,10 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   assert.match(component, /moonMotion\?\.setRunning\(running\)/);
   assert.match(component, /earthMotion\?\.setRunning\(running\)/);
   assert.match(component, /particles\?\.destroy\(\)/);
+  assert.match(component, /activateStaticScene/);
+  assert.match(component, /sceneMode === "animated"/);
+  assert.match(layout, /rel="preload"[\s\S]*?homeOrreryAssets\.writing\.motion\.texture/);
+  assert.match(layout, /rel="preload"[\s\S]*?homeOrreryAssets\.projects\.motion\.texture/);
 
   const keyframes = css.slice(css.indexOf("@keyframes home-moon-float"));
   assert.doesNotMatch(keyframes, /\bfilter\s*:/);
@@ -325,8 +339,8 @@ test("celestial surfaces use one seamless texture each while fixed lighting stay
   const manifest = readExisting("src/data/home-orrery-assets.ts");
   const component = readExisting("src/components/HomeOrrery.astro");
 
-  assert.match(manifest, /home-orrery-writing-moon-surface-v7-2048\.webp/);
-  assert.match(manifest, /home-orrery-projects-earth-surface-v9-2048\.webp/);
+  assert.match(manifest, /home-orrery-writing-moon-surface-v7-1024\.webp/);
+  assert.match(manifest, /home-orrery-projects-earth-surface-v9-1024\.webp/);
   assert.match(manifest, /durationMs:\s*180_000/);
   assert.match(manifest, /durationMs:\s*150_000/);
   assert.doesNotMatch(manifest, /framePrefix|frameCount|frame-v5/);
@@ -334,14 +348,14 @@ test("celestial surfaces use one seamless texture each while fixed lighting stay
   assert.match(component, /home-cosmos__earth-motion-canvas/);
 
   for (const filename of [
-    "home-orrery-writing-moon-surface-v7-2048.webp",
-    "home-orrery-projects-earth-surface-v9-2048.webp",
+    "home-orrery-writing-moon-surface-v7-1024.webp",
+    "home-orrery-projects-earth-surface-v9-1024.webp",
   ]) {
     const texture = resolve(root, "public/assets/home-cosmic-system-v4", filename);
     assert.ok(existsSync(texture), `${filename} must exist`);
     const metadata = await sharp(texture).metadata();
-    assert.equal(metadata.width, 2048, `${filename} width`);
-    assert.equal(metadata.height, 1024, `${filename} height`);
+    assert.equal(metadata.width, 1024, `${filename} width`);
+    assert.equal(metadata.height, 512, `${filename} height`);
 
     const { data, info } = await sharp(texture)
       .removeAlpha()
@@ -358,16 +372,26 @@ test("celestial surfaces use one seamless texture each while fixed lighting stay
     const meanSeamDifference = seamDifference / (info.height * 3);
     assert.ok(meanSeamDifference <= 6, `${filename} seam differs by ${meanSeamDifference}`);
   }
+
+  const runtimeBytes = [
+    "home-orrery-writing-moon-surface-v7-1024.webp",
+    "home-orrery-projects-earth-surface-v9-1024.webp",
+  ].reduce(
+    (total, filename) =>
+      total + statSync(resolve(root, "public/assets/home-cosmic-system-v4", filename)).size,
+    0,
+  );
+  assert.ok(runtimeBytes <= 460_000, `runtime sphere textures use ${runtimeBytes} bytes`);
 });
 
 test("Earth surface keeps low-light material visible across the full turning sphere", async () => {
   const manifest = readExisting("src/data/home-orrery-assets.ts");
   const texture = resolve(
     root,
-    "public/assets/home-cosmic-system-v4/home-orrery-projects-earth-surface-v9-2048.webp",
+    "public/assets/home-cosmic-system-v4/home-orrery-projects-earth-surface-v9-1024.webp",
   );
 
-  assert.match(manifest, /home-orrery-projects-earth-surface-v9-2048\.webp/);
+  assert.match(manifest, /home-orrery-projects-earth-surface-v9-1024\.webp/);
   assert.match(manifest, /ambientLight:\s*0\.82/);
   assert.match(manifest, /diffuseLight:\s*0\.32/);
   assert.ok(existsSync(texture), "tone-mapped Earth surface must exist");
