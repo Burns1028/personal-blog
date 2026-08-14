@@ -366,10 +366,17 @@ test("Projects activity orbit emerges clear of the left Earth", () => {
   assert.doesNotMatch(orbit, /\[13,\s*34\]/);
   assert.match(css, /--projects-earth-safe:\s*clamp\(112px,\s*18svh,\s*210px\)/);
   assert.match(css, /\.activity-orbit__line\s*\{[^}]*clip-path:\s*inset\(0 0 0 var\(--projects-earth-safe\)\)/);
-  assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
+  assert.match(
+    css,
+    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*var\(--activity-summary-bottom,\s*24px\)/,
+  );
 });
 
 test("Projects activity signal archives stay legible above the continuous orbit", () => {
+  const page = readFileSync(
+    resolve(projectRoot, "src/pages/projects/index.astro"),
+    "utf8",
+  );
   const orbit = readFileSync(
     resolve(projectRoot, "src/components/projects/ActivityOrbit.astro"),
     "utf8",
@@ -382,7 +389,13 @@ test("Projects activity signal archives stay legible above the continuous orbit"
     css.match(/\.activity-orbit__line path\s*\{[^}]*\}/)?.[0] ?? "";
 
   assert.match(orbit, /d=\{activityOrbitPath\}/);
-  assert.match(css, /\.activity-orbit__summary\s*\{[^}]*bottom:\s*24px/);
+  assert.match(
+    css,
+    /\.activity-orbit__summary\s*\{[^}]*bottom:\s*var\(--activity-summary-bottom,\s*24px\)/,
+  );
+  assert.match(page, /function layoutActivitySummaries\(\)/);
+  assert.match(page, /bounds\.right > previous\.left - 12/);
+  assert.match(page, /bounds\.bottom - previous\.top \+ 12/);
   assert.match(
     css,
     /\.activity-orbit__detail\s*\{[^}]*background:\s*rgba\(3,\s*8,\s*10,\s*0\.96\)/,

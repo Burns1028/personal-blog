@@ -120,9 +120,73 @@ const activityDays = listActivityDays(6);
       const activityNodes = [
         ...document.querySelectorAll("[data-activity-node]"),
       ].filter((node) => node instanceof HTMLElement);
+      let activityLayoutFrame = 0;
       const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       );
+
+      function layoutActivitySummaries() {
+        const placed = [];
+
+        for (const node of activityNodes) {
+          node.style.removeProperty("--activity-summary-bottom");
+        }
+        if (window.innerWidth < 768) return;
+
+        for (const node of activityNodes) {
+          const summary = node.querySelector(".activity-orbit__summary");
+          if (!(summary instanceof HTMLElement)) continue;
+
+          let bottom = 24;
+          node.style.setProperty("--activity-summary-bottom", `${bottom}px`);
+
+          for (let attempt = 0; attempt < activityNodes.length; attempt += 1) {
+            const bounds = summary.getBoundingClientRect();
+            let lift = 0;
+
+            for (const previous of placed) {
+              const overlapsHorizontally =
+                bounds.left < previous.right + 12 &&
+                bounds.right > previous.left - 12;
+              const overlapsVertically =
+                bounds.top < previous.bottom + 12 &&
+                bounds.bottom > previous.top - 12;
+
+              if (overlapsHorizontally && overlapsVertically) {
+                lift = Math.max(lift, bounds.bottom - previous.top + 12);
+              }
+            }
+
+            if (lift <= 0) {
+              placed.push(bounds);
+              break;
+            }
+
+            bottom += Math.ceil(lift);
+            node.style.setProperty(
+              "--activity-summary-bottom",
+              `${bottom}px`,
+            );
+
+            if (attempt === activityNodes.length - 1) {
+              placed.push(summary.getBoundingClientRect());
+            }
+          }
+        }
+      }
+
+      function scheduleActivitySummaryLayout() {
+        window.cancelAnimationFrame(activityLayoutFrame);
+        activityLayoutFrame = window.requestAnimationFrame(
+          layoutActivitySummaries,
+        );
+      }
+
+      scheduleActivitySummaryLayout();
+      window.addEventListener("resize", scheduleActivitySummaryLayout, {
+        passive: true,
+      });
+      document.fonts?.ready.then(scheduleActivitySummaryLayout);
 
       function setActivityOpen(node, open) {
         const trigger = node.querySelector("[data-activity-trigger]");
