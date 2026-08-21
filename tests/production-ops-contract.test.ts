@@ -13,6 +13,13 @@ test("Nginx protects publishing routes and serves persistent media", () => {
   assert.match(nginx, /client_max_body_size 32m/);
   assert.match(nginx, /limit_req_zone .* zone=burns_publish:10m rate=60r\/m/);
   assert.match(nginx, /limit_req zone=burns_publish burst=20 nodelay/);
+  assert.equal(
+    nginx.match(
+      /add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always/g,
+    )?.length,
+    3,
+    "the HTTPS server and locations with their own add_header directives must all send HSTS",
+  );
   assert.doesNotMatch(nginx, /Access-Control-Allow-Origin/);
 
   const mediaLocation = nginx.match(/location \^~ \/media\/articles\/ \{([\s\S]*?)\n    \}/)?.[1];
