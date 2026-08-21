@@ -230,6 +230,7 @@ test("Ideas gives long phone entries an unmistakable reading break", () => {
     css,
     "Mobile responsive contract: Ideas",
   );
+  const laterPhoneRules = css.slice(css.indexOf("@media (max-width: 619px)"));
 
   assert.match(
     mobile,
@@ -246,6 +247,18 @@ test("Ideas gives long phone entries an unmistakable reading break", () => {
   assert.match(
     desktop,
     /\.ideas-journal__entry h2\s*\{[^}]*border-bottom:\s*1px dotted rgba\(89,\s*59,\s*28,\s*0\.15\)/,
+  );
+  assert.doesNotMatch(
+    laterPhoneRules,
+    /\.ideas-journal__entry\s*\+\s*\.ideas-journal__entry\s*\{[^}]*margin-top:/,
+  );
+  assert.doesNotMatch(
+    laterPhoneRules,
+    /\.ideas-journal__meta\s*\{[^}]*padding:/,
+  );
+  assert.doesNotMatch(
+    laterPhoneRules,
+    /\.ideas-journal__entry h2\s*\{[^}]*(?:padding|border-bottom):/,
   );
 });
 

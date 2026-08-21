@@ -152,4 +152,3 @@ git commit -m "docs: verify ideas mobile separation"
 - [ ] **Step 4: Deploy and smoke-test production**
 
 Use the `burns-deploy-blog` workflow to deploy the exact tested commit. Confirm the service is active, internal health checks report database/media `ok`, `/ideas` returns HTTP 200, and the production release SHA equals the tested commit.
-

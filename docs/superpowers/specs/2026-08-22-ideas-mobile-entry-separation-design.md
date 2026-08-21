@@ -34,4 +34,3 @@ The result should create a clear reading stop while retaining several entries pe
 - Prove the new test fails before the CSS change and passes afterward.
 - Run the complete test suite and production build.
 - Inspect Ideas in a browser at phone and desktop widths, checking item boundaries, information density, overflow, and desktop preservation.
-

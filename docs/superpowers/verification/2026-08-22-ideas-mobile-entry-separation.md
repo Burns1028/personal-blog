@@ -28,7 +28,19 @@ The in-app responsive browser loaded the local production code against an isolat
 
 The browser console contained no errors. The temporary responsive viewport override was reset after verification.
 
+## Production Verification
+
+The exact tested revision `f9f5b97c5792fc88db7a1ccb3ede57fbade029f0` was deployed through Alibaba Cloud Assistant after local GitHub transport repeatedly reset. The server imported a verified incremental Git bundle whose tree `3ef7d4ad65b35f212c3f03e3c7e7a28c0df5b664` matched the local tree.
+
+| Check | Result |
+| --- | --- |
+| Current release | `/opt/burns-blog/releases/f9f5b97c5792fc88db7a1ccb3ede57fbade029f0` |
+| `burns-blog.service` | `active` |
+| Internal `/api/health` | `status: ok`; release SHA matched; database `ok`; media `ok` |
+| Public `/ideas` | HTTP `200`, response size `39178` bytes |
+| SQLite deployment backup | `/var/lib/burns-blog/backups/blog-2026-08-21T21-01-18-515Z.sqlite`, integrity `ok` |
+| Recent service errors | none in the three-minute post-deploy window |
+
 ## Outcome
 
 Phone entries now have a visible reading stop without becoming cards or losing the journal aesthetic. Desktop geometry and divider treatment remain unchanged.
-
