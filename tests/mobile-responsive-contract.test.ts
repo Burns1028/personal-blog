@@ -71,13 +71,31 @@ test("the Home orrery fits every destination into a finite phone stage", () => {
     "Mobile responsive contract: Home orrery",
   );
 
-  assert.match(mobile, /\.home-orrery[\s\S]*?height:\s*clamp\(420px,\s*118vw,\s*480px\)/);
-  assert.match(mobile, /\.home-orrery[\s\S]*?min-height:\s*0/);
-  assert.match(mobile, /\.home-cosmos__stage[\s\S]*?left:\s*50%/);
-  assert.match(mobile, /\.home-cosmos__stage[\s\S]*?transform:\s*translateX\(-50%\)/);
-  assert.match(mobile, /\.home-cosmos__artifact--writing/);
-  assert.match(mobile, /\.home-cosmos__artifact--projects/);
-  assert.match(mobile, /\.home-cosmos__artifact--ideas/);
+  assert.match(
+    mobile,
+    /\.home-orrery\s*\{[^}]*width:\s*100%[^}]*height:\s*clamp\(420px,\s*118vw,\s*480px\)[^}]*min-height:\s*0[^}]*overflow:\s*clip/,
+  );
+  assert.match(
+    mobile,
+    /\.home-cosmos__stage\s*\{[^}]*left:\s*50%[^}]*width:\s*min\(112%,\s*480px\)[^}]*transform:\s*translateX\(-50%\)/,
+  );
+  assert.match(
+    mobile,
+    /\.home-celestial--writing\s*\{[^}]*top:\s*7%[^}]*left:\s*12%[^}]*width:\s*24%/,
+  );
+  assert.match(
+    mobile,
+    /\.home-celestial--projects\s*\{[^}]*top:\s*17%[^}]*left:\s*55%[^}]*width:\s*42%/,
+  );
+  assert.match(
+    mobile,
+    /\.home-celestial--ideas\s*\{[^}]*top:\s*62%[^}]*left:\s*8%[^}]*width:\s*27%/,
+  );
+  assert.match(
+    mobile,
+    /\.home-cosmos__particle-canvas\s*\{[^}]*opacity:\s*0\.52/,
+  );
+  assert.doesNotMatch(css, /@media\s*\(max-width:\s*(?:760|430)px\)/);
 });
 
 test("Projects becomes one continuous, touchable phone document", () => {

@@ -425,26 +425,41 @@ html[data-artifact-arrival]::view-transition-new(root) {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
+  /* Mobile responsive contract: Home orrery */
   .home-orrery {
     width: 100%;
-    min-height: 600px;
-    overflow: hidden;
-  }
-
-  .home-cosmos__particle-canvas {
-    opacity: 0.68;
+    height: clamp(420px, 118vw, 480px);
+    min-height: 0;
+    overflow: clip;
   }
 
   .home-cosmos__stage {
-    left: -18%;
-    width: 152%;
+    left: 50%;
+    width: min(112%, 480px);
+    transform: translateX(-50%);
   }
-}
 
-@media (max-width: 430px) {
-  .home-orrery {
-    min-height: 550px;
+  .home-celestial--writing {
+    top: 7%;
+    left: 12%;
+    width: 24%;
+  }
+
+  .home-celestial--projects {
+    top: 17%;
+    left: 55%;
+    width: 42%;
+  }
+
+  .home-celestial--ideas {
+    top: 62%;
+    left: 8%;
+    width: 27%;
+  }
+
+  .home-cosmos__particle-canvas {
+    opacity: 0.52;
   }
 }
 
