@@ -379,6 +379,12 @@ body[data-route="/projects"] .site-footer {
   list-style: none;
 }
 
+.projects-v2
+  .archive-pagination
+  ol.archive-pagination__pages--compact {
+  display: none;
+}
+
 .projects-v2 .archive-pagination ol a,
 .projects-v2 .archive-pagination ol span {
   display: grid;
@@ -996,6 +1002,18 @@ html[data-page-settled="true"] .activity-orbit__day {
   .projects-v2 .archive-pagination ol {
     gap: 4px;
     min-width: 0;
+  }
+
+  .projects-v2
+    .archive-pagination
+    ol.archive-pagination__pages--full {
+    display: none;
+  }
+
+  .projects-v2
+    .archive-pagination
+    ol.archive-pagination__pages--compact {
+    display: flex;
   }
 
   .projects-v2 .archive-pagination ol a,

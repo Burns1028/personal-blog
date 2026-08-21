@@ -36,16 +36,31 @@ test("pagination keeps a bounded truthful window near the start, middle, and end
   }
 });
 
-test("ArchivePagination renders the bounded server-side window through truthful hrefs", () => {
+test("ArchivePagination keeps the full list by default and compacts only opted-in Projects", () => {
   const source = readFileSync(
     resolve(projectRoot, "src/components/archive/ArchivePagination.astro"),
     "utf8",
   );
+  const projects = readFileSync(
+    resolve(projectRoot, "src/pages/projects/index.astro"),
+    "utf8",
+  );
+  const writing = readFileSync(
+    resolve(projectRoot, "src/pages/writing/index.astro"),
+    "utf8",
+  );
 
+  assert.match(source, /compactOnMobile\?: boolean/);
+  assert.match(source, /compactOnMobile = false/);
+  assert.match(source, /fullPages = Array\.from\(\{ length: pageCount \}/);
+  assert.match(source, /fullPages\.map\(\(number\)/);
   assert.match(source, /paginationItems\(page, pageCount\)/);
-  assert.doesNotMatch(source, /Array\.from\(\{ length: pageCount \}/);
   assert.match(source, /item === "ellipsis"/);
+  assert.match(source, /archive-pagination__pages--full/);
+  assert.match(source, /archive-pagination__pages--compact/);
   assert.match(source, /class="archive-pagination__ellipsis"/);
   assert.match(source, /href=\{hrefFor\(item\)\}/);
   assert.match(source, /item === page/);
+  assert.match(projects, /<ArchivePagination[\s\S]*?compactOnMobile/);
+  assert.doesNotMatch(writing, /compactOnMobile/);
 });

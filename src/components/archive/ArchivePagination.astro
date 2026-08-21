@@ -6,10 +6,18 @@ interface Props {
   pageCount: number;
   hrefFor: (page: number) => string;
   label: string;
+  compactOnMobile?: boolean;
 }
 
-const { page, pageCount, hrefFor, label } = Astro.props;
-const items = paginationItems(page, pageCount);
+const {
+  page,
+  pageCount,
+  hrefFor,
+  label,
+  compactOnMobile = false,
+} = Astro.props;
+const fullPages = Array.from({ length: pageCount }, (_, index) => index + 1);
+const compactItems = compactOnMobile ? paginationItems(page, pageCount) : [];
 ---
 
 <nav class="archive-pagination" aria-label={label}>
@@ -20,25 +28,42 @@ const items = paginationItems(page, pageCount);
       <span aria-disabled="true">← <span>上一页</span></span>
     )
   }
-  <ol>
+  <ol class="archive-pagination__pages archive-pagination__pages--full">
     {
-      items.map((item) => (
+      fullPages.map((number) => (
         <li>
-          {item === "ellipsis" ? (
-            <span class="archive-pagination__ellipsis" aria-hidden="true">
-              …
-            </span>
-          ) : item === page ? (
+          {number === page ? (
             <span aria-current="page">
-              {String(item).padStart(2, "0")}
+              {String(number).padStart(2, "0")}
             </span>
           ) : (
-            <a href={hrefFor(item)}>{String(item).padStart(2, "0")}</a>
+            <a href={hrefFor(number)}>{String(number).padStart(2, "0")}</a>
           )}
         </li>
       ))
     }
   </ol>
+  {
+    compactOnMobile ? (
+      <ol class="archive-pagination__pages archive-pagination__pages--compact">
+        {compactItems.map((item) => (
+          <li>
+            {item === "ellipsis" ? (
+              <span class="archive-pagination__ellipsis" aria-hidden="true">
+                …
+              </span>
+            ) : item === page ? (
+              <span aria-current="page">
+                {String(item).padStart(2, "0")}
+              </span>
+            ) : (
+              <a href={hrefFor(item)}>{String(item).padStart(2, "0")}</a>
+            )}
+          </li>
+        ))}
+      </ol>
+    ) : null
+  }
   {
     page < pageCount ? (
       <a href={hrefFor(page + 1)}><span>下一页</span> →</a>

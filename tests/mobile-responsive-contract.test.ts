@@ -118,6 +118,18 @@ test("Projects becomes one continuous, touchable phone document", () => {
     mobile,
     /\.projects-v2 \.archive-pagination ol \.archive-pagination__ellipsis\s*\{[^}]*width:\s*12px/,
   );
+  assert.match(
+    css,
+    /\.projects-v2\s+\.archive-pagination\s+ol\.archive-pagination__pages--compact\s*\{[^}]*display:\s*none/,
+  );
+  assert.match(
+    mobile,
+    /\.projects-v2\s+\.archive-pagination\s+ol\.archive-pagination__pages--full\s*\{[^}]*display:\s*none/,
+  );
+  assert.match(
+    mobile,
+    /\.projects-v2\s+\.archive-pagination\s+ol\.archive-pagination__pages--compact\s*\{[^}]*display:\s*flex/,
+  );
   assert.match(mobile, /\.activity-orbit__trigger[\s\S]*?min-height:\s*44px/);
   assert.match(mobile, /\.activity-orbit__heading[\s\S]*?display:\s*block/);
   assert.match(orbit, /<h2 class="activity-orbit__heading">近期活动<\/h2>/);
