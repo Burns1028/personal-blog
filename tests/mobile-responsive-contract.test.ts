@@ -7,20 +7,39 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const read = (path: string) =>
   readFileSync(resolve(projectRoot, path), "utf8");
 
-function mobileBlockContaining(css: string, marker: string) {
-  const markerIndex = css.indexOf(marker);
-  assert.notEqual(markerIndex, -1, `missing mobile marker: ${marker}`);
-  const mediaIndex = css.lastIndexOf("@media", markerIndex);
-  const openingBrace = css.indexOf("{", mediaIndex);
-  assert.match(css.slice(mediaIndex, openingBrace), /max-width:\s*767px/);
-
+function balancedBlock(css: string, openingBrace: number, label: string) {
   let depth = 0;
   for (let index = openingBrace; index < css.length; index += 1) {
     if (css[index] === "{") depth += 1;
     if (css[index] === "}") depth -= 1;
     if (depth === 0) return css.slice(openingBrace + 1, index);
   }
-  assert.fail(`unterminated mobile block: ${marker}`);
+  assert.fail(`unterminated block: ${label}`);
+}
+
+function mobileBlockContaining(css: string, marker: string) {
+  const markerIndex = css.indexOf(marker);
+  assert.notEqual(markerIndex, -1, `missing mobile marker: ${marker}`);
+  const mediaIndex = css.lastIndexOf("@media", markerIndex);
+  const openingBrace = css.indexOf("{", mediaIndex);
+  assert.match(css.slice(mediaIndex, openingBrace), /max-width:\s*767px/);
+  return balancedBlock(css, openingBrace, marker);
+}
+
+function blockAtMaxWidth(css: string, maxWidth: number) {
+  const mediaPattern = new RegExp(
+    `@media\\s*\\(max-width:\\s*${maxWidth}px\\)\\s*\\{`,
+    "g",
+  );
+  const matches = [...css.matchAll(mediaPattern)];
+  assert.equal(
+    matches.length,
+    1,
+    `expected one max-width: ${maxWidth}px block`,
+  );
+  const mediaIndex = matches[0].index;
+  const openingBrace = css.indexOf("{", mediaIndex);
+  return balancedBlock(css, openingBrace, `max-width: ${maxWidth}px`);
 }
 
 test("the shared shell and Home use a phone-only normal document flow", () => {
@@ -137,14 +156,78 @@ test("Projects becomes one continuous, touchable phone document", () => {
 
 test("Ideas turns each phone entry into a full-width single-column record", () => {
   const css = read("src/styles/ideas-journal.css");
+  const desktop = css.slice(0, css.indexOf("@media"));
   const mobile = mobileBlockContaining(
     css,
     "Mobile responsive contract: Ideas",
   );
 
+  assert.match(
+    desktop,
+    /\.ideas-journal__date-option\s*\{[^}]*min-height:\s*34px/,
+  );
   assert.match(mobile, /\.ideas-journal__entry article[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(mobile, /\.ideas-journal__meta[\s\S]*?display:\s*flex/);
   assert.match(mobile, /\.ideas-journal__node[\s\S]*?position:\s*absolute/);
   assert.match(mobile, /\.ideas-journal__entry h2[\s\S]*?font-size:\s*16px/);
   assert.match(mobile, /\.ideas-journal__entry h2[\s\S]*?line-height:\s*1\.68/);
+  assert.match(
+    mobile,
+    /body\[data-route="\/ideas"\]\s*\{[^}]*--ideas-search-height:\s*48px/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__date-option\s*\{[^}]*min-height:\s*44px/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__track\s*\{[^}]*display:\s*none/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__entries::before\s*\{[^}]*width:\s*1px[^}]*pointer-events:\s*none/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__entry\s*\{[^}]*scroll-margin-top:\s*calc\(\s*var\(--ideas-search-top\)\s*\+\s*var\(--ideas-search-height\)\s*\+\s*var\(--ideas-timeline-gap\)\s*\)/,
+  );
+});
+
+test("Ideas narrow-phone controls clear content without reviving the old grid", () => {
+  const css = read("src/styles/ideas-journal.css");
+  const phone = mobileBlockContaining(css, "Mobile responsive contract: Ideas");
+  const legacyNarrow = blockAtMaxWidth(css, 619);
+  const narrow = blockAtMaxWidth(css, 380);
+
+  assert.ok(
+    css.indexOf("@media (max-width: 619px)") >
+      css.indexOf("Mobile responsive contract: Ideas"),
+    "the legacy narrow override must be audited after the canonical phone block",
+  );
+  assert.doesNotMatch(legacyNarrow, /grid-template-columns/);
+  assert.doesNotMatch(legacyNarrow, /--ideas-search-height/);
+  assert.doesNotMatch(legacyNarrow, /\.ideas-journal__search\b/);
+  assert.doesNotMatch(legacyNarrow, /\.ideas-journal__entry article/);
+  assert.doesNotMatch(legacyNarrow, /\.ideas-journal__entry h2/);
+
+  assert.match(
+    phone,
+    /\.ideas-journal__search\s*\{[^}]*grid-template-columns:\s*20px minmax\(0,\s*1fr\) 1px minmax\(132px,\s*160px\)/,
+  );
+  assert.match(
+    narrow,
+    /body\[data-route="\/ideas"\]\s*\{[^}]*--ideas-search-height:\s*88px/,
+  );
+  assert.match(
+    narrow,
+    /\.ideas-journal__search\s*\{[^}]*height:\s*88px[^}]*grid-template-columns:\s*20px minmax\(0,\s*1fr\)[^}]*grid-template-rows:\s*44px 44px/,
+  );
+  assert.match(
+    narrow,
+    /\.ideas-journal__content\s*\{[^}]*padding-top:\s*calc\(\s*var\(--ideas-search-top\)\s*\+\s*var\(--ideas-search-height\)\s*\)/,
+  );
+  assert.match(
+    narrow,
+    /\.ideas-journal__date-filter\s*\{[^}]*grid-column:\s*1 \/ -1[^}]*min-height:\s*44px/,
+  );
 });

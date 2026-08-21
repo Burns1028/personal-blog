@@ -537,6 +537,10 @@ body[data-route="/ideas"] .site-footer {
     width: min(190px, calc(100vw - 30px));
   }
 
+  .ideas-journal__date-option {
+    min-height: 44px;
+  }
+
   .ideas-journal__search-icon {
     width: 18px;
     height: 18px;
