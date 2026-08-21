@@ -502,11 +502,12 @@ body[data-route="/ideas"] .site-footer {
   }
 }
 
-@media (max-width: 619px) {
+@media (max-width: 767px) {
+  /* Mobile responsive contract: Ideas */
   body[data-route="/ideas"] {
-    --ideas-search-top: 104px;
-    --ideas-search-height: 46px;
-    --ideas-timeline-gap: 16px;
+    --ideas-search-top: 96px;
+    --ideas-search-height: 48px;
+    --ideas-timeline-gap: 14px;
     --ideas-content-width: calc(100vw - 28px);
     --ideas-content-left: 14px;
     --ideas-search-width: var(--ideas-content-width);
@@ -517,8 +518,8 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__search {
-    grid-template-columns: 19px minmax(0, 1fr) 1px 122px;
-    gap: 8px;
+    grid-template-columns: 20px minmax(0, 1fr) 1px minmax(132px, 160px);
+    gap: 10px;
   }
 
   .ideas-journal__search input[type="search"],
@@ -527,8 +528,8 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__date-filter > summary {
-    grid-template-columns: 16px minmax(0, 1fr) 11px;
-    gap: 6px;
+    grid-template-columns: 18px minmax(0, 1fr) 11px;
+    gap: 7px;
   }
 
   .ideas-journal__date-menu {
@@ -547,43 +548,123 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__timeline {
+    width: 100%;
     margin-top: var(--ideas-timeline-gap);
   }
 
+  .ideas-journal__track {
+    display: none;
+  }
+
+  .ideas-journal__entries::before {
+    position: absolute;
+    z-index: 0;
+    top: 16px;
+    bottom: 16px;
+    left: 4px;
+    width: 1px;
+    background: rgba(75, 48, 22, 0.24);
+    content: "";
+    pointer-events: none;
+  }
+
+  .ideas-journal__entry {
+    position: relative;
+    padding-left: 16px;
+    scroll-margin-top: calc(
+      var(--ideas-search-top) + var(--ideas-search-height) +
+        var(--ideas-timeline-gap)
+    );
+  }
+
   .ideas-journal__entry article {
-    min-height: 76px;
-    grid-template-columns: 76px 26px minmax(0, 1fr);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
   }
 
   .ideas-journal__meta {
-    width: 74px;
-    padding-right: 6px;
-    gap: 4px;
-    font-size: 10px;
-    letter-spacing: -0.01em;
+    display: flex;
+    width: 100%;
+    padding: 12px 0 0;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-self: stretch;
   }
 
   .ideas-journal__meta > span {
-    grid-template-columns: 16px minmax(0, 1fr);
-    gap: 3px;
+    display: inline-flex;
+  }
+
+  .ideas-journal__meta time {
+    margin-left: auto;
+  }
+
+  .ideas-journal__node {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    transform: none;
+  }
+
+  .ideas-journal__entry[data-current="true"] .ideas-journal__node {
+    transform: none;
+  }
+
+  .ideas-journal__entry h2 {
+    max-width: none;
+    padding: 8px 0 18px;
+    font-size: 16px;
+    line-height: 1.68;
+  }
+
+  .ideas-journal__singularity {
+    top: 104px;
+    right: 14px;
+    width: min(300px, 76vw);
+    opacity: 0.1;
+  }
+}
+
+@media (max-width: 619px) {
+  .ideas-journal__meta {
+    font-size: 10px;
   }
 
   .ideas-journal__node {
     width: 8px;
     height: 8px;
   }
+}
 
-  .ideas-journal__entry h2 {
-    padding: 16px 0 18px 10px;
-    font-size: 15px;
-    line-height: 1.7;
+@media (max-width: 380px) {
+  body[data-route="/ideas"] {
+    --ideas-search-height: 88px;
   }
 
-  .ideas-journal__singularity {
-    top: 108px;
-    right: 14px;
-    width: min(300px, 76vw);
-    opacity: 0.16;
+  .ideas-journal__content {
+    padding-top: calc(var(--ideas-search-top) + var(--ideas-search-height));
+  }
+
+  .ideas-journal__search {
+    height: 88px;
+    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-rows: 44px 44px;
+  }
+
+  .ideas-journal__search-divider {
+    display: none;
+  }
+
+  .ideas-journal__date-filter {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    border-top: 1px dotted rgba(91, 60, 28, 0.26);
+  }
+
+  .ideas-journal__date-menu {
+    right: 0;
   }
 }
 
