@@ -944,6 +944,11 @@ html[data-page-settled="true"] .activity-orbit__day {
     margin-inline: 0;
   }
 
+  .archive-search--projects input {
+    align-self: stretch;
+    min-height: 44px;
+  }
+
   .projects-v2__header-actions > span {
     display: none;
   }
@@ -989,6 +994,7 @@ html[data-page-settled="true"] .activity-orbit__day {
   }
 
   .projects-v2 .archive-pagination ol {
+    gap: 4px;
     min-width: 0;
   }
 
@@ -996,6 +1002,11 @@ html[data-page-settled="true"] .activity-orbit__day {
   .projects-v2 .archive-pagination ol span {
     width: 44px;
     height: 44px;
+  }
+
+  .projects-v2 .archive-pagination ol .archive-pagination__ellipsis {
+    width: 12px;
+    min-width: 12px;
   }
 
   .activity-orbit {

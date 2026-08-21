@@ -37,6 +37,29 @@ export function paginate<T>(
   };
 }
 
+export type PaginationItem = number | "ellipsis";
+
+export function paginationItems(
+  requestedPage: number,
+  requestedPageCount: number,
+): PaginationItem[] {
+  const pageCount = Math.max(1, Math.trunc(requestedPageCount));
+  const page = Math.min(
+    pageCount,
+    Math.max(1, Math.trunc(requestedPage)),
+  );
+
+  if (pageCount <= 4) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+
+  if (page <= 3) return [1, 2, 3, "ellipsis", pageCount];
+  if (page >= pageCount - 2) {
+    return [1, "ellipsis", pageCount - 2, pageCount - 1, pageCount];
+  }
+  return [1, "ellipsis", page, "ellipsis", pageCount];
+}
+
 export function pageHref(
   pathname: string,
   page: number,

@@ -110,6 +110,14 @@ test("Projects becomes one continuous, touchable phone document", () => {
   assert.match(mobile, /\.projects-v2 \.project-card-grid[\s\S]*?overflow:\s*visible/);
   assert.match(mobile, /\.projects-v2__header[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(mobile, /\.archive-search--projects[\s\S]*?min-height:\s*44px/);
+  assert.match(
+    mobile,
+    /\.archive-search--projects input\s*\{[^}]*min-height:\s*44px/,
+  );
+  assert.match(
+    mobile,
+    /\.projects-v2 \.archive-pagination ol \.archive-pagination__ellipsis\s*\{[^}]*width:\s*12px/,
+  );
   assert.match(mobile, /\.activity-orbit__trigger[\s\S]*?min-height:\s*44px/);
   assert.match(mobile, /\.activity-orbit__heading[\s\S]*?display:\s*block/);
   assert.match(orbit, /<h2 class="activity-orbit__heading">近期活动<\/h2>/);

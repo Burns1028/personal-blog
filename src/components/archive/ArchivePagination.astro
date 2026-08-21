@@ -1,4 +1,6 @@
 ---
+import { paginationItems } from "../../lib/archive-query";
+
 interface Props {
   page: number;
   pageCount: number;
@@ -7,7 +9,7 @@ interface Props {
 }
 
 const { page, pageCount, hrefFor, label } = Astro.props;
-const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+const items = paginationItems(page, pageCount);
 ---
 
 <nav class="archive-pagination" aria-label={label}>
@@ -20,14 +22,18 @@ const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
   }
   <ol>
     {
-      pages.map((number) => (
+      items.map((item) => (
         <li>
-          {number === page ? (
+          {item === "ellipsis" ? (
+            <span class="archive-pagination__ellipsis" aria-hidden="true">
+              …
+            </span>
+          ) : item === page ? (
             <span aria-current="page">
-              {String(number).padStart(2, "0")}
+              {String(item).padStart(2, "0")}
             </span>
           ) : (
-            <a href={hrefFor(number)}>{String(number).padStart(2, "0")}</a>
+            <a href={hrefFor(item)}>{String(item).padStart(2, "0")}</a>
           )}
         </li>
       ))
