@@ -83,6 +83,36 @@ test("the Home institution link keeps a practical phone hit area", () => {
   );
 });
 
+test("the Home institution mark and graduate note stay on one phone row", () => {
+  const css = read("src/styles/global.css");
+  const marker = "Mobile responsive contract: shared shell and Home";
+  const selector = 'body[data-route="/"] .hero-profile__education-copy';
+  const legacyMediaIndex = css.indexOf("@media (max-width: 430px)");
+  const legacyRuleIndex = css.indexOf(selector, legacyMediaIndex);
+  const legacyRuleEnd = css.indexOf("}", legacyRuleIndex);
+  const finalRuleIndex = css.indexOf(selector, css.indexOf(marker));
+  const mobile = mobileBlockContaining(css, marker);
+
+  assert.notEqual(legacyRuleIndex, -1, "missing legacy narrow education rule");
+  assert.match(
+    css.slice(legacyRuleIndex, legacyRuleEnd),
+    /flex-direction:\s*column/,
+  );
+  assert.ok(
+    css.indexOf(marker) > legacyRuleIndex,
+    "the canonical phone block must follow the legacy narrow override",
+  );
+  assert.equal(
+    css.lastIndexOf(selector),
+    finalRuleIndex,
+    "no later education-copy rule may undo the canonical phone contract",
+  );
+  assert.match(
+    mobile,
+    /body\[data-route="\/"\] \.hero-profile__education-copy\s*\{[^}]*flex-direction:\s*row[^}]*align-items:\s*center[^}]*white-space:\s*nowrap/,
+  );
+});
+
 test("the Home orrery fits every destination into a finite phone stage", () => {
   const css = read("src/styles/home-orrery.css");
   const mobile = mobileBlockContaining(

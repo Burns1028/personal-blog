@@ -10945,6 +10945,12 @@ html[data-artifact-navigating] .term-typewriter-caret {
     gap: 4px;
   }
 
+  body[data-route="/"] .hero-profile__education-copy {
+    flex-direction: row;
+    align-items: center;
+    white-space: nowrap;
+  }
+
   body[data-route="/"] .hero-profile__institution-logo {
     min-height: 44px;
     align-items: center;
