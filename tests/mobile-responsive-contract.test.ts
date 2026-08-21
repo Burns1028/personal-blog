@@ -223,6 +223,32 @@ test("Ideas turns each phone entry into a full-width single-column record", () =
   );
 });
 
+test("Ideas gives long phone entries an unmistakable reading break", () => {
+  const css = read("src/styles/ideas-journal.css");
+  const desktop = css.slice(0, css.indexOf("@media"));
+  const mobile = mobileBlockContaining(
+    css,
+    "Mobile responsive contract: Ideas",
+  );
+
+  assert.match(
+    mobile,
+    /\.ideas-journal__entry\s*\+\s*\.ideas-journal__entry\s*\{[^}]*margin-top:\s*10px/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__meta\s*\{[^}]*padding:\s*14px 0 0/,
+  );
+  assert.match(
+    mobile,
+    /\.ideas-journal__entry h2\s*\{[^}]*padding:\s*8px 0 20px[^}]*border-bottom:\s*1px solid rgba\(89,\s*59,\s*28,\s*0\.3\)/,
+  );
+  assert.match(
+    desktop,
+    /\.ideas-journal__entry h2\s*\{[^}]*border-bottom:\s*1px dotted rgba\(89,\s*59,\s*28,\s*0\.15\)/,
+  );
+});
+
 test("Ideas narrow-phone controls clear content without reviving the old grid", () => {
   const css = read("src/styles/ideas-journal.css");
   const phone = mobileBlockContaining(css, "Mobile responsive contract: Ideas");

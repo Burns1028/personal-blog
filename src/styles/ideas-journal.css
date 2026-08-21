@@ -581,6 +581,10 @@ body[data-route="/ideas"] .site-footer {
     );
   }
 
+  .ideas-journal__entry + .ideas-journal__entry {
+    margin-top: 10px;
+  }
+
   .ideas-journal__entry article {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
@@ -590,7 +594,7 @@ body[data-route="/ideas"] .site-footer {
   .ideas-journal__meta {
     display: flex;
     width: 100%;
-    padding: 12px 0 0;
+    padding: 14px 0 0;
     gap: 12px;
     align-items: center;
     flex-wrap: wrap;
@@ -618,7 +622,8 @@ body[data-route="/ideas"] .site-footer {
 
   .ideas-journal__entry h2 {
     max-width: none;
-    padding: 8px 0 18px;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(89, 59, 28, 0.3);
     font-size: 16px;
     line-height: 1.68;
   }
