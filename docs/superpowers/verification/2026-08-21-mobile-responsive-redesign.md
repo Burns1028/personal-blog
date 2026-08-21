@@ -10,15 +10,24 @@ Verified across 2026-08-21 and 2026-08-22 (Asia/Shanghai).
 - The worktree's default preview database had no project records, so the visual pass used that ignored representative QA database with five projects, six activity days, and five Ideas records. This exposed full cards, pagination, expanded activity details, and typical Chinese paragraphs without changing tracked runtime content.
 - Tested viewports: `360×800`, `390×844`, `430×932`, `1440×900`, and `2048×928`.
 
-Preserved viewport screenshots:
+### Authoritative final-capture manifest
 
-| Route | `390×844` | `1440×900` |
+Only the following post-fix files are authoritative screenshot evidence for this verification. Home uses paired top/lower captures at 360 and 430 so the PKU row and complete orrery are both represented; its 390 capture is the required viewport reference.
+
+| Route | Viewport | Exact final filename(s) |
 | --- | --- | --- |
-| Home | `.superpowers/sdd/task-7-screenshots/home-390x844-viewport.png` | `.superpowers/sdd/task-7-screenshots/home-1440x900-viewport.png` |
-| Projects | `.superpowers/sdd/task-7-screenshots/projects-390x844-viewport.png` | `.superpowers/sdd/task-7-screenshots/projects-1440x900-viewport.png` |
-| Ideas | `.superpowers/sdd/task-7-screenshots/ideas-390x844-viewport.png` | `.superpowers/sdd/task-7-screenshots/ideas-1440x900-viewport.png` |
+| Home | `360×800` | `.superpowers/sdd/task-7-screenshots/home-360x800-top-patched.png`; `.superpowers/sdd/task-7-screenshots/home-360x800-bottom-patched.png` |
+| Home | `390×844` | `.superpowers/sdd/task-7-screenshots/home-390x844-viewport.png` |
+| Home | `430×932` | `.superpowers/sdd/task-7-screenshots/home-430x932-top-patched.png`; `.superpowers/sdd/task-7-screenshots/home-430x932-bottom-patched.png` |
+| Projects | `390×844` | `.superpowers/sdd/task-7-screenshots/projects-390x844-viewport.png` |
+| Ideas | `390×844` | `.superpowers/sdd/task-7-screenshots/ideas-390x844-viewport.png` |
+| Home | `1440×900` | `.superpowers/sdd/task-7-screenshots/home-1440x900-viewport.png` |
+| Projects | `1440×900` | `.superpowers/sdd/task-7-screenshots/projects-1440x900-viewport.png` |
+| Ideas | `1440×900` | `.superpowers/sdd/task-7-screenshots/ideas-1440x900-viewport.png` |
 
-Additional phone top, lower-page, and expanded-detail screenshots are preserved in `.superpowers/sdd/task-7-screenshots/`. At the `2048×928` override, the browser console confirmed `window.innerWidth === 2048` and supplied the geometry recorded below; the in-app PNG encoder capped the raw image width at 1873 px, so this record does not claim that file as full-width evidence. The required preserved desktop comparisons are the `1440×900` screenshots above.
+The older `.superpowers/sdd/task-7-screenshots/home-360x800-full.png`, `.superpowers/sdd/task-7-screenshots/home-390x844-full.png`, `.superpowers/sdd/task-7-screenshots/home-430x932-full.png`, `.superpowers/sdd/task-7-screenshots/home-430x932-viewport.png`, and `.superpowers/sdd/task-7-screenshots/home-430x932-bottom.png` are pre-fix, non-authoritative captures retained only as visual history. They must not be used to judge the final PKU-row result.
+
+The `.superpowers/sdd/task-7-screenshots/home-2048x928-viewport.png`, `.superpowers/sdd/task-7-screenshots/projects-2048x928-viewport.png`, and `.superpowers/sdd/task-7-screenshots/ideas-2048x928-viewport.png` files are supplemental, encoder-capped captures with a physical width of 1873 px, not authoritative `2048×928` screenshot evidence. At the `2048×928` override, the browser console confirmed `window.innerWidth === 2048` and supplied the geometry recorded below; the required authoritative desktop comparisons are the exact-size `1440×900` files in the manifest.
 
 ## Automated gate
 
