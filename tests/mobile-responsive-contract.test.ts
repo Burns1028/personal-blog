@@ -25,16 +25,43 @@ function mobileBlockContaining(css: string, marker: string) {
 
 test("the shared shell and Home use a phone-only normal document flow", () => {
   const css = read("src/styles/global.css");
+  const marker = "Mobile responsive contract: shared shell and Home";
   const mobile = mobileBlockContaining(
     css,
-    "Mobile responsive contract: shared shell and Home",
+    marker,
   );
 
+  assert.ok(
+    css.indexOf(marker) >
+      css.lastIndexOf('body[data-route^="/writing/"] .site-header'),
+    "the shared phone shell must follow every writing-detail header override",
+  );
+  assert.match(
+    mobile,
+    /:root\s*\{[^}]*--mobile-page-gutter:\s*clamp\(16px,\s*4\.6vw,\s*20px\)[^}]*--mobile-header-height:\s*calc\(92px \+ env\(safe-area-inset-top,\s*0px\)\)/,
+  );
+  assert.match(
+    mobile,
+    /body\[data-route\] \.site-header\s*\{[^}]*width:\s*calc\(100vw - \(2 \* var\(--mobile-page-gutter\)\)\)[^}]*min-height:\s*var\(--mobile-header-height\)[^}]*padding-top:\s*env\(safe-area-inset-top,\s*0px\)/,
+  );
   assert.match(mobile, /body\[data-route="\/"\] \.home-hero__inner[\s\S]*?display:\s*block/);
   assert.match(mobile, /body\[data-route="\/"\] \.hero-actions[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(mobile, /body\[data-route="\/"\] \.hero-actions a[\s\S]*?min-height:\s*52px/);
   assert.match(mobile, /body\[data-route="\/"\] \.contact-strip[\s\S]*?min-height:\s*44px/);
   assert.doesNotMatch(mobile, /max-height:\s*100(?:s|d)?vh/);
+});
+
+test("the Home institution link keeps a practical phone hit area", () => {
+  const css = read("src/styles/global.css");
+  const mobile = mobileBlockContaining(
+    css,
+    "Mobile responsive contract: shared shell and Home",
+  );
+
+  assert.match(
+    mobile,
+    /body\[data-route="\/"\] \.hero-profile__institution-logo\s*\{[^}]*min-height:\s*44px[^}]*align-items:\s*center/,
+  );
 });
 
 test("the Home orrery fits every destination into a finite phone stage", () => {
