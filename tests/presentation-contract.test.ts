@@ -340,7 +340,10 @@ test("Projects keeps the search, three cards, and activity orbit within a compac
   assert.match(page, /projects-v2__header-actions[\s\S]*?archive-search--projects/);
   assert.match(css, /width:\s*min\(1060px,\s*calc\(100vw - 120px\)\)/);
   assert.match(css, /padding:\s*clamp\(118px,\s*13svh,\s*138px\) 0 250px/);
-  assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(
+    css,
+    /grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(300px,\s*1fr\)\)/,
+  );
   assert.match(css, /\.archive-search--projects\s*\{[^}]*width:\s*min\(250px,\s*100%\)/);
   assert.match(css, /\.archive-search--projects\s*\{[^}]*height:\s*34px/);
   assert.match(css, /\.projects-v2 \.project-card\s*\{[^}]*min-height:\s*146px/);

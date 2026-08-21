@@ -207,7 +207,11 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
   );
   assert.match(
     css,
-    /\.ideas-journal__search\s*\{[^}]*position:\s*relative/,
+    /\.ideas-journal__search\s*\{[^}]*position:\s*fixed/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__search\s*\{[^}]*top:\s*var\(--ideas-search-top\)/,
   );
   assert.doesNotMatch(
     css,
@@ -227,7 +231,6 @@ test("Ideas journal styling fixes the background and keeps the reading controls 
     css,
     /\.ideas-journal__singularity\s*\{[^}]*right:\s*clamp\(24px,\s*3vw,\s*64px\)/,
   );
-  assert.doesNotMatch(css, /\.ideas-journal__search\s*\{[^}]*\btop\s*:/);
   assert.match(
     css,
     /\.ideas-journal__entry h2\s*\{[^}]*font-size:\s*clamp\(15px,\s*1\.02vw,\s*17px\)/,

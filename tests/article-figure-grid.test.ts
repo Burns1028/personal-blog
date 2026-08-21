@@ -41,7 +41,7 @@ test("single images remain as article-figure", async () => {
   );
 });
 
-test("image-row uses flex on desktop and stacks on narrow screens", () => {
+test("image-row uses a flex image rail on desktop and stacks it on narrow screens", () => {
   const css = readFileSync(
     resolve(projectRoot, "src/styles/global.css"),
     "utf8",
@@ -49,10 +49,10 @@ test("image-row uses flex on desktop and stacks on narrow screens", () => {
 
   assert.match(
     css,
-    /\.article-shell--writing \.prose \.image-row\s*\{[^}]*display:\s*flex/s,
+    /\.article-shell--writing \.prose \.image-row__imgs\s*\{[^}]*display:\s*flex/s,
   );
   assert.match(
     css,
-    /@media \(max-width:\s*640px\)[\s\S]*?\.article-shell--writing \.prose \.image-row\s*\{[^}]*flex-direction:\s*column/s,
+    /@media \(max-width:\s*640px\)[\s\S]*?\.article-shell--writing \.prose \.image-row__imgs\s*\{[^}]*flex-direction:\s*column/s,
   );
 });
