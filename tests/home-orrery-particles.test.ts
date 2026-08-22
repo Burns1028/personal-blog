@@ -154,6 +154,47 @@ test("each stream keeps its mother-image palette while converging to blue", asyn
   assert.deepEqual(sampleStreamColor("moon", 1), [112, 190, 238]);
 });
 
+test("ImageMagick particle stamps stay bounded and follow the live paths", async () => {
+  const {
+    createOrreryPathGeometry,
+    createParticleStampLayout,
+    sampleOrreryPath,
+  } = await import("../src/lib/home-orrery-particles.ts");
+  const geometry = createOrreryPathGeometry(
+    {
+      blackHole: { x: 76, y: 570 },
+      moon: { x: 82, y: 184 },
+      earth: { x: 296, y: 322 },
+    },
+    { width: 360, height: 800 },
+  );
+  const stamps = createParticleStampLayout(geometry, {
+    width: 360,
+    height: 800,
+  });
+
+  assert.equal(stamps.length, 11);
+  assert.equal(stamps.filter((stamp) => stamp.role === "blue").length, 4);
+  assert.equal(stamps.filter((stamp) => stamp.role === "gold").length, 2);
+  assert.equal(stamps.filter((stamp) => stamp.role === "pearl").length, 2);
+  for (const stamp of stamps) {
+    assert.deepEqual(
+      stamp.center,
+      sampleOrreryPath(geometry, stamp.stream, stamp.progress),
+    );
+    assert.ok(Number.isFinite(stamp.angle));
+    assert.ok(stamp.width >= 24 && stamp.width <= 82);
+    assert.ok(stamp.alpha > 0 && stamp.alpha <= 1);
+  }
+
+  const desktopStamps = createParticleStampLayout(geometry, {
+    width: 1440,
+    height: 900,
+  });
+  assert.equal(desktopStamps.length, stamps.length);
+  assert.ok(desktopStamps.every((stamp) => stamp.width <= 82));
+});
+
 test("particle density is bounded for desktop and mobile", async () => {
   assert.ok(existsSync(modulePath), "particle controller module must exist");
   const { particleCountForWidth } = await import(
@@ -209,4 +250,10 @@ test("the renderer measures live anchors only during responsive resize", () => {
     /particles\.length !== nextParticleCount[\s\S]*?makeParticles\(\)/,
   );
   assert.doesNotMatch(particleSource, /const (?:BLACK_HOLE|MOON|EARTH): Point/);
+  assert.match(particleSource, /new Image\(\)/);
+  assert.match(particleSource, /image\s*\.\s*decode\(\)/);
+  assert.match(
+    particleSource,
+    /drawParticleAtlas[\s\S]*?context\.drawImage/,
+  );
 });

@@ -20,6 +20,22 @@ export type CubicPath = {
   end: Point;
 };
 export type OrreryPathGeometry = Record<OrreryStream, CubicPath>;
+export type OrreryParticleAtlasRole = "gold" | "pearl" | "transition" | "blue";
+export type OrreryParticleAtlasSources = Readonly<
+  Record<
+    OrreryParticleAtlasRole,
+    { readonly standard: string; readonly retina: string }
+  >
+>;
+export type OrreryParticleStamp = {
+  stream: OrreryStream;
+  role: OrreryParticleAtlasRole;
+  progress: number;
+  center: Point;
+  angle: number;
+  width: number;
+  alpha: number;
+};
 export type AffineTransform = {
   a: number;
   b: number;
@@ -220,6 +236,53 @@ export const sampleOrreryPath = (
   );
 };
 
+type ParticleStampTemplate = Pick<
+  OrreryParticleStamp,
+  "stream" | "role" | "progress" | "alpha"
+> & { widthRatio: number };
+
+const PARTICLE_STAMP_TEMPLATES: readonly ParticleStampTemplate[] = [
+  { stream: "black-hole", role: "gold", progress: 0.08, widthRatio: 0.15, alpha: 0.62 },
+  { stream: "black-hole", role: "gold", progress: 0.2, widthRatio: 0.18, alpha: 0.56 },
+  { stream: "black-hole", role: "transition", progress: 0.38, widthRatio: 0.19, alpha: 0.42 },
+  { stream: "black-hole", role: "transition", progress: 0.58, widthRatio: 0.18, alpha: 0.38 },
+  { stream: "black-hole", role: "blue", progress: 0.79, widthRatio: 0.16, alpha: 0.46 },
+  { stream: "black-hole", role: "blue", progress: 0.93, widthRatio: 0.14, alpha: 0.54 },
+  { stream: "moon", role: "pearl", progress: 0.1, widthRatio: 0.12, alpha: 0.5 },
+  { stream: "moon", role: "pearl", progress: 0.28, widthRatio: 0.13, alpha: 0.44 },
+  { stream: "moon", role: "transition", progress: 0.5, widthRatio: 0.14, alpha: 0.34 },
+  { stream: "moon", role: "blue", progress: 0.8, widthRatio: 0.14, alpha: 0.42 },
+  { stream: "moon", role: "blue", progress: 0.93, widthRatio: 0.13, alpha: 0.5 },
+];
+
+export const createParticleStampLayout = (
+  geometry: OrreryPathGeometry,
+  viewport: { width: number; height: number },
+): OrreryParticleStamp[] => {
+  const localScale = Math.max(1, Math.min(viewport.width, viewport.height));
+  return PARTICLE_STAMP_TEMPLATES.map((template) => {
+    const before = sampleOrreryPath(
+      geometry,
+      template.stream,
+      template.progress - 0.003,
+    );
+    const after = sampleOrreryPath(
+      geometry,
+      template.stream,
+      template.progress + 0.003,
+    );
+    return {
+      stream: template.stream,
+      role: template.role,
+      progress: template.progress,
+      center: sampleOrreryPath(geometry, template.stream, template.progress),
+      angle: Math.atan2(after.y - before.y, after.x - before.x),
+      width: Math.min(82, Math.max(24, localScale * template.widthRatio)),
+      alpha: template.alpha,
+    };
+  });
+};
+
 const mixColor = (from: Color, to: Color, amount: number): Color =>
   from.map((channel, index) =>
     Math.round(channel + (to[index] - channel) * amount),
@@ -281,6 +344,7 @@ export const createOrreryParticleController = (
   canvas: HTMLCanvasElement,
   anchorElements: OrreryAnchorElements,
   connectionBase: HTMLElement,
+  particleAtlasSources?: OrreryParticleAtlasSources,
 ): OrreryParticleController => {
   const context = canvas.getContext("2d", { alpha: true });
   if (!context) {
@@ -305,6 +369,7 @@ export const createOrreryParticleController = (
   let resizeFrame = 0;
   let elapsed = 0;
   let geometry: OrreryPathGeometry | null = null;
+  const atlasImages: Partial<Record<OrreryParticleAtlasRole, HTMLImageElement>> = {};
 
   const samplePath = (stream: OrreryStream, progress: number) => {
     if (!geometry) return { x: 0, y: 0 };
@@ -436,6 +501,28 @@ export const createOrreryParticleController = (
     context.setLineDash([]);
   };
 
+  const drawParticleAtlas = () => {
+    if (!geometry) return;
+    for (const stamp of createParticleStampLayout(geometry, { width, height })) {
+      const image = atlasImages[stamp.role];
+      if (!image?.naturalWidth || !image.naturalHeight) continue;
+      const stampHeight = stamp.width * (image.naturalHeight / image.naturalWidth);
+      context.save();
+      context.translate(stamp.center.x, stamp.center.y);
+      context.rotate(stamp.angle);
+      context.globalAlpha =
+        stamp.alpha * emphasisFor(active, stamp.stream, stamp.progress);
+      context.drawImage(
+        image,
+        -stamp.width / 2,
+        -stampHeight / 2,
+        stamp.width,
+        stampHeight,
+      );
+      context.restore();
+    }
+  };
+
   const draw = (time: number) => {
     context.clearRect(0, 0, width, height);
     if (!geometry) return;
@@ -443,6 +530,7 @@ export const createOrreryParticleController = (
     context.globalCompositeOperation = "lighter";
     drawConnectionGlow();
     drawBaseCurrents();
+    drawParticleAtlas();
 
     for (const particle of particles) {
       const progress = (particle.phase + elapsed / (particle.duration * 1000)) % 1;
@@ -485,6 +573,26 @@ export const createOrreryParticleController = (
       draw(time);
     }
     frame = window.requestAnimationFrame(tick);
+  };
+
+  const loadParticleAtlas = () => {
+    if (!particleAtlasSources) return;
+    const sourceKey = window.devicePixelRatio > 1.25 ? "retina" : "standard";
+    for (const role of Object.keys(
+      particleAtlasSources,
+    ) as OrreryParticleAtlasRole[]) {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = particleAtlasSources[role][sourceKey];
+      void image
+        .decode()
+        .then(() => {
+          if (destroyed) return;
+          atlasImages[role] = image;
+          draw(performance.now());
+        })
+        .catch(() => undefined);
+    }
   };
 
   const resize = () => {
@@ -555,6 +663,7 @@ export const createOrreryParticleController = (
   void document.fonts?.ready.then(() => {
     scheduleResize();
   });
+  loadParticleAtlas();
   resize();
 
   return {

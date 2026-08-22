@@ -253,7 +253,12 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         : null;
     const particles =
       canvas && anchorElements && connectionBase
-        ? createOrreryParticleController(canvas, anchorElements, connectionBase)
+        ? createOrreryParticleController(
+            canvas,
+            anchorElements,
+            connectionBase,
+            homeOrreryAssets.connectionParticles,
+          )
         : null;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
     let earthMotion: ReturnType<typeof createCelestialSphereController> = null;

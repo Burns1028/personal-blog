@@ -159,6 +159,7 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /data-connection-base/);
   assert.match(component, /homeOrreryAssets\.connectionBase\.retina/);
   assert.match(component, /homeOrreryAssets\.connectionBase\.standard/);
+  assert.match(component, /homeOrreryAssets\.connectionParticles/);
   assert.equal(
     (component.match(/class="home-cosmos__stream-anchor /g) ?? []).length,
     3,
@@ -193,7 +194,7 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /earthMotion\.prepare\(\)/);
   assert.match(
     component,
-    /createOrreryParticleController\(canvas,\s*anchorElements,\s*connectionBase\)/,
+    /createOrreryParticleController\(\s*canvas,\s*anchorElements,\s*connectionBase,\s*homeOrreryAssets\.connectionParticles,?\s*\)/,
   );
   assert.match(component, /orrery\.dataset\.sceneState = "ready"/);
   assert.match(component, /burns:page-settled/);
