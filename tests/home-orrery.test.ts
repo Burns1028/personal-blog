@@ -153,24 +153,18 @@ test("homepage uses a generated star field without the former Saturn ring layer"
   assert.doesNotMatch(field, /home-rings-composed/);
 });
 
-test("live composition keeps mother-matched bases fixed and confines motion to overlays", () => {
+test("live composition keeps celestial geometry and replaces the mother band with one responsive stream canvas", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
   const css = readExisting("src/styles/home-orrery.css");
+  const facade = readExisting("src/lib/home-orrery-streams.ts");
 
-  assert.match(component, /data-particle-river-canvas/);
+  assert.match(component, /data-orrery-stream-canvas/);
   assert.equal((component.match(/<canvas/g) ?? []).length, 3);
-  assert.match(component, /class="home-cosmos__connection-base"/);
-  assert.match(component, /data-connection-base/);
-  assert.match(component, /homeOrreryAssets\.connectionBase\.retina/);
-  assert.match(component, /homeOrreryAssets\.connectionBase\.standard/);
-  assert.match(component, /homeOrreryAssets\.connectionParticles/);
-  assert.equal(
-    (component.match(/class="home-cosmos__stream-anchor /g) ?? []).length,
-    3,
-  );
-  assert.match(component, /data-stream-anchor="moon"/);
-  assert.match(component, /data-stream-anchor="earth"/);
-  assert.match(component, /data-stream-anchor="black-hole"/);
+  assert.doesNotMatch(component, /connection-base|data-stream-anchor/);
+  assert.match(component, /homeOrreryAssets\.connectionParticleAtlas/);
+  assert.match(component, /\.home-cosmos__sphere--moon/);
+  assert.match(component, /\.home-cosmos__sphere--earth/);
+  assert.match(component, /\.home-cosmos__black-hole-core/);
   assert.match(component, /home-cosmos__moon-base/);
   assert.match(component, /data-home-moon-motion/);
   assert.match(component, /home-cosmos__earth-base/);
@@ -196,27 +190,16 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /data-fallback-srcset=/);
   assert.match(component, /moonMotion\.prepare\(\)/);
   assert.match(component, /earthMotion\.prepare\(\)/);
-  assert.match(
-    component,
-    /createOrreryParticleController\(\s*canvas,\s*anchorElements,\s*connectionBase,\s*homeOrreryAssets\.connectionParticles,?\s*\)/,
-  );
+  assert.match(component, /createOrreryStreamController/);
+  assert.match(component, /streams\?\.prepare\(\)/);
+  assert.match(facade, /import\("\.\/home-orrery-streams-three"\)/);
+  assert.match(facade, /createOrrery2DStreamController/);
   assert.match(component, /orrery\.dataset\.sceneState = "ready"/);
   assert.match(component, /burns:page-settled/);
   assert.match(css, /data-scene-state="ready"[\s\S]*?opacity:\s*1/);
-  assert.match(css, /\.home-cosmos__stream-anchor/);
-  assert.match(css, /\.home-cosmos__connection-base\s*\{/);
-  assert.match(
-    css,
-    /\.home-cosmos__connection-base\s*\{[\s\S]*?width:\s*881px;[\s\S]*?height:\s*732px;[\s\S]*?transform-origin:\s*0 0;/,
-  );
-  assert.doesNotMatch(
-    css,
-    /\.home-cosmos__connection-base img\s*\{[^}]*object-fit:\s*fill/,
-  );
-  assert.doesNotMatch(
-    component,
-    /<noscript>[\s\S]*?\.home-cosmos__connection-base[\s\S]*?transform:\s*none\s*!important/,
-  );
+  assert.match(css, /\.home-cosmos__stream-canvas\s*\{/);
+  assert.doesNotMatch(css, /home-cosmos__stream-anchor|home-cosmos__connection-base/);
+  assert.doesNotMatch(component, /<noscript>[\s\S]*?connection-base/);
   assert.doesNotMatch(component, /createCelestialFrameController|data-frame-prefix|data-frame-count/);
   assert.doesNotMatch(css, /home-moon-texture-travel/);
   assert.doesNotMatch(css, /home-earth-texture-travel/);

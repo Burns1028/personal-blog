@@ -11,24 +11,9 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-scene-state="preparing"
 >
   <div class="home-cosmos__stage">
-    <picture
-      class="home-cosmos__connection-base"
-      data-connection-base
-      aria-hidden="true"
-    >
-      <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.connectionBase.retina} />
-      <img
-        src={homeOrreryAssets.connectionBase.standard}
-        alt=""
-        width="881"
-        height="732"
-        loading="eager"
-        decoding="async"
-      />
-    </picture>
     <canvas
-      class="home-cosmos__particle-canvas"
-      data-particle-river-canvas
+      class="home-cosmos__stream-canvas"
+      data-orrery-stream-canvas
       aria-hidden="true"
     ></canvas>
 
@@ -76,11 +61,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           <span class="home-cosmos__moon-light"></span>
         </span>
       </span>
-      <span
-        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--moon"
-        data-stream-anchor="moon"
-        aria-hidden="true"
-      ></span>
       <span class="sr-only">Writing</span>
     </a>
 
@@ -151,11 +131,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           </picture>
         </span>
       </span>
-      <span
-        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--earth"
-        data-stream-anchor="earth"
-        aria-hidden="true"
-      ></span>
       <span class="sr-only">Projects</span>
     </a>
 
@@ -201,11 +176,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         </picture>
         <span class="home-cosmos__black-hole-dark-core" aria-hidden="true"></span>
       </span>
-      <span
-        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--black-hole"
-        data-stream-anchor="black-hole"
-        aria-hidden="true"
-      ></span>
       <span class="sr-only">Ideas</span>
     </a>
   </div>
@@ -225,9 +195,9 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
 
 <script>
   import {
-    createOrreryParticleController,
+    createOrreryStreamController,
     type OrreryArtifact,
-  } from "../lib/home-orrery-particles";
+  } from "../lib/home-orrery-streams";
   import { createCelestialSphereController } from "../lib/home-celestial-sphere";
   import { homeOrreryAssets } from "../data/home-orrery-assets";
 
@@ -240,24 +210,20 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       connection?: { saveData?: boolean };
     }).connection;
     const savesData = connection?.saveData === true;
-    const canvas = orrery.querySelector<HTMLCanvasElement>("[data-particle-river-canvas]");
-    const connectionBase = orrery.querySelector<HTMLElement>("[data-connection-base]");
-    const moonAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="moon"]');
-    const earthAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="earth"]');
-    const blackHoleAnchor = orrery.querySelector<HTMLElement>(
-      '[data-stream-anchor="black-hole"]',
-    );
-    const anchorElements =
-      moonAnchor && earthAnchor && blackHoleAnchor
-        ? { moon: moonAnchor, earth: earthAnchor, blackHole: blackHoleAnchor }
+    const canvas = orrery.querySelector<HTMLCanvasElement>("[data-orrery-stream-canvas]");
+    const moon = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--moon");
+    const earth = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--earth");
+    const blackHole = orrery.querySelector<HTMLElement>(".home-cosmos__black-hole-core");
+    const bodyElements =
+      moon && earth && blackHole
+        ? { moon, earth, blackHole }
         : null;
-    const particles =
-      canvas && anchorElements && connectionBase
-        ? createOrreryParticleController(
+    const streams =
+      canvas && bodyElements
+        ? createOrreryStreamController(
             canvas,
-            anchorElements,
-            connectionBase,
-            homeOrreryAssets.connectionParticles,
+            bodyElements,
+            homeOrreryAssets.connectionParticleAtlas,
           )
         : null;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
@@ -265,6 +231,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     let sceneMode: "preparing" | "animated" | "static" = "preparing";
     let scenePreparation: Promise<void> | null = null;
     let staticPreparation: Promise<void> | null = null;
+    let streamPreparation: Promise<boolean> | null = null;
     let pageActive = true;
     let visible = true;
     let navigationPaused = false;
@@ -309,14 +276,19 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       } else {
         delete orrery.dataset.motionRunning;
       }
-      particles?.setRunning(running);
+      streams?.setRunning(running);
       moonMotion?.setRunning(running);
       earthMotion?.setRunning(running);
     };
 
     const updateActiveArtifact = () => {
       const artifact = (orrery.dataset.activeArtifact ?? "none") as OrreryArtifact;
-      particles?.setActiveArtifact(artifact);
+      streams?.setActiveArtifact(artifact);
+    };
+
+    const prepareStreams = () => {
+      streamPreparation ??= streams?.prepare() ?? Promise.resolve(false);
+      return streamPreparation;
     };
 
     const activateStaticScene = () => {
@@ -345,6 +317,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         await Promise.all(
           fallbackImages.map((image) => image.decode().catch(() => undefined)),
         );
+        await prepareStreams();
 
         if (!pageActive) return;
         sceneMode = "static";
@@ -375,6 +348,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           return;
         }
 
+        await prepareStreams();
         updateActiveArtifact();
         await nextPaint();
         if (!pageActive) return;
@@ -402,7 +376,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     };
 
     const handleVisibilityChange = () => {
-      if (!document.hidden) particles?.resize();
+      if (!document.hidden) streams?.resize();
       updateMotionState();
     };
 
@@ -422,7 +396,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       if (!event.persisted) return;
       navigationPaused = false;
       listenForNavigation();
-      particles?.resize();
+      streams?.resize();
       updateActiveArtifact();
       updateMotionState();
       if (
@@ -438,7 +412,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       pageActive = false;
       observer.disconnect();
       activeObserver.disconnect();
-      particles?.destroy();
+      streams?.destroy();
       moonMotion?.destroy();
       earthMotion?.destroy();
       document.removeEventListener("visibilitychange", handleVisibilityChange);

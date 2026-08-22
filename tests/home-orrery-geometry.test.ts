@@ -6,6 +6,7 @@ import {
   ellipseEquation,
   pointInsideEllipse,
   sampleCubic,
+  type CubicPath,
   type Ellipse,
 } from "../src/lib/home-orrery-geometry.ts";
 
@@ -33,7 +34,7 @@ for (const [name, bodies, stage] of [
     assert.ok(geometry);
 
     for (const stream of ["moon", "earth", "black-hole"] as const) {
-      const path = geometry.paths[stream];
+      const path: CubicPath = geometry.paths[stream];
       assert.deepEqual(path.end, geometry.hub);
       assert.ok(
         Math.abs(ellipseEquation(bodies[stream === "black-hole" ? "blackHole" : stream], path.start) - 1) <= 0.01,

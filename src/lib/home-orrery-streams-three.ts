@@ -1,6 +1,5 @@
 import {
   AdditiveBlending,
-  BufferAttribute,
   BufferGeometry,
   Color,
   Float32BufferAttribute,

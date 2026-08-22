@@ -1,4 +1,4 @@
-/* Homepage thought system: mother-matched independent layers with two converging currents. */
+/* Homepage thought system: three celestial arms meeting at one live central hub. */
 
 .home-orrery {
   position: relative;
@@ -40,37 +40,17 @@
   pointer-events: none;
 }
 
-.home-cosmos__connection-base,
-.home-cosmos__connection-base img,
-.home-cosmos__particle-canvas {
+.home-cosmos__stream-canvas {
   position: absolute;
   display: block;
   inset: 0;
   pointer-events: none;
-}
-
-.home-cosmos__connection-base {
-  z-index: 2;
-  width: 881px;
-  height: 732px;
-  transform-origin: 0 0;
-  visibility: hidden;
-  opacity: 0.94;
-  mix-blend-mode: screen;
-  will-change: transform;
-}
-
-.home-cosmos__connection-base img {
-  width: 100%;
-  height: 100%;
-}
-
-.home-cosmos__particle-canvas {
   z-index: 3;
   width: 100%;
   height: 100%;
-  opacity: 0.94;
+  opacity: 1;
   mix-blend-mode: screen;
+  transition: opacity 180ms ease;
 }
 
 .home-celestial {
@@ -95,31 +75,6 @@
   transition:
     opacity 280ms ease,
     filter 260ms ease;
-}
-
-.home-cosmos__stream-anchor {
-  position: absolute;
-  z-index: -1;
-  display: block;
-  width: 2px;
-  height: 2px;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-}
-
-.home-cosmos__stream-anchor--moon {
-  top: 51.44%;
-  left: 47.12%;
-}
-
-.home-cosmos__stream-anchor--earth {
-  top: 50.72%;
-  left: 51.2%;
-}
-
-.home-cosmos__stream-anchor--black-hole {
-  top: 50.9%;
-  left: 48.8%;
 }
 
 .home-celestial--writing {
@@ -489,9 +444,6 @@ html[data-artifact-arrival]::view-transition-new(root) {
     width: 27%;
   }
 
-  .home-cosmos__particle-canvas {
-    opacity: 0.52;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
