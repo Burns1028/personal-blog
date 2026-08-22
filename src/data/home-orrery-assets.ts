@@ -3,10 +3,6 @@ const layerRoot = "/assets/home-cosmic-system-v2";
 const matchedLayerRoot = "/assets/home-cosmic-system-v4";
 
 export const homeOrreryAssets = {
-  connectionBase: {
-    standard: `${matchedLayerRoot}/home-orrery-connection-base-v4-881.webp`,
-    retina: `${matchedLayerRoot}/home-orrery-connection-base-v4-1762.webp`,
-  },
   connectionParticleAtlas: {
     standard: `${matchedLayerRoot}/home-orrery-particle-atlas-256.webp`,
     retina: `${matchedLayerRoot}/home-orrery-particle-atlas-512.webp`,

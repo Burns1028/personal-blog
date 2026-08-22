@@ -49,7 +49,7 @@ test("homepage renders one unified celestial system with three semantic destinat
   );
   assert.match(component, /data-home-orrery/);
   assert.match(component, /data-artifact-stage/);
-  assert.match(component, /home-cosmos__particle-canvas/);
+  assert.match(component, /home-cosmos__stream-canvas/);
   assert.doesNotMatch(component, /home-cosmos__approved-scene/);
   assert.match(component, /home-cosmos__sphere--moon/);
   assert.match(component, /home-cosmos__sphere--earth/);
@@ -67,7 +67,6 @@ test("home orrery manifest exposes the mother-matched v4 independent layers", ()
 
   for (const asset of [
     "home-cosmos-starfield-v3",
-    "home-orrery-connection-base-v4",
     "home-orrery-writing-moon-v4",
     "home-orrery-projects-earth-v4",
     "home-orrery-projects-earth-glow-v4",
@@ -210,12 +209,25 @@ test("live composition keeps celestial geometry and replaces the mother band wit
   assert.doesNotMatch(css, /\.home-cosmos__surface-viewport[\s\S]*?background:\s*#000/);
 });
 
+test("legacy stretched connection runtime is absent from shipped source", () => {
+  assert.equal(existsSync(resolve(root, "src/lib/home-orrery-particles.ts")), false);
+  const component = readExisting("src/components/HomeOrrery.astro");
+  const manifest = readExisting("src/data/home-orrery-assets.ts");
+  const css = readExisting("src/styles/home-orrery.css");
+  for (const source of [component, manifest, css]) {
+    assert.doesNotMatch(
+      source,
+      /connectionBase|CONNECTION_BASE_ANCHORS|createAffineTransform|data-connection-base/,
+    );
+  }
+});
+
 test("orrery connections recover from visibility changes and the back-forward cache", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
 
   assert.match(
     component,
-    /const handleVisibilityChange = \(\) => \{[\s\S]*?if \(!document\.hidden\) particles\?\.resize\(\);[\s\S]*?updateMotionState\(\);[\s\S]*?\};/,
+    /const handleVisibilityChange = \(\) => \{[\s\S]*?if \(!document\.hidden\) streams\?\.resize\(\);[\s\S]*?updateMotionState\(\);[\s\S]*?\};/,
   );
   assert.match(
     component,
@@ -223,11 +235,11 @@ test("orrery connections recover from visibility changes and the back-forward ca
   );
   assert.match(
     component,
-    /const destroyControllers = \(\) => \{[\s\S]*?particles\?\.destroy\(\);[\s\S]*?window\.removeEventListener\("pageshow", handlePageShow\);/,
+    /const destroyControllers = \(\) => \{[\s\S]*?streams\?\.destroy\(\);[\s\S]*?window\.removeEventListener\("pageshow", handlePageShow\);/,
   );
   assert.match(
     component,
-    /const handlePageShow = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(!event\.persisted\) return;[\s\S]*?navigationPaused = false;[\s\S]*?particles\?\.resize\(\);[\s\S]*?updateMotionState\(\);/,
+    /const handlePageShow = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(!event\.persisted\) return;[\s\S]*?navigationPaused = false;[\s\S]*?streams\?\.resize\(\);[\s\S]*?updateMotionState\(\);/,
   );
   assert.match(component, /window\.addEventListener\("pagehide", handlePageHide\)/);
   assert.match(component, /window\.addEventListener\("pageshow", handlePageShow\)/);
@@ -235,8 +247,6 @@ test("orrery connections recover from visibility changes and the back-forward ca
 
 test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and transfer budgets", async () => {
   const assets = [
-    ["home-orrery-connection-base-v4-881.webp", 881, 732, true],
-    ["home-orrery-connection-base-v4-1762.webp", 1762, 1464, true],
     ["home-orrery-writing-moon-v4-480.webp", 480, 480, true],
     ["home-orrery-writing-moon-v4-960.webp", 960, 960, true],
     ["home-orrery-projects-earth-v4-480.webp", 480, 480, true],
@@ -309,7 +319,6 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
   const bytesFor = (filename: string) =>
     statSync(resolve(root, "public/assets/home-cosmic-system-v4", filename)).size;
   const desktopBytes = [
-    "home-orrery-connection-base-v4-1762.webp",
     "home-orrery-writing-moon-v4-960.webp",
     "home-orrery-projects-earth-v4-960.webp",
     "home-orrery-projects-earth-glow-v4-960.webp",
@@ -317,7 +326,6 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
     "home-orrery-ideas-field-v4-1600.webp",
   ].reduce((total, filename) => total + bytesFor(filename), 0);
   const mobileBytes = [
-    "home-orrery-connection-base-v4-881.webp",
     "home-orrery-writing-moon-v4-480.webp",
     "home-orrery-projects-earth-v4-480.webp",
     "home-orrery-projects-earth-glow-v4-480.webp",
@@ -464,15 +472,15 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
   assert.doesNotMatch(
     css,
-    /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.home-cosmos__particle-canvas\s*{[\s\S]*?display:\s*none/,
+    /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.home-cosmos__stream-canvas\s*{[\s\S]*?display:\s*none/,
   );
   assert.match(component, /connection\?: \{ saveData\?: boolean \}/);
   assert.match(component, /!savesData/);
-  assert.match(component, /createOrreryParticleController/);
-  assert.match(component, /particles\?\.setRunning\(running\)/);
+  assert.match(component, /createOrreryStreamController/);
+  assert.match(component, /streams\?\.setRunning\(running\)/);
   assert.match(component, /moonMotion\?\.setRunning\(running\)/);
   assert.match(component, /earthMotion\?\.setRunning\(running\)/);
-  assert.match(component, /particles\?\.destroy\(\)/);
+  assert.match(component, /streams\?\.destroy\(\)/);
   assert.match(component, /activateStaticScene/);
   assert.match(component, /sceneMode === "animated"/);
   assert.match(layout, /rel="preload"[\s\S]*?homeOrreryAssets\.writing\.motion\.texture/);
