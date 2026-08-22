@@ -296,6 +296,18 @@ test("Ideas phone controls expose category and date without compressing search",
   );
   assert.match(
     phone,
+    /\.ideas-journal__filter-controls\s*\{[^}]*box-shadow:\s*inset 0 1px rgba\(91,\s*60,\s*28,\s*0\.26\)/,
+  );
+  assert.doesNotMatch(
+    phone,
+    /\.ideas-journal__filter-controls\s*\{[^}]*border-top:/,
+  );
+  assert.match(
+    phone,
+    /\.ideas-journal__date-filter > summary,\s*\.ideas-journal__theme-filter > summary\s*\{[^}]*min-height:\s*44px/,
+  );
+  assert.match(
+    phone,
     /\.ideas-journal__theme-option\s*\{[^}]*min-height:\s*44px/,
   );
   assert.match(

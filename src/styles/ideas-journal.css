@@ -770,7 +770,7 @@ body[data-route="/ideas"] .site-footer {
     grid-row: 2;
     grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
     gap: 0;
-    border-top: 1px dotted rgba(91, 60, 28, 0.26);
+    box-shadow: inset 0 1px rgba(91, 60, 28, 0.26);
   }
 
   .ideas-journal__theme-index {
@@ -793,6 +793,7 @@ body[data-route="/ideas"] .site-footer {
 
   .ideas-journal__date-filter > summary,
   .ideas-journal__theme-filter > summary {
+    min-height: 44px;
     grid-template-columns: 18px minmax(0, 1fr) 11px;
     gap: 7px;
     padding: 0 8px;
