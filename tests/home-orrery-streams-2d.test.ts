@@ -67,13 +67,14 @@ const recordingContext = () => {
   return { context: target as unknown as CanvasRenderingContext2D, calls, target };
 };
 
-test("the 2D fallback draws three independent arms and a visible shared hub", () => {
+test("the 2D fallback draws particle clouds without a continuous path stroke", () => {
   const { context, calls, target } = recordingContext();
   drawOrreryStreams2D(context, snapshot, 1200, "none");
 
-  assert.equal(calls.filter((call) => call.name === "bezierCurveTo").length, 6);
+  assert.equal(calls.filter((call) => call.name === "stroke").length, 0);
+  assert.equal(calls.filter((call) => call.name === "bezierCurveTo").length, 0);
+  assert.ok(calls.filter((call) => call.name === "arc").length > 100);
   assert.ok(calls.filter((call) => call.name === "radialGradient").length >= 2);
-  assert.ok(calls.filter((call) => call.name === "arc").length >= 2);
   assert.equal(target.globalCompositeOperation, "source-over");
   assert.equal(calls.at(0)?.name, "clearRect");
 });

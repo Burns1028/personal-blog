@@ -4,6 +4,13 @@ import {
   type OrreryHubGeometry,
   type OrreryStream,
 } from "./home-orrery-geometry.ts";
+import {
+  createOrreryNebulaParticles,
+  nebulaOpacity,
+  nebulaSpread,
+  type OrreryNebulaLayer,
+  type OrreryNebulaSource,
+} from "./home-orrery-nebula.ts";
 
 export type OrreryArtifact = "none" | "document" | "repo" | "idea";
 
@@ -28,10 +35,29 @@ type FrameDependencies = {
   now: () => number;
 };
 
-const palettes: Record<OrreryStream, readonly [string, string]> = {
-  moon: ["rgba(246, 210, 139, 0.72)", "rgba(157, 218, 250, 0.72)"],
-  earth: ["rgba(83, 181, 244, 0.78)", "rgba(207, 241, 255, 0.86)"],
-  "black-hole": ["rgba(239, 142, 43, 0.76)", "rgba(126, 202, 241, 0.72)"],
+const fallbackParticles = createOrreryNebulaParticles(540, 1028);
+
+const particleColors: Record<OrreryNebulaSource, Record<OrreryNebulaLayer, string>> = {
+  hub: {
+    mist: "rgba(117, 196, 255, 0.7)",
+    dust: "rgba(221, 242, 255, 0.9)",
+    spark: "rgba(255, 227, 160, 1)",
+  },
+  moon: {
+    mist: "rgba(166, 209, 255, 0.62)",
+    dust: "rgba(246, 210, 139, 0.82)",
+    spark: "rgba(220, 242, 255, 1)",
+  },
+  earth: {
+    mist: "rgba(85, 181, 244, 0.65)",
+    dust: "rgba(154, 218, 255, 0.86)",
+    spark: "rgba(232, 249, 255, 1)",
+  },
+  "black-hole": {
+    mist: "rgba(239, 142, 43, 0.6)",
+    dust: "rgba(246, 181, 87, 0.84)",
+    spark: "rgba(193, 229, 255, 1)",
+  },
 };
 
 const artifactStream: Partial<Record<OrreryArtifact, OrreryStream>> = {
@@ -49,65 +75,29 @@ const drawArm = (
   stream: OrreryStream,
   time: number,
   artifact: OrreryArtifact,
+  shortEdge: number,
 ) => {
   const path = geometry.paths[stream];
-  const gradient = context.createLinearGradient(
-    path.start.x,
-    path.start.y,
-    path.end.x,
-    path.end.y,
-  );
-  gradient.addColorStop(0, palettes[stream][0]);
-  gradient.addColorStop(1, palettes[stream][1]);
   const emphasis = emphasisFor(artifact, stream);
 
-  context.beginPath();
-  context.moveTo(path.start.x, path.start.y);
-  context.bezierCurveTo(
-    path.controlA.x,
-    path.controlA.y,
-    path.controlB.x,
-    path.controlB.y,
-    path.end.x,
-    path.end.y,
-  );
-  context.lineCap = "round";
-  context.lineJoin = "round";
-  context.strokeStyle = gradient;
-  context.globalAlpha = 0.14 * emphasis;
-  context.lineWidth = stream === "black-hole" ? 11 : stream === "moon" ? 8 : 7;
-  context.stroke();
-
-  context.beginPath();
-  context.moveTo(path.start.x, path.start.y);
-  context.bezierCurveTo(
-    path.controlA.x,
-    path.controlA.y,
-    path.controlB.x,
-    path.controlB.y,
-    path.end.x,
-    path.end.y,
-  );
-  context.strokeStyle = gradient;
-  context.globalAlpha = 0.52 * emphasis;
-  context.lineWidth = stream === "black-hole" ? 1.35 : 1;
-  context.stroke();
-
-  const particleCount = stream === "black-hole" ? 24 : 18;
-  for (let index = 0; index < particleCount; index += 1) {
-    const speed = stream === "earth" ? 0.000045 : 0.000032;
-    const progress = (index / particleCount + time * speed) % 1;
+  for (const particle of fallbackParticles) {
+    if (particle.stream !== stream) continue;
+    const progress = (particle.phase + time * particle.speed * 0.001) % 1;
     const point = sampleCubic(path, progress);
     const tangent = tangentCubic(path, progress);
     const tangentLength = Math.hypot(tangent.x, tangent.y) || 1;
-    const wave = Math.sin(index * 8.71 + time * 0.0013) *
-      (stream === "black-hole" ? 3.2 : 1.9);
-    const x = point.x + (-tangent.y / tangentLength) * wave;
-    const y = point.y + (tangent.x / tangentLength) * wave;
+    const spread = nebulaSpread(
+      stream,
+      particle.layer,
+      progress,
+      shortEdge,
+    ) * particle.lateralSeed;
+    const x = point.x + (-tangent.y / tangentLength) * spread;
+    const y = point.y + (tangent.x / tangentLength) * spread;
+    context.globalAlpha = particle.alpha * nebulaOpacity(particle.layer, progress) * emphasis;
+    context.fillStyle = particleColors[stream][particle.layer];
     context.beginPath();
-    context.fillStyle = progress > 0.72 ? palettes.earth[1] : palettes[stream][0];
-    context.globalAlpha = (0.2 + (index % 5) * 0.09) * emphasis;
-    context.arc(x, y, 0.55 + (index % 4) * 0.3, 0, Math.PI * 2);
+    context.arc(x, y, particle.size * 0.52, 0, Math.PI * 2);
     context.fill();
   }
 };
@@ -116,41 +106,56 @@ const drawHub = (
   context: CanvasRenderingContext2D,
   geometry: OrreryHubGeometry,
   time: number,
+  shortEdge: number,
 ) => {
-  const pulse = 1 + Math.sin(time / 780) * 0.06;
-  const haloRadius = 15 * pulse;
-  const halo = context.createRadialGradient(
-    geometry.hub.x,
-    geometry.hub.y,
-    0,
-    geometry.hub.x,
-    geometry.hub.y,
-    haloRadius,
-  );
-  halo.addColorStop(0, "rgba(232, 249, 255, 0.92)");
-  halo.addColorStop(0.2, "rgba(137, 214, 255, 0.68)");
-  halo.addColorStop(0.62, "rgba(100, 185, 235, 0.16)");
-  halo.addColorStop(1, "rgba(220, 163, 67, 0)");
-  context.globalAlpha = 1;
-  context.fillStyle = halo;
-  context.beginPath();
-  context.arc(geometry.hub.x, geometry.hub.y, haloRadius, 0, Math.PI * 2);
-  context.fill();
+  for (const particle of fallbackParticles) {
+    if (particle.stream !== "hub") continue;
+    const angle = particle.phase * Math.PI * 2 + time * particle.speed * 0.001;
+    const radius = shortEdge * (0.008 + particle.clusterSeed * 0.026);
+    context.globalAlpha = particle.alpha * nebulaOpacity(particle.layer, particle.phase);
+    context.fillStyle = particleColors.hub[particle.layer];
+    context.beginPath();
+    context.arc(
+      geometry.hub.x + Math.cos(angle) * radius,
+      geometry.hub.y + Math.sin(angle) * radius * 0.58,
+      particle.size * 0.52,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+  }
 
   const core = context.createRadialGradient(
-    geometry.hub.x - 0.8,
-    geometry.hub.y - 0.8,
+    geometry.hub.x - 1,
+    geometry.hub.y + 1,
     0,
-    geometry.hub.x,
-    geometry.hub.y,
-    4.6,
+    geometry.hub.x - 1,
+    geometry.hub.y + 1,
+    14,
   );
-  core.addColorStop(0, "rgba(255, 255, 244, 1)");
-  core.addColorStop(0.38, "rgba(188, 231, 255, 0.94)");
-  core.addColorStop(1, "rgba(91, 174, 232, 0)");
+  core.addColorStop(0, "rgba(255, 255, 247, 1)");
+  core.addColorStop(0.24, "rgba(192, 232, 255, 0.95)");
+  core.addColorStop(1, "rgba(90, 179, 244, 0)");
+  context.globalAlpha = 1;
   context.fillStyle = core;
   context.beginPath();
-  context.arc(geometry.hub.x, geometry.hub.y, 4.6, 0, Math.PI * 2);
+  context.arc(geometry.hub.x - 1, geometry.hub.y + 1, 14, 0, Math.PI * 2);
+  context.fill();
+
+  const haze = context.createRadialGradient(
+    geometry.hub.x + 3,
+    geometry.hub.y - 2,
+    0,
+    geometry.hub.x + 3,
+    geometry.hub.y - 2,
+    24,
+  );
+  haze.addColorStop(0, "rgba(255, 201, 108, 0.4)");
+  haze.addColorStop(0.35, "rgba(116, 194, 248, 0.2)");
+  haze.addColorStop(1, "rgba(69, 155, 228, 0)");
+  context.fillStyle = haze;
+  context.beginPath();
+  context.arc(geometry.hub.x + 3, geometry.hub.y - 2, 24, 0, Math.PI * 2);
   context.fill();
 };
 
@@ -165,10 +170,11 @@ export const drawOrreryStreams2D = (
 
   context.save();
   context.globalCompositeOperation = "lighter";
+  const shortEdge = Math.min(snapshot.width, snapshot.height);
+  drawHub(context, snapshot.geometry, time, shortEdge);
   for (const stream of ["moon", "earth", "black-hole"] as const) {
-    drawArm(context, snapshot.geometry, stream, time, artifact);
+    drawArm(context, snapshot.geometry, stream, time, artifact, shortEdge);
   }
-  drawHub(context, snapshot.geometry, time);
   context.restore();
   context.globalCompositeOperation = "source-over";
   context.globalAlpha = 1;
