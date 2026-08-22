@@ -222,6 +222,15 @@ test("legacy stretched connection runtime is absent from shipped source", () => 
   }
 });
 
+test("homepage nebula streams do not ship a continuous connection line", () => {
+  const three = readExisting("src/lib/home-orrery-streams-three.ts");
+  const fallback = readExisting("src/lib/home-orrery-streams-2d.ts");
+  assert.doesNotMatch(three, /createRibbonGeometry|ribbonMaterial/);
+  assert.doesNotMatch(fallback, /\.stroke\(\)|bezierCurveTo/);
+  assert.match(three, /createOrreryNebulaParticles/);
+  assert.match(fallback, /createOrreryNebulaParticles/);
+});
+
 test("orrery connections recover from visibility changes and the back-forward cache", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
 
