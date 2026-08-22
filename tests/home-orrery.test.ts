@@ -195,6 +195,10 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
     css,
     /\.home-cosmos__connection-base img\s*\{[^}]*object-fit:\s*fill/,
   );
+  assert.doesNotMatch(
+    component,
+    /<noscript>[\s\S]*?\.home-cosmos__connection-base[\s\S]*?transform:\s*none\s*!important/,
+  );
   assert.doesNotMatch(component, /createCelestialFrameController|data-frame-prefix|data-frame-count/);
   assert.doesNotMatch(css, /home-moon-texture-travel/);
   assert.doesNotMatch(css, /home-earth-texture-travel/);

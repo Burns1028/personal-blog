@@ -115,7 +115,7 @@ test("the mother light band is affinely fitted to all three live anchors", async
   }
 });
 
-test("degenerate light-band anchor geometry is rejected", async () => {
+test("degenerate source or live light-band anchor geometry is rejected", async () => {
   const { createAffineTransform } = await import(
     "../src/lib/home-orrery-particles.ts"
   );
@@ -126,6 +126,20 @@ test("degenerate light-band anchor geometry is rejected", async () => {
   };
 
   assert.equal(createAffineTransform(collinear, collinear), null);
+
+  const stable = {
+    moon: { x: 0, y: 0 },
+    earth: { x: 10, y: 0 },
+    blackHole: { x: 0, y: 10 },
+  };
+  const nearlyCollinear = {
+    moon: { x: 0, y: 0 },
+    earth: { x: 200, y: 200 },
+    blackHole: { x: 400, y: 400.001 },
+  };
+
+  assert.equal(createAffineTransform(stable, collinear), null);
+  assert.equal(createAffineTransform(stable, nearlyCollinear), null);
 });
 
 test("each stream keeps its mother-image palette while converging to blue", async () => {

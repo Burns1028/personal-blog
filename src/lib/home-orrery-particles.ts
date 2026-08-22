@@ -74,6 +74,47 @@ export const createAffineTransform = (
   source: OrreryAnchorPoints,
   target: OrreryAnchorPoints,
 ): AffineTransform | null => {
+  const stableTriangleDeterminant = (
+    anchors: OrreryAnchorPoints,
+  ): number | null => {
+    const moonToEarth = {
+      x: anchors.earth.x - anchors.moon.x,
+      y: anchors.earth.y - anchors.moon.y,
+    };
+    const moonToBlackHole = {
+      x: anchors.blackHole.x - anchors.moon.x,
+      y: anchors.blackHole.y - anchors.moon.y,
+    };
+    const earthToBlackHole = {
+      x: anchors.blackHole.x - anchors.earth.x,
+      y: anchors.blackHole.y - anchors.earth.y,
+    };
+    const determinant =
+      moonToEarth.x * moonToBlackHole.y -
+      moonToBlackHole.x * moonToEarth.y;
+    const maximumEdgeSquared = Math.max(
+      moonToEarth.x ** 2 + moonToEarth.y ** 2,
+      moonToBlackHole.x ** 2 + moonToBlackHole.y ** 2,
+      earthToBlackHole.x ** 2 + earthToBlackHole.y ** 2,
+    );
+
+    if (
+      !Number.isFinite(determinant) ||
+      !Number.isFinite(maximumEdgeSquared) ||
+      maximumEdgeSquared <= 0 ||
+      Math.abs(determinant) <= maximumEdgeSquared * 1e-4
+    ) {
+      return null;
+    }
+
+    return determinant;
+  };
+
+  const sourceDeterminant = stableTriangleDeterminant(source);
+  if (sourceDeterminant === null || stableTriangleDeterminant(target) === null) {
+    return null;
+  }
+
   const sourceMoonToEarth = {
     x: source.earth.x - source.moon.x,
     y: source.earth.y - source.moon.y,
@@ -90,27 +131,22 @@ export const createAffineTransform = (
     x: target.blackHole.x - target.moon.x,
     y: target.blackHole.y - target.moon.y,
   };
-  const determinant =
-    sourceMoonToEarth.x * sourceMoonToBlackHole.y -
-    sourceMoonToBlackHole.x * sourceMoonToEarth.y;
-  if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-8) return null;
-
   const a =
     (targetMoonToEarth.x * sourceMoonToBlackHole.y -
       targetMoonToBlackHole.x * sourceMoonToEarth.y) /
-    determinant;
+    sourceDeterminant;
   const c =
     (-targetMoonToEarth.x * sourceMoonToBlackHole.x +
       targetMoonToBlackHole.x * sourceMoonToEarth.x) /
-    determinant;
+    sourceDeterminant;
   const b =
     (targetMoonToEarth.y * sourceMoonToBlackHole.y -
       targetMoonToBlackHole.y * sourceMoonToEarth.y) /
-    determinant;
+    sourceDeterminant;
   const d =
     (-targetMoonToEarth.y * sourceMoonToBlackHole.x +
       targetMoonToBlackHole.y * sourceMoonToEarth.x) /
-    determinant;
+    sourceDeterminant;
   const e = target.moon.x - a * source.moon.x - c * source.moon.y;
   const f = target.moon.y - b * source.moon.x - d * source.moon.y;
   const transform = { a, b, c, d, e, f };
