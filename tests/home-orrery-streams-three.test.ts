@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 import { Texture } from "three";
 
@@ -46,6 +48,30 @@ test("atlas roles move each arm toward blue-white at the shared hub", () => {
   assert.ok(atlasCellForParticle("earth", 0.1, 0) >= 8);
   assert.ok(atlasCellForParticle("moon", 0.9, 0) >= 8);
   assert.ok(atlasCellForParticle("black-hole", 0.9, 0) >= 8);
+});
+
+test("particle shader packs instance data below the WebGL attribute floor", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
+    "utf8",
+  );
+  const attributes = [...source.matchAll(/setInstancedAttribute\(result,\s*"([^"]+)"/g)]
+    .map((match) => match[1]);
+  assert.ok(attributes.includes("iMotion"));
+  assert.ok(attributes.includes("iStyle"));
+  assert.ok(attributes.length <= 10, `uses ${attributes.length} instanced attributes`);
+  assert.doesNotMatch(source, /attribute float iStream/);
+});
+
+test("screen-space quads remain visible with the downward CSS-pixel camera", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
+    "utf8",
+  );
+  assert.ok(
+    (source.match(/side:\s*DoubleSide/g) ?? []).length >= 2,
+    "particle and hub quads must not be culled by the inverted Y projection",
+  );
 });
 
 const geometry = createOrreryHubGeometry(

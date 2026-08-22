@@ -2,6 +2,7 @@ import {
   AdditiveBlending,
   BufferGeometry,
   Color,
+  DoubleSide,
   Float32BufferAttribute,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
@@ -188,16 +189,10 @@ const createParticleGeometry = (
   const controlAs: number[] = [];
   const controlBs: number[] = [];
   const ends: number[] = [];
-  const phases: number[] = [];
-  const speeds: number[] = [];
-  const offsets: number[] = [];
-  const sizes: number[] = [];
-  const rotations: number[] = [];
+  const motions: number[] = [];
+  const styles: number[] = [];
   const startColors: number[] = [];
   const endColors: number[] = [];
-  const alphas: number[] = [];
-  const atlasCells: number[] = [];
-  const streams: number[] = [];
   const spreadBase = Math.min(stage.width, stage.height);
 
   for (const particle of instances) {
@@ -207,32 +202,30 @@ const createParticleGeometry = (
     controlAs.push(path.controlA.x, path.controlA.y);
     controlBs.push(path.controlB.x, path.controlB.y);
     ends.push(path.end.x, path.end.y);
-    phases.push(particle.phase);
-    speeds.push(particle.speed);
-    offsets.push(particle.normalOffsetRatio * spreadBase);
-    sizes.push(particle.size);
-    rotations.push(particle.rotation);
+    motions.push(
+      particle.phase,
+      particle.speed,
+      particle.normalOffsetRatio * spreadBase,
+      particle.size,
+    );
+    styles.push(
+      particle.rotation,
+      particle.alpha,
+      streamIndex(particle.stream),
+      particle.atlasCell,
+    );
     startColors.push(palette.start.r, palette.start.g, palette.start.b);
     endColors.push(palette.end.r, palette.end.g, palette.end.b);
-    alphas.push(particle.alpha);
-    atlasCells.push(particle.atlasCell % 4, Math.floor(particle.atlasCell / 4));
-    streams.push(streamIndex(particle.stream));
   }
 
   setInstancedAttribute(result, "iStart", starts, 2);
   setInstancedAttribute(result, "iControlA", controlAs, 2);
   setInstancedAttribute(result, "iControlB", controlBs, 2);
   setInstancedAttribute(result, "iEnd", ends, 2);
-  setInstancedAttribute(result, "iPhase", phases, 1);
-  setInstancedAttribute(result, "iSpeed", speeds, 1);
-  setInstancedAttribute(result, "iNormalOffset", offsets, 1);
-  setInstancedAttribute(result, "iSize", sizes, 1);
-  setInstancedAttribute(result, "iRotation", rotations, 1);
+  setInstancedAttribute(result, "iMotion", motions, 4);
+  setInstancedAttribute(result, "iStyle", styles, 4);
   setInstancedAttribute(result, "iStartColor", startColors, 3);
   setInstancedAttribute(result, "iEndColor", endColors, 3);
-  setInstancedAttribute(result, "iAlpha", alphas, 1);
-  setInstancedAttribute(result, "iAtlasCell", atlasCells, 2);
-  setInstancedAttribute(result, "iStream", streams, 1);
   result.instanceCount = instances.length;
   return result;
 };
@@ -243,16 +236,10 @@ const particleVertexShader = `
   attribute vec2 iControlA;
   attribute vec2 iControlB;
   attribute vec2 iEnd;
-  attribute float iPhase;
-  attribute float iSpeed;
-  attribute float iNormalOffset;
-  attribute float iSize;
-  attribute float iRotation;
+  attribute vec4 iMotion;
+  attribute vec4 iStyle;
   attribute vec3 iStartColor;
   attribute vec3 iEndColor;
-  attribute float iAlpha;
-  attribute vec2 iAtlasCell;
-  attribute float iStream;
   varying vec2 vAtlasUv;
   varying vec3 vColor;
   varying float vAlpha;
@@ -274,23 +261,24 @@ const particleVertexShader = `
   }
 
   void main() {
-    float progress = fract(iPhase + uTime * iSpeed);
+    float progress = fract(iMotion.x + uTime * iMotion.y);
     vec2 center = cubic(progress);
     vec2 tangent = normalize(cubicTangent(progress) + vec2(0.0001));
     vec2 normal = vec2(-tangent.y, tangent.x);
-    center += normal * iNormalOffset * sin(progress * 3.14159265);
-    float cosine = cos(iRotation);
-    float sine = sin(iRotation);
+    center += normal * iMotion.z * sin(progress * 3.14159265);
+    float cosine = cos(iStyle.x);
+    float sine = sin(iStyle.x);
     vec2 local = vec2(
       position.x * cosine - position.y * sine,
       position.x * sine + position.y * cosine
     );
-    vec2 oriented = tangent * local.x * iSize * 2.2 + normal * local.y * iSize;
+    vec2 oriented = tangent * local.x * iMotion.w * 2.2 + normal * local.y * iMotion.w;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(center + oriented, 0.0, 1.0);
-    vAtlasUv = (uv + iAtlasCell) * 0.25;
+    vec2 atlasCell = vec2(mod(iStyle.w, 4.0), floor(iStyle.w / 4.0));
+    vAtlasUv = (uv + atlasCell) * 0.25;
     vColor = mix(iStartColor, iEndColor, smoothstep(0.45, 0.9, progress));
-    vAlpha = iAlpha * (0.65 + 0.35 * sin(progress * 3.14159265));
-    vStream = iStream;
+    vAlpha = iStyle.y * (0.65 + 0.35 * sin(progress * 3.14159265));
+    vStream = iStyle.z;
   }
 `;
 
@@ -500,6 +488,7 @@ export const createOrreryThreeStreamController = (
       depthWrite: false,
       depthTest: false,
       blending: AdditiveBlending,
+      side: DoubleSide,
     });
     scene.add(new Mesh(particleGeometry, particleMaterial));
 
@@ -511,6 +500,7 @@ export const createOrreryThreeStreamController = (
       depthWrite: false,
       depthTest: false,
       blending: AdditiveBlending,
+      side: DoubleSide,
     });
     scene.add(new Mesh(ribbonGeometry, ribbonMaterial));
 
@@ -523,6 +513,7 @@ export const createOrreryThreeStreamController = (
       depthWrite: false,
       depthTest: false,
       blending: AdditiveBlending,
+      side: DoubleSide,
     });
     const hub = new Mesh(hubGeometry, hubMaterial);
     hub.position.set(snapshot.geometry.hub.x, snapshot.geometry.hub.y, 0.2);
