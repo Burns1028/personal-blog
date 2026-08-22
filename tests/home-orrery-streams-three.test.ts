@@ -11,6 +11,7 @@ import {
   selectOrreryQuality,
 } from "../src/lib/home-orrery-streams-three.ts";
 import { createOrreryHubGeometry } from "../src/lib/home-orrery-geometry.ts";
+import { createOrreryNebulaParticles } from "../src/lib/home-orrery-nebula.ts";
 
 test("quality profiles cap density, frame rate, and DPR by environment", () => {
   assert.deepEqual(
@@ -61,6 +62,25 @@ test("particle shader packs instance data below the WebGL attribute floor", () =
   assert.ok(attributes.includes("iStyle"));
   assert.ok(attributes.length <= 10, `uses ${attributes.length} instanced attributes`);
   assert.doesNotMatch(source, /attribute float iStream/);
+});
+
+test("Three streams contain no continuous ribbon mesh", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
+    "utf8",
+  );
+  assert.doesNotMatch(source, /createRibbonGeometry|ribbonGeometry|ribbonMaterial/);
+  assert.doesNotMatch(source, /new MeshBasicMaterial/);
+  assert.match(source, /createOrreryNebulaParticles/);
+});
+
+test("hub particles share the instanced draw without exceeding the WebGL attribute floor", () => {
+  const particles = createOrreryNebulaParticles(900, 1028);
+  assert.ok(particles.filter((particle) => particle.stream === "hub").length >= 60);
+  assert.ok(
+    particles.filter((particle) => particle.layer === "spark").length <
+      particles.filter((particle) => particle.layer === "dust").length,
+  );
 });
 
 test("screen-space quads remain visible with the downward CSS-pixel camera", () => {

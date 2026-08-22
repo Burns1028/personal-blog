@@ -1,6 +1,5 @@
 import {
   AdditiveBlending,
-  BufferGeometry,
   Color,
   DoubleSide,
   Float32BufferAttribute,
@@ -8,7 +7,6 @@ import {
   InstancedBufferGeometry,
   LinearFilter,
   Mesh,
-  MeshBasicMaterial,
   OrthographicCamera,
   PlaneGeometry,
   Scene,
@@ -21,11 +19,15 @@ import {
 } from "three";
 
 import {
-  sampleCubic,
-  tangentCubic,
   type OrreryHubGeometry,
   type OrreryStream,
 } from "./home-orrery-geometry.ts";
+import {
+  createOrreryNebulaParticles,
+  nebulaSpread,
+  type OrreryNebulaParticle,
+  type OrreryNebulaSource,
+} from "./home-orrery-nebula.ts";
 import type {
   OrreryArtifact,
   OrreryRenderSnapshot,
@@ -150,7 +152,10 @@ export const createParticleInstances = (
 const streamIndex = (stream: OrreryStream) =>
   stream === "moon" ? 0 : stream === "earth" ? 1 : 2;
 
-const streamPalette = (stream: OrreryStream) => {
+const streamPalette = (stream: OrreryNebulaSource) => {
+  if (stream === "hub") {
+    return { start: new Color(0xe0963d), end: new Color(0x94d9fa) };
+  }
   if (stream === "moon") {
     return { start: new Color(0xf0c77e), end: new Color(0xa3ddfa) };
   }
@@ -171,7 +176,7 @@ const setInstancedAttribute = (
 
 const createParticleGeometry = (
   geometry: OrreryHubGeometry,
-  instances: OrreryParticleInstance[],
+  instances: OrreryNebulaParticle[],
   stage: { width: number; height: number },
 ) => {
   const result = new InstancedBufferGeometry();
@@ -193,27 +198,26 @@ const createParticleGeometry = (
   const styles: number[] = [];
   const startColors: number[] = [];
   const endColors: number[] = [];
-  const spreadBase = Math.min(stage.width, stage.height);
+  const stageShortEdge = Math.min(stage.width, stage.height);
 
   for (const particle of instances) {
-    const path = geometry.paths[particle.stream];
+    const sourceIndex = particle.stream === "hub" ? 3 : streamIndex(particle.stream);
+    const path = particle.stream === "hub" ? null : geometry.paths[particle.stream];
+    const start = path?.start ?? geometry.hub;
+    const controlA = path?.controlA ?? geometry.hub;
+    const controlB = path?.controlB ?? geometry.hub;
+    const end = path?.end ?? geometry.hub;
+    const spread = particle.stream === "hub"
+      ? stageShortEdge * (0.008 + particle.clusterSeed * 0.026)
+      : nebulaSpread(particle.stream, particle.layer, particle.phase, stageShortEdge) * particle.lateralSeed;
+    const signedSpread = spread;
     const palette = streamPalette(particle.stream);
-    starts.push(path.start.x, path.start.y);
-    controlAs.push(path.controlA.x, path.controlA.y);
-    controlBs.push(path.controlB.x, path.controlB.y);
-    ends.push(path.end.x, path.end.y);
-    motions.push(
-      particle.phase,
-      particle.speed,
-      particle.normalOffsetRatio * spreadBase,
-      particle.size,
-    );
-    styles.push(
-      particle.rotation,
-      particle.alpha,
-      streamIndex(particle.stream),
-      particle.atlasCell,
-    );
+    starts.push(start.x, start.y);
+    controlAs.push(controlA.x, controlA.y);
+    controlBs.push(controlB.x, controlB.y);
+    ends.push(end.x, end.y);
+    motions.push(particle.phase, particle.speed, signedSpread, particle.size);
+    styles.push(particle.rotation, particle.alpha, sourceIndex, particle.atlasCell);
     startColors.push(palette.start.r, palette.start.g, palette.start.b);
     endColors.push(palette.end.r, palette.end.g, palette.end.b);
   }
@@ -265,7 +269,12 @@ const particleVertexShader = `
     vec2 center = cubic(progress);
     vec2 tangent = normalize(cubicTangent(progress) + vec2(0.0001));
     vec2 normal = vec2(-tangent.y, tangent.x);
-    center += normal * iMotion.z * sin(progress * 3.14159265);
+    if (iStyle.z > 2.5) {
+      float angle = iMotion.x * 6.2831853 + uTime * iMotion.y;
+      center = iStart + vec2(cos(angle), sin(angle) * 0.58) * abs(iMotion.z);
+    } else {
+      center += normal * iMotion.z;
+    }
     float cosine = cos(iStyle.x);
     float sine = sin(iStyle.x);
     vec2 local = vec2(
@@ -297,47 +306,6 @@ const particleFragmentShader = `
   }
 `;
 
-const createRibbonGeometry = (geometry: OrreryHubGeometry) => {
-  const result = new BufferGeometry();
-  const positions: number[] = [];
-  const colors: number[] = [];
-  const indices: number[] = [];
-  let vertexOffset = 0;
-
-  for (const stream of ["moon", "earth", "black-hole"] as const) {
-    const path = geometry.paths[stream];
-    const palette = streamPalette(stream);
-    const width = stream === "black-hole" ? 3.8 : stream === "moon" ? 2.8 : 2.5;
-    for (let step = 0; step <= 48; step += 1) {
-      const progress = step / 48;
-      const point = sampleCubic(path, progress);
-      const tangent = tangentCubic(path, progress);
-      const length = Math.hypot(tangent.x, tangent.y) || 1;
-      const normal = { x: -tangent.y / length, y: tangent.x / length };
-      const taper = 0.45 + Math.sin(progress * Math.PI) * 0.55;
-      const color = palette.start.clone().lerp(palette.end, progress);
-      for (const side of [-1, 1]) {
-        positions.push(
-          point.x + normal.x * width * taper * side,
-          point.y + normal.y * width * taper * side,
-          -0.1,
-        );
-        colors.push(color.r, color.g, color.b);
-      }
-      if (step < 48) {
-        const base = vertexOffset + step * 2;
-        indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
-      }
-    }
-    vertexOffset += 98;
-  }
-
-  result.setAttribute("position", new Float32BufferAttribute(positions, 3));
-  result.setAttribute("color", new Float32BufferAttribute(colors, 3));
-  result.setIndex(indices);
-  return result;
-};
-
 const hubVertexShader = `
   varying vec2 vUv;
   void main() {
@@ -350,12 +318,16 @@ const hubFragmentShader = `
   uniform float uTime;
   varying vec2 vUv;
   void main() {
-    float distanceFromCenter = length(vUv - vec2(0.5)) * 2.0;
-    float pulse = 0.96 + sin(uTime * 1.4) * 0.04;
-    float halo = smoothstep(1.0, 0.0, distanceFromCenter / pulse);
-    float core = smoothstep(0.34, 0.0, distanceFromCenter);
-    vec3 color = mix(vec3(0.24, 0.58, 0.86), vec3(0.94, 0.99, 1.0), core);
-    gl_FragColor = vec4(color, halo * 0.46 + core * 0.86);
+    vec2 point = vUv - vec2(0.47, 0.53);
+    float ellipse = length(vec2(point.x * 0.78, point.y * 1.18)) * 2.0;
+    float breath = 0.97 + sin(uTime * 0.73) * 0.03;
+    float haze = smoothstep(1.0, 0.08, ellipse / breath);
+    float core = smoothstep(0.31, 0.0, length(point * vec2(1.05, 1.32)) * 2.0);
+    vec3 cool = vec3(0.24, 0.62, 0.91);
+    vec3 warm = vec3(0.88, 0.58, 0.24);
+    vec3 color = mix(warm, cool, smoothstep(-0.18, 0.24, point.x + point.y));
+    color = mix(color, vec3(0.92, 0.98, 1.0), core * 0.72);
+    gl_FragColor = vec4(color, haze * 0.17 + core * 0.46);
   }
 `;
 
@@ -413,8 +385,6 @@ export const createOrreryThreeStreamController = (
   let texture: Texture | null = null;
   let particleGeometry: InstancedBufferGeometry | null = null;
   let particleMaterial: ShaderMaterial | null = null;
-  let ribbonGeometry: BufferGeometry | null = null;
-  let ribbonMaterial: MeshBasicMaterial | null = null;
   let hubGeometry: PlaneGeometry | null = null;
   let hubMaterial: ShaderMaterial | null = null;
   let snapshot: OrreryRenderSnapshot = { geometry: null, width: 1, height: 1, dpr: 1 };
@@ -433,14 +403,10 @@ export const createOrreryThreeStreamController = (
   const disposeVisuals = () => {
     particleGeometry?.dispose();
     particleMaterial?.dispose();
-    ribbonGeometry?.dispose();
-    ribbonMaterial?.dispose();
     hubGeometry?.dispose();
     hubMaterial?.dispose();
     particleGeometry = null;
     particleMaterial = null;
-    ribbonGeometry = null;
-    ribbonMaterial = null;
     hubGeometry = null;
     hubMaterial = null;
     scene.clear();
@@ -473,7 +439,7 @@ export const createOrreryThreeStreamController = (
 
     particleGeometry = createParticleGeometry(
       snapshot.geometry,
-      createParticleInstances(quality.particleCount),
+      createOrreryNebulaParticles(quality.particleCount),
       snapshot,
     );
     particleMaterial = new ShaderMaterial({
@@ -491,18 +457,6 @@ export const createOrreryThreeStreamController = (
       side: DoubleSide,
     });
     scene.add(new Mesh(particleGeometry, particleMaterial));
-
-    ribbonGeometry = createRibbonGeometry(snapshot.geometry);
-    ribbonMaterial = new MeshBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.34,
-      depthWrite: false,
-      depthTest: false,
-      blending: AdditiveBlending,
-      side: DoubleSide,
-    });
-    scene.add(new Mesh(ribbonGeometry, ribbonMaterial));
 
     hubGeometry = new PlaneGeometry(34, 34);
     hubMaterial = new ShaderMaterial({
