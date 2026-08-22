@@ -5,6 +5,7 @@ import {
   filterIdeas,
   ideaArchiveHref,
   ideaDateKey,
+  ideaEmptyMessage,
   listIdeaDates,
   listIdeaThemes,
   normalizeIdeaTheme,
@@ -25,6 +26,11 @@ const selectedTheme = normalizeIdeaTheme(
   themes,
 );
 const ideas = filterIdeas(allIdeas, query, selectedDate, selectedTheme);
+const emptyMessage = ideaEmptyMessage({
+  query,
+  date: selectedDate,
+  theme: selectedTheme,
+});
 const leadingThemes = themes.slice(0, 4);
 const activeLongTail =
   selectedTheme &&
@@ -306,7 +312,7 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
           </div>
         ) : (
           <div class="ideas-journal__empty" role="status">
-            <p>当前条件下没有找到对应的灵感。</p>
+            <p>{emptyMessage}</p>
             <a href="/ideas">清空全部筛选</a>
           </div>
         )

@@ -19,6 +19,11 @@ export interface IdeaArchiveFilters {
   theme?: string;
 }
 
+function ideaInstant(value: string): number {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+}
+
 export function ideaDateKey(value: string): string {
   const match = value.match(/^\d{4}-\d{2}-\d{2}/);
   if (!match) return "";
@@ -73,7 +78,7 @@ export function listIdeaThemes<T extends IdeaArchiveEntry>(
       name,
       count: (current?.count ?? 0) + 1,
       latestAt:
-        !current || capturedAt > current.latestAt
+        !current || ideaInstant(capturedAt) > ideaInstant(current.latestAt)
           ? capturedAt
           : current.latestAt,
     });
@@ -82,7 +87,7 @@ export function listIdeaThemes<T extends IdeaArchiveEntry>(
   return [...facets.values()].sort(
     (left, right) =>
       right.count - left.count ||
-      right.latestAt.localeCompare(left.latestAt) ||
+      ideaInstant(right.latestAt) - ideaInstant(left.latestAt) ||
       left.name.localeCompare(right.name, "zh-CN"),
   );
 }
@@ -111,4 +116,23 @@ export function ideaArchiveHref({
 
   const suffix = params.toString();
   return suffix ? `/ideas?${suffix}` : "/ideas";
+}
+
+export function ideaEmptyMessage({
+  query,
+  date,
+  theme,
+}: IdeaArchiveFilters): string {
+  const normalizedQuery = normalizeSearch(query);
+  const normalizedTheme = theme?.trim() ?? "";
+  const normalizedDate = ideaDateKey(date ?? "");
+  const constraints = [
+    normalizedQuery ? `关键词“${normalizedQuery}”` : "",
+    normalizedTheme ? `分类“${normalizedTheme}”` : "",
+    normalizedDate ? `日期 ${normalizedDate}` : "",
+  ].filter(Boolean);
+
+  return constraints.length > 0
+    ? `没有找到与${constraints.join("、")} 匹配的灵感。`
+    : "当前没有可显示的灵感。";
 }

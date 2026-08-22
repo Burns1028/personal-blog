@@ -312,6 +312,10 @@ test("Ideas phone controls expose category and date without compressing search",
   );
   assert.match(
     phone,
-    /\.ideas-journal__entry-theme\s*\{[^}]*min-height:\s*44px/,
+    /\.ideas-journal__entry-theme\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/,
+  );
+  assert.match(
+    phone,
+    /\.ideas-journal__singularity\s*\{[^}]*top:\s*calc\(var\(--ideas-search-top\) \+ var\(--ideas-search-height\) \+ 12px\)/,
   );
 });

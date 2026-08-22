@@ -7,6 +7,7 @@ import {
   filterIdeas,
   ideaArchiveHref,
   ideaDateKey,
+  ideaEmptyMessage,
   listIdeaDates,
   listIdeaThemes,
   normalizeIdeaTheme,
@@ -97,6 +98,28 @@ test("Ideas themes are counted and ordered by count then recency", () => {
   );
 });
 
+test("Ideas theme recency compares chronological instants across offsets", () => {
+  const facets = listIdeaThemes([
+    {
+      sourceKey: "later-instant",
+      text: "稍晚发生",
+      theme: "甲",
+      capturedAt: "2026-08-22T00:30:00+00:00",
+    },
+    {
+      sourceKey: "earlier-local",
+      text: "稍早发生",
+      theme: "乙",
+      capturedAt: "2026-08-22T08:00:00+08:00",
+    },
+  ]);
+
+  assert.deepEqual(
+    facets.map(({ name }) => name),
+    ["甲", "乙"],
+  );
+});
+
 test("Ideas validates exact themes and combines all filters", () => {
   const facets = listIdeaThemes(ideas);
 
@@ -130,6 +153,18 @@ test("Ideas filter URLs preserve and clear independent constraints", () => {
   assert.equal(ideaArchiveHref({}), "/ideas");
 });
 
+test("Ideas empty state names every active constraint", () => {
+  assert.equal(
+    ideaEmptyMessage({
+      query: "Agent",
+      date: "2026-08-21",
+      theme: "系统",
+    }),
+    "没有找到与关键词“Agent”、分类“系统”、日期 2026-08-21 匹配的灵感。",
+  );
+  assert.equal(ideaEmptyMessage({}), "当前没有可显示的灵感。");
+});
+
 test("Ideas page renders URL-backed search and an unboxed timeline journal", () => {
   const page = readFileSync(
     resolve(projectRoot, "src/pages/ideas/index.astro"),
@@ -146,6 +181,7 @@ test("Ideas page renders URL-backed search and an unboxed timeline journal", () 
   assert.match(page, /data-ideas-journal/);
   assert.match(page, /data-ideas-timeline/);
   assert.match(page, /data-idea-node/);
+  assert.match(page, /\{emptyMessage\}/);
   assert.match(page, /<li[\s\S]*?id=\{idea\.sourceKey\}/);
   assert.match(page, /white-space|idea\.text/);
   assert.doesNotMatch(page, /signal-card-grid/);
@@ -204,9 +240,10 @@ test("Ideas date filtering uses a custom archive index instead of the native sel
   assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*background:\s*linear-gradient/);
   assert.match(
     css,
-    /\.ideas-journal__date-filter\s*>\s*summary:focus-visible\s*\{[^}]*outline:\s*0/,
+    /\.ideas-journal__date-filter\s*>\s*summary:focus-visible[\s\S]*?outline:\s*1px solid/,
   );
   assert.match(css, /\.ideas-journal__date-option\[aria-current="page"\]::before/);
+  assert.doesNotMatch(css, /content:\s*"◆"/);
   assert.doesNotMatch(css, /\.ideas-journal__date-menu-title/);
   assert.doesNotMatch(css, /#[0-9a-fA-F]{0,2}4096ff|dodgerblue/);
 });
@@ -233,6 +270,14 @@ test("Ideas category filtering uses a two-level catalogue rail on wide screens",
   assert.match(
     css,
     /\.ideas-journal__entry-theme:is\(:hover,\s*:focus-visible\)/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__entry-theme\s*\{[^}]*text-decoration-line:\s*underline/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__entry-theme:focus-visible\s*\{[^}]*outline:\s*1px solid/,
   );
 });
 

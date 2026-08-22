@@ -230,12 +230,9 @@ body[data-route="/ideas"] .site-footer {
 .ideas-journal__date-filter > summary:focus-visible,
 .ideas-journal__theme-filter > summary:focus-visible,
 .ideas-journal__theme-more > summary:focus-visible {
-  outline: 0;
+  outline: 1px solid rgba(107, 63, 18, 0.72);
+  outline-offset: -2px;
   color: #6b3f12;
-}
-
-.ideas-journal__date-filter > summary:focus-visible {
-  outline: 0;
 }
 
 .ideas-journal__date-filter[open] > summary .ideas-journal__chevron,
@@ -299,8 +296,13 @@ body[data-route="/ideas"] .site-footer {
   border-bottom: 0;
 }
 
-.ideas-journal__date-option:is(:hover, :focus-visible) {
-  outline: 0;
+.ideas-journal__date-option:hover {
+  background: rgba(108, 66, 24, 0.08);
+}
+
+.ideas-journal__date-option:focus-visible {
+  outline: 1px solid rgba(107, 63, 18, 0.72);
+  outline-offset: -2px;
   background: rgba(108, 66, 24, 0.08);
 }
 
@@ -310,13 +312,12 @@ body[data-route="/ideas"] .site-footer {
 }
 
 .ideas-journal__date-option[aria-current="page"]::before {
-  width: auto;
-  height: auto;
+  width: 5px;
+  height: 5px;
   border-radius: 0;
-  color: #774915;
-  background: none;
-  content: "◆";
-  font-size: 7px;
+  background: #774915;
+  content: "";
+  transform: rotate(45deg);
 }
 
 .ideas-journal__theme-index {
@@ -378,10 +379,16 @@ body[data-route="/ideas"] .site-footer {
   content: "";
 }
 
-.ideas-journal__theme-index-option:is(:hover, :focus-visible),
-.ideas-journal__theme-more > summary:is(:hover, :focus-visible),
+.ideas-journal__theme-index-option:hover,
+.ideas-journal__theme-more > summary:hover,
 .ideas-journal__theme-index-option[aria-current="page"] {
-  outline: 0;
+  color: #6b3f12;
+}
+
+.ideas-journal__theme-index-option:focus-visible,
+.ideas-journal__theme-more > summary:focus-visible {
+  outline: 1px solid rgba(107, 63, 18, 0.72);
+  outline-offset: -2px;
   color: #6b3f12;
 }
 
@@ -393,12 +400,14 @@ body[data-route="/ideas"] .site-footer {
 .ideas-journal__theme-index-option[aria-current="page"]::before {
   position: absolute;
   top: 50%;
+  bottom: auto;
   left: 4px;
+  width: 6px;
+  height: 6px;
   border: 0;
-  color: #774915;
-  content: "◆";
-  font-size: 6px;
-  transform: translateY(-54%);
+  background: #774915;
+  content: "";
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .ideas-journal__theme-index-option[aria-current="page"]::after {
@@ -477,8 +486,13 @@ body[data-route="/ideas"] .site-footer {
   font-variant-numeric: tabular-nums;
 }
 
-.ideas-journal__theme-option:is(:hover, :focus-visible) {
-  outline: 0;
+.ideas-journal__theme-option:hover {
+  background: rgba(108, 66, 24, 0.08);
+}
+
+.ideas-journal__theme-option:focus-visible {
+  outline: 1px solid rgba(107, 63, 18, 0.72);
+  outline-offset: -2px;
   background: rgba(108, 66, 24, 0.08);
 }
 
@@ -488,13 +502,12 @@ body[data-route="/ideas"] .site-footer {
 }
 
 .ideas-journal__theme-option[aria-current="page"]::before {
-  width: auto;
-  height: auto;
+  width: 5px;
+  height: 5px;
   border-radius: 0;
-  color: #774915;
-  background: none;
-  content: "◆";
-  font-size: 7px;
+  background: #774915;
+  content: "";
+  transform: rotate(45deg);
 }
 
 .ideas-journal__search:focus-within {
@@ -600,6 +613,7 @@ body[data-route="/ideas"] .site-footer {
   min-width: 0;
   align-items: center;
   color: inherit;
+  text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -609,9 +623,13 @@ body[data-route="/ideas"] .site-footer {
 }
 
 .ideas-journal__entry-theme:is(:hover, :focus-visible) {
-  outline: 0;
   color: #74440f;
   text-decoration-color: rgba(116, 68, 15, 0.68);
+}
+
+.ideas-journal__entry-theme:focus-visible {
+  outline: 1px solid rgba(107, 63, 18, 0.72);
+  outline-offset: 3px;
 }
 
 .ideas-journal__node {
@@ -899,6 +917,7 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__entry-theme {
+    min-width: 44px;
     min-height: 44px;
     margin-block: -16px;
     padding-block: 16px;
@@ -924,7 +943,7 @@ body[data-route="/ideas"] .site-footer {
   }
 
   .ideas-journal__singularity {
-    top: 148px;
+    top: calc(var(--ideas-search-top) + var(--ideas-search-height) + 12px);
     right: 14px;
     width: min(300px, 76vw);
     opacity: 0.1;
