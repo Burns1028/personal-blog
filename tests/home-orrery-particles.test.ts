@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
@@ -7,6 +7,8 @@ const modulePath = resolve(
   import.meta.dirname,
   "../src/lib/home-orrery-particles.ts",
 );
+
+const particleSource = readFileSync(modulePath, "utf8");
 
 test("two responsive particle streams use live anchors and converge on Earth", async () => {
   assert.ok(existsSync(modulePath), "particle controller module must exist");
@@ -109,4 +111,15 @@ test("connection currents have a clearly perceptible but restrained dash velocit
 
   assert.equal(streamDashPixelsPerSecond("black-hole"), 11);
   assert.equal(streamDashPixelsPerSecond("moon"), 13);
+});
+
+test("the renderer measures live anchors only during responsive resize", () => {
+  assert.match(
+    particleSource,
+    /createOrreryParticleController\s*=\s*\(\s*canvas:[^,]+,\s*anchorElements:/,
+  );
+  assert.match(particleSource, /pointRelativeToRect\([\s\S]*?getBoundingClientRect\(\)/);
+  assert.match(particleSource, /Object\.values\(anchorElements\)[\s\S]*?resizeObserver\.observe/);
+  assert.match(particleSource, /Math\.min\(2,\s*window\.devicePixelRatio \|\| 1\)/);
+  assert.doesNotMatch(particleSource, /const (?:BLACK_HOLE|MOON|EARTH): Point/);
 });

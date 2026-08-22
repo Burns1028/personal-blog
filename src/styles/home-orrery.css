@@ -40,30 +40,18 @@
   pointer-events: none;
 }
 
-.home-cosmos__connection-base,
-.home-cosmos__connection-base img,
 .home-cosmos__particle-canvas {
   position: absolute;
   display: block;
   width: 100%;
   height: 100%;
   inset: 0;
-  opacity: 0.94;
-  mix-blend-mode: screen;
   pointer-events: none;
 }
 
-.home-cosmos__connection-base {
-  z-index: 2;
-}
-
-.home-cosmos__connection-base img {
-  object-fit: fill;
-}
-
 .home-cosmos__particle-canvas {
-  z-index: 3;
-  opacity: 0.84;
+  z-index: 2;
+  opacity: 0.94;
   mix-blend-mode: screen;
 }
 
@@ -89,6 +77,31 @@
   transition:
     opacity 280ms ease,
     filter 260ms ease;
+}
+
+.home-cosmos__stream-anchor {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  width: 2px;
+  height: 2px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.home-cosmos__stream-anchor--moon {
+  top: 51.44%;
+  left: 47.12%;
+}
+
+.home-cosmos__stream-anchor--earth {
+  top: 50.72%;
+  left: 51.2%;
+}
+
+.home-cosmos__stream-anchor--black-hole {
+  top: 50.9%;
+  left: 48.8%;
 }
 
 .home-celestial--writing {

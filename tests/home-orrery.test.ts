@@ -142,7 +142,15 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
 
   assert.match(component, /data-particle-river-canvas/);
   assert.equal((component.match(/<canvas/g) ?? []).length, 3);
-  assert.match(component, /home-cosmos__connection-base/);
+  assert.doesNotMatch(component, /home-cosmos__connection-base/);
+  assert.doesNotMatch(component, /homeOrreryAssets\.connectionBase/);
+  assert.equal(
+    (component.match(/class="home-cosmos__stream-anchor /g) ?? []).length,
+    3,
+  );
+  assert.match(component, /data-stream-anchor="moon"/);
+  assert.match(component, /data-stream-anchor="earth"/);
+  assert.match(component, /data-stream-anchor="black-hole"/);
   assert.match(component, /home-cosmos__moon-base/);
   assert.match(component, /data-home-moon-motion/);
   assert.match(component, /home-cosmos__earth-base/);
@@ -152,7 +160,6 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /home-cosmos__black-hole-core/);
   assert.match(component, /home-cosmos__black-hole-rotor/);
   assert.match(component, /home-cosmos__black-hole-dark-core/);
-  assert.match(component, /homeOrreryAssets\.connectionBase/);
   assert.match(component, /homeOrreryAssets\.writing\.moon/);
   assert.match(component, /homeOrreryAssets\.projects\.earth/);
   assert.match(component, /homeOrreryAssets\.projects\.earthGlow/);
@@ -169,9 +176,12 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.match(component, /data-fallback-srcset=/);
   assert.match(component, /moonMotion\.prepare\(\)/);
   assert.match(component, /earthMotion\.prepare\(\)/);
+  assert.match(component, /createOrreryParticleController\(canvas,\s*anchorElements\)/);
   assert.match(component, /orrery\.dataset\.sceneState = "ready"/);
   assert.match(component, /burns:page-settled/);
   assert.match(css, /data-scene-state="ready"[\s\S]*?opacity:\s*1/);
+  assert.match(css, /\.home-cosmos__stream-anchor/);
+  assert.doesNotMatch(css, /\.home-cosmos__connection-base/);
   assert.doesNotMatch(component, /createCelestialFrameController|data-frame-prefix|data-frame-count/);
   assert.doesNotMatch(css, /home-moon-texture-travel/);
   assert.doesNotMatch(css, /home-earth-texture-travel/);

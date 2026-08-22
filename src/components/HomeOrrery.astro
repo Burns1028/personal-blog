@@ -11,17 +11,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-scene-state="preparing"
 >
   <div class="home-cosmos__stage">
-    <picture class="home-cosmos__connection-base" aria-hidden="true">
-      <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.connectionBase.retina} />
-      <img
-        src={homeOrreryAssets.connectionBase.standard}
-        alt=""
-        width="881"
-        height="732"
-        loading="eager"
-        decoding="async"
-      />
-    </picture>
     <canvas
       class="home-cosmos__particle-canvas"
       data-particle-river-canvas
@@ -72,6 +61,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           <span class="home-cosmos__moon-light"></span>
         </span>
       </span>
+      <span
+        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--moon"
+        data-stream-anchor="moon"
+        aria-hidden="true"
+      ></span>
       <span class="sr-only">Writing</span>
     </a>
 
@@ -142,6 +136,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           </picture>
         </span>
       </span>
+      <span
+        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--earth"
+        data-stream-anchor="earth"
+        aria-hidden="true"
+      ></span>
       <span class="sr-only">Projects</span>
     </a>
 
@@ -187,6 +186,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         </picture>
         <span class="home-cosmos__black-hole-dark-core" aria-hidden="true"></span>
       </span>
+      <span
+        class="home-cosmos__stream-anchor home-cosmos__stream-anchor--black-hole"
+        data-stream-anchor="black-hole"
+        aria-hidden="true"
+      ></span>
       <span class="sr-only">Ideas</span>
     </a>
   </div>
@@ -222,7 +226,19 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     }).connection;
     const savesData = connection?.saveData === true;
     const canvas = orrery.querySelector<HTMLCanvasElement>("[data-particle-river-canvas]");
-    let particles: ReturnType<typeof createOrreryParticleController> | null = null;
+    const moonAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="moon"]');
+    const earthAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="earth"]');
+    const blackHoleAnchor = orrery.querySelector<HTMLElement>(
+      '[data-stream-anchor="black-hole"]',
+    );
+    const anchorElements =
+      moonAnchor && earthAnchor && blackHoleAnchor
+        ? { moon: moonAnchor, earth: earthAnchor, blackHole: blackHoleAnchor }
+        : null;
+    const particles =
+      canvas && anchorElements
+        ? createOrreryParticleController(canvas, anchorElements)
+        : null;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
     let earthMotion: ReturnType<typeof createCelestialSphereController> = null;
     let sceneMode: "preparing" | "animated" | "static" = "preparing";
@@ -338,7 +354,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           return;
         }
 
-        particles = canvas ? createOrreryParticleController(canvas) : null;
         updateActiveArtifact();
         await nextPaint();
         if (!pageActive) return;

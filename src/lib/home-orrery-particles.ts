@@ -22,10 +22,6 @@ export type CubicPath = {
 export type OrreryPathGeometry = Record<OrreryStream, CubicPath>;
 type Color = [number, number, number];
 
-const BLACK_HOLE: Point = { x: 0.225, y: 0.81 };
-const MOON: Point = { x: 0.295, y: 0.205 };
-const EARTH: Point = { x: 0.68, y: 0.37 };
-
 const clampProgress = (progress: number) => Math.min(1, Math.max(0, progress));
 
 const cubicPoint = (
@@ -114,24 +110,6 @@ export const sampleOrreryPath = (
   );
 };
 
-export const sampleBlackHoleToEarthPath = (progress: number): Point =>
-  cubicPoint(
-    BLACK_HOLE,
-    { x: 0.035, y: 0.69 },
-    { x: 0.31, y: 0.37 },
-    EARTH,
-    progress,
-  );
-
-export const sampleMoonToEarthPath = (progress: number): Point =>
-  cubicPoint(
-    MOON,
-    { x: 0.43, y: 0.2 },
-    { x: 0.57, y: 0.245 },
-    EARTH,
-    progress,
-  );
-
 const mixColor = (from: Color, to: Color, amount: number): Color =>
   from.map((channel, index) =>
     Math.round(channel + (to[index] - channel) * amount),
@@ -175,6 +153,12 @@ export type OrreryParticleController = {
   destroy: () => void;
 };
 
+export type OrreryAnchorElements = {
+  moon: HTMLElement;
+  earth: HTMLElement;
+  blackHole: HTMLElement;
+};
+
 const seededRandom = (seed: number) => {
   let state = seed >>> 0;
   return () => {
@@ -183,13 +167,9 @@ const seededRandom = (seed: number) => {
   };
 };
 
-const samplePath = (stream: OrreryStream, progress: number) =>
-  stream === "black-hole"
-    ? sampleBlackHoleToEarthPath(progress)
-    : sampleMoonToEarthPath(progress);
-
 export const createOrreryParticleController = (
   canvas: HTMLCanvasElement,
+  anchorElements: OrreryAnchorElements,
 ): OrreryParticleController => {
   const context = canvas.getContext("2d", { alpha: true });
   if (!context) {
@@ -212,6 +192,12 @@ export const createOrreryParticleController = (
   let frame = 0;
   let lastFrame = 0;
   let elapsed = 0;
+  let geometry: OrreryPathGeometry | null = null;
+
+  const samplePath = (stream: OrreryStream, progress: number) => {
+    if (!geometry) return { x: 0, y: 0 };
+    return sampleOrreryPath(geometry, stream, progress);
+  };
 
   const makeParticles = () => {
     const count = particleCountForWidth(width);
@@ -251,7 +237,7 @@ export const createOrreryParticleController = (
   const strokePath = (
     stream: OrreryStream,
     normalOffset: number,
-    alpha: number,
+    strokeStyle: string | CanvasGradient,
     lineWidth: number,
   ) => {
     context.beginPath();
@@ -260,19 +246,57 @@ export const createOrreryParticleController = (
       const point = samplePath(stream, progress);
       const before = samplePath(stream, Math.max(0, progress - 0.003));
       const after = samplePath(stream, Math.min(1, progress + 0.003));
-      const tangentX = (after.x - before.x) * width;
-      const tangentY = (after.y - before.y) * height;
+      const tangentX = after.x - before.x;
+      const tangentY = after.y - before.y;
       const tangentLength = Math.hypot(tangentX, tangentY) || 1;
       const taper = Math.sin(progress * Math.PI) * 0.72 + 0.28;
-      const x = point.x * width + (-tangentY / tangentLength) * normalOffset * taper;
-      const y = point.y * height + (tangentX / tangentLength) * normalOffset * taper;
+      const x = point.x + (-tangentY / tangentLength) * normalOffset * taper;
+      const y = point.y + (tangentX / tangentLength) * normalOffset * taper;
       if (step === 0) context.moveTo(x, y);
       else context.lineTo(x, y);
     }
-    const start = stream === "black-hole" ? "226, 165, 65" : "232, 224, 203";
-    context.strokeStyle = `rgba(${start}, ${alpha})`;
+    context.strokeStyle = strokeStyle;
     context.lineWidth = lineWidth;
     context.stroke();
+  };
+
+  const streamGradient = (
+    stream: OrreryStream,
+    startAlpha: number,
+    endAlpha = startAlpha,
+  ) => {
+    const start = samplePath(stream, 0);
+    const end = samplePath(stream, 1);
+    const gradient = context.createLinearGradient(start.x, start.y, end.x, end.y);
+    const [startRed, startGreen, startBlue] = sampleStreamColor(stream, 0);
+    const [endRed, endGreen, endBlue] = sampleStreamColor(stream, 1);
+    gradient.addColorStop(
+      0,
+      `rgba(${startRed}, ${startGreen}, ${startBlue}, ${startAlpha})`,
+    );
+    gradient.addColorStop(
+      1,
+      `rgba(${endRed}, ${endGreen}, ${endBlue}, ${endAlpha})`,
+    );
+    return gradient;
+  };
+
+  const drawConnectionGlow = () => {
+    for (const stream of ["black-hole", "moon"] as const) {
+      context.setLineDash([]);
+      strokePath(
+        stream,
+        0,
+        streamGradient(stream, 0.045, 0.055),
+        stream === "black-hole" ? 13 : 8,
+      );
+      strokePath(
+        stream,
+        0,
+        streamGradient(stream, 0.2, 0.16),
+        stream === "black-hole" ? 1.35 : 1,
+      );
+    }
   };
 
   const drawBaseCurrents = () => {
@@ -287,7 +311,16 @@ export const createOrreryParticleController = (
         context.setLineDash(strand % 2 === 0 ? [0.8, 5.2] : [1.2, 7]);
         context.lineDashOffset =
           -(elapsed / 1000) * streamDashPixelsPerSecond(stream) + strand * 2.1;
-        strokePath(stream, offset, stream === "black-hole" ? 0.19 : 0.16, strand === 0 ? 0.9 : 0.58);
+        strokePath(
+          stream,
+          offset,
+          streamGradient(
+            stream,
+            stream === "black-hole" ? 0.19 : 0.16,
+            0.13,
+          ),
+          strand === 0 ? 0.9 : 0.58,
+        );
       }
     }
     context.setLineDash([]);
@@ -295,8 +328,10 @@ export const createOrreryParticleController = (
 
   const draw = (time: number) => {
     context.clearRect(0, 0, width, height);
+    if (!geometry) return;
     context.save();
     context.globalCompositeOperation = "lighter";
+    drawConnectionGlow();
     drawBaseCurrents();
 
     for (const particle of particles) {
@@ -304,20 +339,20 @@ export const createOrreryParticleController = (
       const point = samplePath(particle.stream, progress);
       const before = samplePath(particle.stream, Math.max(0, progress - 0.002));
       const after = samplePath(particle.stream, Math.min(1, progress + 0.002));
-      const tangentX = (after.x - before.x) * width;
-      const tangentY = (after.y - before.y) * height;
+      const tangentX = after.x - before.x;
+      const tangentY = after.y - before.y;
       const tangentLength = Math.hypot(tangentX, tangentY) || 1;
       const jitter = Math.sin(progress * Math.PI * 13 + particle.phase * 8) * 1.35;
       const normal = particle.normalOffset + jitter;
-      const x = point.x * width + (-tangentY / tangentLength) * normal;
-      const y = point.y * height + (tangentX / tangentLength) * normal;
+      const x = point.x + (-tangentY / tangentLength) * normal;
+      const y = point.y + (tangentX / tangentLength) * normal;
       const [red, green, blue] = sampleStreamColor(particle.stream, progress);
       const pulse = 0.72 + Math.sin(time / 760 + particle.phase * 9) * 0.2;
       const emphasis = emphasisFor(active, particle.stream, progress);
       const tail = samplePath(particle.stream, Math.max(0, progress - 0.009));
 
       context.beginPath();
-      context.moveTo(tail.x * width, tail.y * height);
+      context.moveTo(tail.x, tail.y);
       context.lineTo(x, y);
       context.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${Math.min(0.36, particle.alpha * pulse * emphasis * 0.38)})`;
       context.lineWidth = Math.max(0.5, particle.radius * 0.72);
@@ -343,18 +378,46 @@ export const createOrreryParticleController = (
 
   const resize = () => {
     const bounds = canvas.getBoundingClientRect();
-    width = Math.max(1, Math.round(bounds.width));
-    height = Math.max(1, Math.round(bounds.height));
-    dpr = Math.min(1.5, window.devicePixelRatio || 1);
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      geometry = null;
+      return;
+    }
+    width = Math.max(1, bounds.width);
+    height = Math.max(1, bounds.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    geometry = createOrreryPathGeometry(
+      {
+        moon: pointRelativeToRect(
+          anchorElements.moon.getBoundingClientRect(),
+          bounds,
+        ),
+        earth: pointRelativeToRect(
+          anchorElements.earth.getBoundingClientRect(),
+          bounds,
+        ),
+        blackHole: pointRelativeToRect(
+          anchorElements.blackHole.getBoundingClientRect(),
+          bounds,
+        ),
+      },
+      { width, height },
+    );
     makeParticles();
     draw(performance.now());
   };
 
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
+  Object.values(anchorElements).forEach((anchor) =>
+    resizeObserver.observe(anchor),
+  );
+  window.addEventListener("resize", resize, { passive: true });
+  void document.fonts?.ready.then(() => {
+    if (!destroyed) resize();
+  });
   resize();
 
   return {
@@ -379,6 +442,7 @@ export const createOrreryParticleController = (
       running = false;
       window.cancelAnimationFrame(frame);
       resizeObserver.disconnect();
+      window.removeEventListener("resize", resize);
       context.clearRect(0, 0, width, height);
     },
   };
