@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
 import {
@@ -77,6 +79,15 @@ test("the 2D fallback draws particle clouds without a continuous path stroke", (
   assert.ok(calls.filter((call) => call.name === "radialGradient").length >= 2);
   assert.equal(target.globalCompositeOperation, "source-over");
   assert.equal(calls.at(0)?.name, "clearRect");
+});
+
+test("the 2D fallback applies the shared endpoint fade only once", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-2d.ts"),
+    "utf8",
+  );
+  assert.match(source, /particle\.alpha \* nebulaFade\(progress\) \* emphasis/);
+  assert.doesNotMatch(source, /particle\.alpha \* nebulaOpacity/);
 });
 
 test("the 2D fallback clears and draws nothing for missing geometry", () => {

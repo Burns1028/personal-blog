@@ -51,10 +51,14 @@ export const nebulaSpread = (
   return stageShortEdge * 0.028 * streamScale * layerScale * convergence;
 };
 
+export const nebulaFade = (progress: number) => {
+  const edgeFade = Math.min(1, progress / 0.02, (1 - progress) / 0.012);
+  return Math.max(0, edgeFade);
+};
+
 export const nebulaOpacity = (layer: OrreryNebulaLayer, progress: number) => {
-  const edgeFade = Math.min(1, progress / 0.08, (1 - progress) / 0.06);
-  const base = layer === "mist" ? 0.12 : layer === "dust" ? 0.46 : 0.78;
-  return Math.max(0, base * edgeFade);
+  const base = layer === "mist" ? 0.22 : layer === "dust" ? 0.55 : 0.82;
+  return base * nebulaFade(progress);
 };
 
 export const createOrreryNebulaParticles = (count: number, seed = 1028) => {
@@ -66,8 +70,8 @@ export const createOrreryNebulaParticles = (count: number, seed = 1028) => {
     const stream = index < hubCount ? "hub" : arms[(index - hubCount) % 3];
     const layer = layerFor(random());
     const phase = random();
-    const sizeRange = layer === "mist" ? [2.8, 6.4] : layer === "dust" ? [0.7, 3.1] : [1.2, 3.8];
-    const alphaRange = layer === "mist" ? [0.05, 0.16] : layer === "dust" ? [0.16, 0.58] : [0.48, 0.88];
+    const sizeRange = layer === "mist" ? [3.8, 7.4] : layer === "dust" ? [1.1, 4.1] : [1.6, 4.8];
+    const alphaRange = layer === "mist" ? [0.14, 0.3] : layer === "dust" ? [0.36, 0.72] : [0.62, 0.96];
     return {
       stream,
       layer,

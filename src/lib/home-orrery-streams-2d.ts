@@ -6,7 +6,7 @@ import {
 } from "./home-orrery-geometry.ts";
 import {
   createOrreryNebulaParticles,
-  nebulaOpacity,
+  nebulaFade,
   nebulaSpread,
   type OrreryNebulaLayer,
   type OrreryNebulaSource,
@@ -35,7 +35,7 @@ type FrameDependencies = {
   now: () => number;
 };
 
-const fallbackParticles = createOrreryNebulaParticles(540, 1028);
+const fallbackParticles = createOrreryNebulaParticles(960, 1028);
 
 const particleColors: Record<OrreryNebulaSource, Record<OrreryNebulaLayer, string>> = {
   hub: {
@@ -94,7 +94,7 @@ const drawArm = (
     ) * particle.lateralSeed;
     const x = point.x + (-tangent.y / tangentLength) * spread;
     const y = point.y + (tangent.x / tangentLength) * spread;
-    context.globalAlpha = particle.alpha * nebulaOpacity(particle.layer, progress) * emphasis;
+    context.globalAlpha = particle.alpha * nebulaFade(progress) * emphasis;
     context.fillStyle = particleColors[stream][particle.layer];
     context.beginPath();
     context.arc(x, y, particle.size * 0.52, 0, Math.PI * 2);
@@ -108,11 +108,15 @@ const drawHub = (
   time: number,
   shortEdge: number,
 ) => {
+  const hubSize = Math.min(68, Math.max(48, shortEdge * 0.075));
+  const coreRadius = hubSize * 0.28;
+  const hazeRadius = hubSize * 0.5;
+
   for (const particle of fallbackParticles) {
     if (particle.stream !== "hub") continue;
     const angle = particle.phase * Math.PI * 2 + time * particle.speed * 0.001;
     const radius = shortEdge * (0.008 + particle.clusterSeed * 0.026);
-    context.globalAlpha = particle.alpha * nebulaOpacity(particle.layer, particle.phase);
+    context.globalAlpha = particle.alpha;
     context.fillStyle = particleColors.hub[particle.layer];
     context.beginPath();
     context.arc(
@@ -131,15 +135,15 @@ const drawHub = (
     0,
     geometry.hub.x - 1,
     geometry.hub.y + 1,
-    14,
+    coreRadius,
   );
   core.addColorStop(0, "rgba(255, 255, 247, 1)");
-  core.addColorStop(0.24, "rgba(192, 232, 255, 0.95)");
+  core.addColorStop(0.24, "rgba(192, 232, 255, 1)");
   core.addColorStop(1, "rgba(90, 179, 244, 0)");
   context.globalAlpha = 1;
   context.fillStyle = core;
   context.beginPath();
-  context.arc(geometry.hub.x - 1, geometry.hub.y + 1, 14, 0, Math.PI * 2);
+  context.arc(geometry.hub.x - 1, geometry.hub.y + 1, coreRadius, 0, Math.PI * 2);
   context.fill();
 
   const haze = context.createRadialGradient(
@@ -148,14 +152,14 @@ const drawHub = (
     0,
     geometry.hub.x + 3,
     geometry.hub.y - 2,
-    24,
+    hazeRadius,
   );
-  haze.addColorStop(0, "rgba(255, 201, 108, 0.4)");
-  haze.addColorStop(0.35, "rgba(116, 194, 248, 0.2)");
+  haze.addColorStop(0, "rgba(255, 201, 108, 0.58)");
+  haze.addColorStop(0.35, "rgba(116, 194, 248, 0.32)");
   haze.addColorStop(1, "rgba(69, 155, 228, 0)");
   context.fillStyle = haze;
   context.beginPath();
-  context.arc(geometry.hub.x + 3, geometry.hub.y - 2, 24, 0, Math.PI * 2);
+  context.arc(geometry.hub.x + 3, geometry.hub.y - 2, hazeRadius, 0, Math.PI * 2);
   context.fill();
 };
 

@@ -87,20 +87,20 @@ export const selectOrreryQuality = (
     width < 360 || environment.saveData || environment.hardwareConcurrency <= 4;
   if (constrained) {
     return {
-      particleCount: 420,
+      particleCount: 720,
       fps: 24,
       dpr: Math.min(1.5, Math.max(1, environment.dpr || 1)),
     };
   }
   if (width <= 767) {
     return {
-      particleCount: 900,
+      particleCount: 1500,
       fps: 30,
       dpr: Math.min(1.5, Math.max(1, environment.dpr || 1)),
     };
   }
   return {
-    particleCount: 1800,
+    particleCount: 3200,
     fps: 45,
     dpr: Math.min(2, Math.max(1, environment.dpr || 1)),
   };
@@ -286,7 +286,7 @@ const particleVertexShader = `
     vec2 atlasCell = vec2(mod(iStyle.w, 4.0), floor(iStyle.w / 4.0));
     vAtlasUv = (uv + atlasCell) * 0.25;
     vColor = mix(iStartColor, iEndColor, smoothstep(0.45, 0.9, progress));
-    float edgeFade = min(1.0, min(progress / 0.08, (1.0 - progress) / 0.06));
+    float edgeFade = min(1.0, min(progress / 0.02, (1.0 - progress) / 0.012));
     vAlpha = iStyle.z > 2.5 ? iStyle.y : iStyle.y * max(0.0, edgeFade);
     vStream = iStyle.z;
   }
@@ -328,7 +328,7 @@ const hubFragmentShader = `
     vec3 warm = vec3(0.88, 0.58, 0.24);
     vec3 color = mix(warm, cool, smoothstep(-0.18, 0.24, point.x + point.y));
     color = mix(color, vec3(0.92, 0.98, 1.0), core * 0.72);
-    gl_FragColor = vec4(color, haze * 0.17 + core * 0.46);
+    gl_FragColor = vec4(color, haze * 0.3 + core * 0.66);
   }
 `;
 
@@ -459,7 +459,9 @@ export const createOrreryThreeStreamController = (
     });
     scene.add(new Mesh(particleGeometry, particleMaterial));
 
-    hubGeometry = new PlaneGeometry(34, 34);
+    const stageShortEdge = Math.min(snapshot.width, snapshot.height);
+    const hubSize = clamp(stageShortEdge * 0.075, 48, 68);
+    hubGeometry = new PlaneGeometry(hubSize, hubSize);
     hubMaterial = new ShaderMaterial({
       uniforms: { uTime: { value: dependencies.now() / 1000 } },
       vertexShader: hubVertexShader,

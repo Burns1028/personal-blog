@@ -16,19 +16,30 @@ import { createOrreryNebulaParticles } from "../src/lib/home-orrery-nebula.ts";
 test("quality profiles cap density, frame rate, and DPR by environment", () => {
   assert.deepEqual(
     selectOrreryQuality(1440, { dpr: 3, saveData: false, hardwareConcurrency: 10 }),
-    { particleCount: 1800, fps: 45, dpr: 2 },
+    { particleCount: 3200, fps: 45, dpr: 2 },
   );
   assert.deepEqual(
     selectOrreryQuality(393, { dpr: 3, saveData: false, hardwareConcurrency: 8 }),
-    { particleCount: 900, fps: 30, dpr: 1.5 },
+    { particleCount: 1500, fps: 30, dpr: 1.5 },
   );
   assert.deepEqual(
     selectOrreryQuality(340, { dpr: 2, saveData: false, hardwareConcurrency: 8 }),
-    { particleCount: 420, fps: 24, dpr: 1.5 },
+    { particleCount: 720, fps: 24, dpr: 1.5 },
   );
   assert.deepEqual(
     selectOrreryQuality(1440, { dpr: 2, saveData: true, hardwareConcurrency: 10 }),
-    { particleCount: 420, fps: 24, dpr: 1.5 },
+    { particleCount: 720, fps: 24, dpr: 1.5 },
+  );
+});
+
+test("quality profiles allocate enough particles for traceable static arms", () => {
+  assert.ok(
+    selectOrreryQuality(393, { dpr: 3, saveData: false, hardwareConcurrency: 8 })
+      .particleCount >= 1400,
+  );
+  assert.ok(
+    selectOrreryQuality(1440, { dpr: 2, saveData: false, hardwareConcurrency: 10 })
+      .particleCount >= 3000,
   );
 });
 
@@ -90,12 +101,23 @@ test("arm particles fade at fract endpoints while hub particles stay visible", (
   );
   assert.match(
     source,
-    /float edgeFade = min\(1\.0, min\(progress \/ 0\.08, \(1\.0 - progress\) \/ 0\.06\)\);/,
+    /float edgeFade = min\(1\.0, min\(progress \/ 0\.02, \(1\.0 - progress\) \/ 0\.012\)\);/,
   );
   assert.match(
     source,
     /vAlpha = iStyle\.z > 2\.5 \? iStyle\.y : iStyle\.y \* max\(0\.0, edgeFade\);/,
   );
+});
+
+test("the asymmetric hub haze is scaled and bright enough to bridge arm endpoints", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
+    "utf8",
+  );
+  assert.match(source, /const hubSize = clamp\(stageShortEdge \* 0\.075, 48, 68\);/);
+  assert.match(source, /new PlaneGeometry\(hubSize, hubSize\)/);
+  assert.match(source, /haze \* 0\.3 \+ core \* 0\.66/);
+  assert.match(source, /vec2 point = vUv - vec2\(0\.47, 0\.53\)/);
 });
 
 test("screen-space quads remain visible with the downward CSS-pixel camera", () => {

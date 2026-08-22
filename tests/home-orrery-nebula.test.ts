@@ -20,3 +20,24 @@ test("mist is broad, sparks are sparse, and all arms converge without a one-pixe
   assert.ok(nebulaSpread("moon", "dust", 0.98, 366) < nebulaSpread("moon", "dust", 0.5, 366));
   assert.ok(nebulaOpacity("mist", 0.5) < nebulaOpacity("dust", 0.5));
 });
+
+test("nebula layers carry enough size and opacity to remain traceable without ribbons", () => {
+  const particles = createOrreryNebulaParticles(3200, 1028);
+  const average = (layer: "mist" | "dust", property: "size" | "alpha") => {
+    const matches = particles.filter((particle) => particle.layer === layer);
+    return matches.reduce((sum, particle) => sum + particle[property], 0) / matches.length;
+  };
+
+  assert.ok(average("mist", "size") >= 5.2);
+  assert.ok(average("mist", "alpha") >= 0.18);
+  assert.ok(average("dust", "size") >= 2.4);
+  assert.ok(average("dust", "alpha") >= 0.48);
+});
+
+test("endpoint fade is brief but reaches zero exactly at each arm wrap", () => {
+  const midpoint = nebulaOpacity("dust", 0.5);
+  assert.equal(nebulaOpacity("dust", 0), 0);
+  assert.equal(nebulaOpacity("dust", 1), 0);
+  assert.ok(nebulaOpacity("dust", 0.025) >= midpoint * 0.98);
+  assert.ok(nebulaOpacity("dust", 0.985) >= midpoint * 0.98);
+});
