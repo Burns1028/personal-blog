@@ -11,6 +11,21 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-scene-state="preparing"
 >
   <div class="home-cosmos__stage">
+    <picture
+      class="home-cosmos__connection-base"
+      data-connection-base
+      aria-hidden="true"
+    >
+      <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.connectionBase.retina} />
+      <img
+        src={homeOrreryAssets.connectionBase.standard}
+        alt=""
+        width="881"
+        height="732"
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
     <canvas
       class="home-cosmos__particle-canvas"
       data-particle-river-canvas
@@ -200,6 +215,12 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         opacity: 1 !important;
         visibility: visible !important;
       }
+      .home-cosmos__connection-base {
+        width: 100% !important;
+        height: 100% !important;
+        visibility: visible !important;
+        transform: none !important;
+      }
       .home-cosmos__moon-base,
       .home-cosmos__earth-base {
         opacity: 1 !important;
@@ -226,6 +247,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     }).connection;
     const savesData = connection?.saveData === true;
     const canvas = orrery.querySelector<HTMLCanvasElement>("[data-particle-river-canvas]");
+    const connectionBase = orrery.querySelector<HTMLElement>("[data-connection-base]");
     const moonAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="moon"]');
     const earthAnchor = orrery.querySelector<HTMLElement>('[data-stream-anchor="earth"]');
     const blackHoleAnchor = orrery.querySelector<HTMLElement>(
@@ -236,8 +258,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         ? { moon: moonAnchor, earth: earthAnchor, blackHole: blackHoleAnchor }
         : null;
     const particles =
-      canvas && anchorElements
-        ? createOrreryParticleController(canvas, anchorElements)
+      canvas && anchorElements && connectionBase
+        ? createOrreryParticleController(canvas, anchorElements, connectionBase)
         : null;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
     let earthMotion: ReturnType<typeof createCelestialSphereController> = null;

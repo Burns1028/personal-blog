@@ -91,6 +91,43 @@ test("mobile anchor movement changes only the measured endpoints", async () => {
   assert.deepEqual(sampleOrreryPath(geometry, "black-hole", 1), anchors.earth);
 });
 
+test("the mother light band is affinely fitted to all three live anchors", async () => {
+  const { createAffineTransform, mapPointWithAffine } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+  const source = {
+    moon: { x: 0.295 * 881, y: 0.205 * 732 },
+    earth: { x: 0.68 * 881, y: 0.37 * 732 },
+    blackHole: { x: 0.225 * 881, y: 0.81 * 732 },
+  };
+  const target = {
+    moon: { x: 94, y: 105 },
+    earth: { x: 309, y: 204 },
+    blackHole: { x: 86, y: 378 },
+  };
+
+  const transform = createAffineTransform(source, target);
+  assert.ok(transform, "three non-collinear anchors produce a transform");
+  for (const key of ["moon", "earth", "blackHole"] as const) {
+    const mapped = mapPointWithAffine(source[key], transform);
+    assert.ok(Math.abs(mapped.x - target[key].x) < 1e-8, `${key} x maps exactly`);
+    assert.ok(Math.abs(mapped.y - target[key].y) < 1e-8, `${key} y maps exactly`);
+  }
+});
+
+test("degenerate light-band anchor geometry is rejected", async () => {
+  const { createAffineTransform } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+  const collinear = {
+    moon: { x: 0, y: 0 },
+    earth: { x: 10, y: 10 },
+    blackHole: { x: 20, y: 20 },
+  };
+
+  assert.equal(createAffineTransform(collinear, collinear), null);
+});
+
 test("each stream keeps its mother-image palette while converging to blue", async () => {
   assert.ok(existsSync(modulePath), "particle controller module must exist");
   const { sampleStreamColor } = await import(

@@ -40,17 +40,35 @@
   pointer-events: none;
 }
 
+.home-cosmos__connection-base,
+.home-cosmos__connection-base img,
 .home-cosmos__particle-canvas {
   position: absolute;
   display: block;
-  width: 100%;
-  height: 100%;
   inset: 0;
   pointer-events: none;
 }
 
-.home-cosmos__particle-canvas {
+.home-cosmos__connection-base {
   z-index: 2;
+  width: 881px;
+  height: 732px;
+  transform-origin: 0 0;
+  visibility: hidden;
+  opacity: 0.94;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.home-cosmos__connection-base img {
+  width: 100%;
+  height: 100%;
+}
+
+.home-cosmos__particle-canvas {
+  z-index: 3;
+  width: 100%;
+  height: 100%;
   opacity: 0.94;
   mix-blend-mode: screen;
 }

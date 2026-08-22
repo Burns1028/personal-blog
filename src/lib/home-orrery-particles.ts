@@ -20,7 +20,21 @@ export type CubicPath = {
   end: Point;
 };
 export type OrreryPathGeometry = Record<OrreryStream, CubicPath>;
+export type AffineTransform = {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+};
 type Color = [number, number, number];
+
+const CONNECTION_BASE_ANCHORS: OrreryAnchorPoints = {
+  moon: { x: 0.295 * 881, y: 0.205 * 732 },
+  earth: { x: 0.68 * 881, y: 0.37 * 732 },
+  blackHole: { x: 0.225 * 881, y: 0.81 * 732 },
+};
 
 const clampProgress = (progress: number) => Math.min(1, Math.max(0, progress));
 
@@ -55,6 +69,61 @@ export const isUsableAnchorRect = (rect: RectLike) =>
   rect.width > 0 &&
   rect.height > 0 &&
   [rect.left, rect.top, rect.width, rect.height].every(Number.isFinite);
+
+export const createAffineTransform = (
+  source: OrreryAnchorPoints,
+  target: OrreryAnchorPoints,
+): AffineTransform | null => {
+  const sourceMoonToEarth = {
+    x: source.earth.x - source.moon.x,
+    y: source.earth.y - source.moon.y,
+  };
+  const sourceMoonToBlackHole = {
+    x: source.blackHole.x - source.moon.x,
+    y: source.blackHole.y - source.moon.y,
+  };
+  const targetMoonToEarth = {
+    x: target.earth.x - target.moon.x,
+    y: target.earth.y - target.moon.y,
+  };
+  const targetMoonToBlackHole = {
+    x: target.blackHole.x - target.moon.x,
+    y: target.blackHole.y - target.moon.y,
+  };
+  const determinant =
+    sourceMoonToEarth.x * sourceMoonToBlackHole.y -
+    sourceMoonToBlackHole.x * sourceMoonToEarth.y;
+  if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-8) return null;
+
+  const a =
+    (targetMoonToEarth.x * sourceMoonToBlackHole.y -
+      targetMoonToBlackHole.x * sourceMoonToEarth.y) /
+    determinant;
+  const c =
+    (-targetMoonToEarth.x * sourceMoonToBlackHole.x +
+      targetMoonToBlackHole.x * sourceMoonToEarth.x) /
+    determinant;
+  const b =
+    (targetMoonToEarth.y * sourceMoonToBlackHole.y -
+      targetMoonToBlackHole.y * sourceMoonToEarth.y) /
+    determinant;
+  const d =
+    (-targetMoonToEarth.y * sourceMoonToBlackHole.x +
+      targetMoonToBlackHole.y * sourceMoonToEarth.x) /
+    determinant;
+  const e = target.moon.x - a * source.moon.x - c * source.moon.y;
+  const f = target.moon.y - b * source.moon.x - d * source.moon.y;
+  const transform = { a, b, c, d, e, f };
+  return Object.values(transform).every(Number.isFinite) ? transform : null;
+};
+
+export const mapPointWithAffine = (
+  point: Point,
+  transform: AffineTransform,
+): Point => ({
+  x: transform.a * point.x + transform.c * point.y + transform.e,
+  y: transform.b * point.x + transform.d * point.y + transform.f,
+});
 
 export const createOrreryPathGeometry = (
   anchors: OrreryAnchorPoints,
@@ -175,6 +244,7 @@ const seededRandom = (seed: number) => {
 export const createOrreryParticleController = (
   canvas: HTMLCanvasElement,
   anchorElements: OrreryAnchorElements,
+  connectionBase: HTMLElement,
 ): OrreryParticleController => {
   const context = canvas.getContext("2d", { alpha: true });
   if (!context) {
@@ -393,6 +463,7 @@ export const createOrreryParticleController = (
       !Object.values(anchorRects).every(isUsableAnchorRect)
     ) {
       geometry = null;
+      connectionBase.style.visibility = "hidden";
       context.clearRect(0, 0, width, height);
       return;
     }
@@ -409,14 +480,23 @@ export const createOrreryParticleController = (
       canvas.height = Math.round(height * dpr);
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    geometry = createOrreryPathGeometry(
-      {
-        moon: pointRelativeToRect(anchorRects.moon, bounds),
-        earth: pointRelativeToRect(anchorRects.earth, bounds),
-        blackHole: pointRelativeToRect(anchorRects.blackHole, bounds),
-      },
-      { width, height },
+    const anchors = {
+      moon: pointRelativeToRect(anchorRects.moon, bounds),
+      earth: pointRelativeToRect(anchorRects.earth, bounds),
+      blackHole: pointRelativeToRect(anchorRects.blackHole, bounds),
+    };
+    geometry = createOrreryPathGeometry(anchors, { width, height });
+    const connectionTransform = createAffineTransform(
+      CONNECTION_BASE_ANCHORS,
+      anchors,
     );
+    if (connectionTransform) {
+      const { a, b, c, d, e, f } = connectionTransform;
+      connectionBase.style.transform = `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
+      connectionBase.style.visibility = "visible";
+    } else {
+      connectionBase.style.visibility = "hidden";
+    }
     const nextParticleCount = particleCountForWidth(width);
     if (particles.length !== nextParticleCount) makeParticles();
     draw(performance.now());
@@ -465,6 +545,7 @@ export const createOrreryParticleController = (
       window.cancelAnimationFrame(resizeFrame);
       resizeObserver.disconnect();
       window.removeEventListener("resize", scheduleResize);
+      connectionBase.style.visibility = "hidden";
       context.clearRect(0, 0, width, height);
     },
   };
