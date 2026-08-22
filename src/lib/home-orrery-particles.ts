@@ -631,18 +631,20 @@ export const createOrreryParticleController = (
       earth: pointRelativeToRect(anchorRects.earth, bounds),
       blackHole: pointRelativeToRect(anchorRects.blackHole, bounds),
     };
-    geometry = createOrreryPathGeometry(anchors, { width, height });
     const connectionTransform = createAffineTransform(
       CONNECTION_BASE_ANCHORS,
       anchors,
     );
-    if (connectionTransform) {
-      const { a, b, c, d, e, f } = connectionTransform;
-      connectionBase.style.transform = `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
-      connectionBase.style.visibility = "visible";
-    } else {
+    if (!connectionTransform) {
+      geometry = null;
       connectionBase.style.visibility = "hidden";
+      context.clearRect(0, 0, width, height);
+      return;
     }
+    geometry = createOrreryPathGeometry(anchors, { width, height });
+    const { a, b, c, d, e, f } = connectionTransform;
+    connectionBase.style.transform = `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
+    connectionBase.style.visibility = "visible";
     const nextParticleCount = particleCountForWidth(width);
     if (particles.length !== nextParticleCount) makeParticles();
     draw(performance.now());

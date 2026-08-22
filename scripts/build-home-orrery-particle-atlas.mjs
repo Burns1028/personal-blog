@@ -6,7 +6,22 @@ import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const outputRoot = resolve(projectRoot, "public/assets/home-cosmic-system-v4");
+const defaultOutputRoot = resolve(
+  projectRoot,
+  "public/assets/home-cosmic-system-v4",
+);
+
+const resolveOutputRoot = (args) => {
+  if (args.length === 0) return defaultOutputRoot;
+  if (args.length !== 2 || args[0] !== "--output-root" || !args[1]) {
+    throw new Error(
+      "Usage: node scripts/build-home-orrery-particle-atlas.mjs [--output-root <directory>]",
+    );
+  }
+  return resolve(args[1]);
+};
+
+const outputRoot = resolveOutputRoot(process.argv.slice(2));
 
 const roles = {
   gold: { seed: 1028, color: [230, 160, 58], count: 74, spread: 0.72 },
@@ -57,10 +72,16 @@ const createDrawCommands = ({ seed, color, count, spread }, scale) => {
 
 const ensureImageMagick = async () => {
   try {
-    await execFileAsync("magick", ["-version"]);
+    const { stdout } = await execFileAsync("magick", ["-version"]);
+    if (!/ImageMagick 7\./.test(stdout)) {
+      throw new Error("ImageMagick 7 was not detected");
+    }
+    if (!/Delegates[^\n]*\bwebp\b/i.test(stdout)) {
+      throw new Error("the ImageMagick WebP delegate was not detected");
+    }
   } catch {
     throw new Error(
-      "ImageMagick 7 is required to build the orrery particle atlas. Install it with `brew install imagemagick`.",
+      "ImageMagick 7 with WebP support is required to build the orrery particle atlas. Install it with `brew install imagemagick`.",
     );
   }
 };

@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
 import sharp from "sharp";
@@ -352,6 +360,83 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
       const filename = `home-orrery-particles-${role}-${size}.webp`;
       assert.ok(bytesFor(filename) <= 36_000, `${filename} stays within 36 KB`);
     }
+  }
+});
+
+test("ImageMagick particle atlases are reproducible and contain visible colored dust", async () => {
+  const version = execFileSync("magick", ["-version"], { encoding: "utf8" });
+  assert.match(version, /ImageMagick 7\./, "ImageMagick 7 is required");
+  assert.match(version, /Delegates[^\n]*\bwebp\b/i, "WebP delegate is required");
+
+  const firstRoot = mkdtempSync(resolve(tmpdir(), "orrery-atlas-first-"));
+  const secondRoot = mkdtempSync(resolve(tmpdir(), "orrery-atlas-second-"));
+  const builder = resolve(root, "scripts/build-home-orrery-particle-atlas.mjs");
+  const filenames = [
+    ...["gold", "pearl", "transition", "blue"].flatMap((role) => [
+      `home-orrery-particles-${role}-256.webp`,
+      `home-orrery-particles-${role}-512.webp`,
+    ]),
+  ];
+  const normalizedCoverage = new Map<string, number>();
+
+  try {
+    execFileSync(process.execPath, [builder, "--output-root", firstRoot]);
+    execFileSync(process.execPath, [builder, "--output-root", secondRoot]);
+
+    for (const filename of filenames) {
+      const first = readFileSync(resolve(firstRoot, filename));
+      const second = readFileSync(resolve(secondRoot, filename));
+      const committed = readFileSync(
+        resolve(root, "public/assets/home-cosmic-system-v4", filename),
+      );
+      assert.deepEqual(first, second, `${filename} is byte-for-byte reproducible`);
+      assert.deepEqual(first, committed, `${filename} matches the committed asset`);
+
+      const { data, info } = await sharp(first)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      let visiblePixels = 0;
+      let brightColoredPixels = 0;
+      for (let offset = 0; offset < data.length; offset += info.channels) {
+        const red = data[offset];
+        const green = data[offset + 1];
+        const blue = data[offset + 2];
+        const alpha = data[offset + 3];
+        if (alpha > 4) visiblePixels += 1;
+        if (alpha > 12 && Math.max(red, green, blue) > 64) {
+          brightColoredPixels += 1;
+        }
+      }
+      const pixelCount = info.width * info.height;
+      normalizedCoverage.set(filename, visiblePixels / pixelCount);
+      assert.ok(visiblePixels > pixelCount * 0.001, `${filename} is not empty`);
+      assert.ok(
+        visiblePixels < pixelCount * 0.15,
+        `${filename} remains a sparse transparent strip`,
+      );
+      assert.ok(
+        brightColoredPixels > 30,
+        `${filename} contains non-black colored particles`,
+      );
+    }
+
+    for (const role of ["gold", "pearl", "transition", "blue"] as const) {
+      const standard = normalizedCoverage.get(
+        `home-orrery-particles-${role}-256.webp`,
+      );
+      const retina = normalizedCoverage.get(
+        `home-orrery-particles-${role}-512.webp`,
+      );
+      assert.ok(standard && retina, `${role} coverage measurements exist`);
+      assert.ok(
+        retina / standard >= 0.7 && retina / standard <= 1.1,
+        `${role} standard and Retina strips keep comparable normalized density`,
+      );
+    }
+  } finally {
+    rmSync(firstRoot, { recursive: true, force: true });
+    rmSync(secondRoot, { recursive: true, force: true });
   }
 });
 

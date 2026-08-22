@@ -142,6 +142,258 @@ test("degenerate source or live light-band anchor geometry is rejected", async (
   assert.equal(createAffineTransform(stable, nearlyCollinear), null);
 });
 
+test("the controller clears every connection layer when live anchors degenerate", async () => {
+  const { createOrreryParticleController } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+  const calls = { clearRect: 0, stroke: 0 };
+  const gradient = { addColorStop: () => undefined };
+  const context = {
+    arc: () => undefined,
+    beginPath: () => undefined,
+    clearRect: () => {
+      calls.clearRect += 1;
+    },
+    createLinearGradient: () => gradient,
+    fill: () => undefined,
+    lineTo: () => undefined,
+    moveTo: () => undefined,
+    restore: () => undefined,
+    save: () => undefined,
+    setLineDash: () => undefined,
+    setTransform: () => undefined,
+    stroke: () => {
+      calls.stroke += 1;
+    },
+  };
+  const canvasRect = { left: 0, top: 0, width: 360, height: 800 };
+  const liveRects = {
+    moon: { left: 20, top: 20, width: 2, height: 2 },
+    earth: { left: 180, top: 180, width: 2, height: 2 },
+    blackHole: { left: 340, top: 340.001, width: 2, height: 2 },
+  };
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  const originalResizeObserver = globalThis.ResizeObserver;
+
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      addEventListener: () => undefined,
+      cancelAnimationFrame: () => undefined,
+      devicePixelRatio: 2,
+      removeEventListener: () => undefined,
+      requestAnimationFrame: () => 1,
+    },
+  });
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: {},
+  });
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    value: class {
+      disconnect() {}
+      observe() {}
+    },
+  });
+
+  try {
+    const connectionBase = { style: { transform: "", visibility: "" } };
+    const controller = createOrreryParticleController(
+      {
+        getContext: () => context,
+        getBoundingClientRect: () => canvasRect,
+        height: 0,
+        width: 0,
+      } as unknown as HTMLCanvasElement,
+      {
+        moon: { getBoundingClientRect: () => liveRects.moon },
+        earth: { getBoundingClientRect: () => liveRects.earth },
+        blackHole: { getBoundingClientRect: () => liveRects.blackHole },
+      } as unknown as Parameters<typeof createOrreryParticleController>[1],
+      connectionBase as unknown as HTMLElement,
+    );
+
+    assert.equal(connectionBase.style.visibility, "hidden");
+    assert.ok(calls.clearRect > 0, "the stale canvas is cleared");
+    assert.equal(calls.stroke, 0, "no vector current is drawn");
+
+    liveRects.earth = { left: 300, top: 150, width: 2, height: 2 };
+    controller.resize();
+    assert.equal(connectionBase.style.visibility, "visible");
+    assert.ok(calls.stroke > 0, "valid live geometry draws the currents");
+    controller.destroy();
+  } finally {
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: originalWindow,
+    });
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
+    Object.defineProperty(globalThis, "ResizeObserver", {
+      configurable: true,
+      value: originalResizeObserver,
+    });
+  }
+});
+
+test("atlas decode failures preserve vector currents and late decodes cannot draw after destroy", async () => {
+  const { createOrreryParticleController } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+  const calls = { drawImage: 0, stroke: 0 };
+  const gradient = { addColorStop: () => undefined };
+  const context = {
+    arc: () => undefined,
+    beginPath: () => undefined,
+    clearRect: () => undefined,
+    createLinearGradient: () => gradient,
+    drawImage: () => {
+      calls.drawImage += 1;
+    },
+    fill: () => undefined,
+    lineTo: () => undefined,
+    moveTo: () => undefined,
+    restore: () => undefined,
+    rotate: () => undefined,
+    save: () => undefined,
+    setLineDash: () => undefined,
+    setTransform: () => undefined,
+    stroke: () => {
+      calls.stroke += 1;
+    },
+    translate: () => undefined,
+  };
+  class ControlledImage {
+    decoding = "auto";
+    naturalHeight = 96;
+    naturalWidth = 256;
+    src = "";
+    private promise: Promise<void>;
+    private resolvePromise!: () => void;
+    private rejectPromise!: (error: Error) => void;
+
+    constructor() {
+      this.promise = new Promise<void>((resolvePromise, rejectPromise) => {
+        this.resolvePromise = resolvePromise;
+        this.rejectPromise = rejectPromise;
+      });
+      images.push(this);
+    }
+
+    decode() {
+      return this.promise;
+    }
+
+    resolve() {
+      this.resolvePromise();
+    }
+
+    reject(error: Error) {
+      this.rejectPromise(error);
+    }
+  }
+  const images: ControlledImage[] = [];
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  const originalImage = globalThis.Image;
+  const originalResizeObserver = globalThis.ResizeObserver;
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      addEventListener: () => undefined,
+      cancelAnimationFrame: () => undefined,
+      devicePixelRatio: 2,
+      removeEventListener: () => undefined,
+      requestAnimationFrame: () => 1,
+    },
+  });
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: {},
+  });
+  Object.defineProperty(globalThis, "Image", {
+    configurable: true,
+    value: ControlledImage,
+  });
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    value: class {
+      disconnect() {}
+      observe() {}
+    },
+  });
+
+  try {
+    const connectionBase = { style: { transform: "", visibility: "" } };
+    const anchorRect = (left: number, top: number) => ({
+      left,
+      top,
+      width: 2,
+      height: 2,
+    });
+    const sources = Object.fromEntries(
+      ["gold", "pearl", "transition", "blue"].map((role) => [
+        role,
+        { standard: `${role}-1x.webp`, retina: `${role}-2x.webp` },
+      ]),
+    ) as Parameters<typeof createOrreryParticleController>[3];
+    const controller = createOrreryParticleController(
+      {
+        getContext: () => context,
+        getBoundingClientRect: () => ({
+          left: 0,
+          top: 0,
+          width: 360,
+          height: 800,
+        }),
+        height: 0,
+        width: 0,
+      } as unknown as HTMLCanvasElement,
+      {
+        moon: { getBoundingClientRect: () => anchorRect(30, 80) },
+        earth: { getBoundingClientRect: () => anchorRect(290, 250) },
+        blackHole: { getBoundingClientRect: () => anchorRect(70, 590) },
+      } as unknown as Parameters<typeof createOrreryParticleController>[1],
+      connectionBase as unknown as HTMLElement,
+      sources,
+    );
+    assert.equal(images.length, 4);
+    assert.ok(images.every((image) => image.src.endsWith("-2x.webp")));
+    assert.equal(connectionBase.style.visibility, "visible");
+    assert.ok(calls.stroke > 0, "vector currents render before any atlas decodes");
+
+    images[0].reject(new Error("intentional decode failure"));
+    images[1].resolve();
+    await new Promise((resolvePromise) => setImmediate(resolvePromise));
+    assert.ok(calls.drawImage > 0, "a successfully decoded role renders statically");
+    assert.equal(connectionBase.style.visibility, "visible");
+
+    controller.destroy();
+    const drawsAtDestroy = calls.drawImage;
+    images[2].resolve();
+    images[3].reject(new Error("intentional late failure"));
+    await new Promise((resolvePromise) => setImmediate(resolvePromise));
+    assert.equal(calls.drawImage, drawsAtDestroy);
+    assert.equal(connectionBase.style.visibility, "hidden");
+  } finally {
+    for (const [name, value] of [
+      ["window", originalWindow],
+      ["document", originalDocument],
+      ["Image", originalImage],
+      ["ResizeObserver", originalResizeObserver],
+    ] as const) {
+      Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+      });
+    }
+  }
+});
+
 test("each stream keeps its mother-image palette while converging to blue", async () => {
   assert.ok(existsSync(modulePath), "particle controller module must exist");
   const { sampleStreamColor } = await import(
