@@ -15,7 +15,8 @@
 - Never render a continuous visible line from a body to the hub.
 - Keep the current 4×4 transparent particle atlas; do not add a mother-band bitmap.
 - Use deterministic seeded particle distributions so resize and lifecycle recovery do not teleport the field.
-- Preserve the shared-geometry 2D fallback for texture failure, WebGL failure, context loss, reduced motion, and constrained devices.
+- Preserve the shared-geometry 2D fallback for particle-atlas failure, WebGL initialization failure, and context loss.
+- Reduced-motion, data-saver, paused-page, and constrained-device modes must retain a static or lower-quality three-stream nebula instead of hiding the connection.
 - Validate `360×800`, `393×852`, `430×932`, and `1440×900` in a real browser before handoff.
 - Do not deploy to Alibaba Cloud until the user approves the local screenshots.
 
