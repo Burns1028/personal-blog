@@ -276,6 +276,7 @@ await outputSphereTexture({
   toneGamma: 0.9,
 });
 await outputBlackHoleRotor();
+await import("./build-home-orrery-particle-atlas.mjs");
 
 // The stream mask follows the two real mother-image branches and removes the
 // three bodies. This leaves their local glints and tapered dust convergence but

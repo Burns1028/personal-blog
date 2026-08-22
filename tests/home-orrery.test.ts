@@ -70,6 +70,16 @@ test("home orrery manifest exposes the mother-matched v4 independent layers", ()
     assert.match(manifest, new RegExp(asset));
   }
 
+  assert.match(manifest, /connectionParticles:\s*\{/);
+  for (const role of ["gold", "pearl", "transition", "blue"] as const) {
+    assert.match(
+      manifest,
+      new RegExp(
+        `${role}:[\\s\\S]*?home-orrery-particles-${role}-256\\.webp[\\s\\S]*?home-orrery-particles-${role}-512\\.webp`,
+      ),
+    );
+  }
+
   assert.doesNotMatch(manifest, /approvedScene|approved-scene|inner-v11/);
 });
 
@@ -87,6 +97,9 @@ test("home orrery asset build deterministically separates the approved mother in
   assert.doesNotMatch(builder, /outputSphereTurnSequence|renderSphereTurnFrame/);
   assert.doesNotMatch(builder, /approved-scene|inner-v11/);
   assert.match(builder, /build-home-cosmic-system-assets\.mjs/);
+  assert.match(builder, /build-home-orrery-particle-atlas\.mjs/);
+  const packageJson = readExisting("package.json");
+  assert.match(packageJson, /"assets:home:orrery:particles"/);
 });
 
 test("continuous sphere textures contain material only, without a baked moving light band", async () => {
@@ -246,6 +259,14 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
     ["home-orrery-ideas-core-v4-960.webp", 960, 960, true],
     ["home-orrery-ideas-field-v4-960.webp", 960, 540, true],
     ["home-orrery-ideas-field-v4-1600.webp", 1600, 900, true],
+    ["home-orrery-particles-gold-256.webp", 256, 96, true],
+    ["home-orrery-particles-gold-512.webp", 512, 192, true],
+    ["home-orrery-particles-pearl-256.webp", 256, 96, true],
+    ["home-orrery-particles-pearl-512.webp", 512, 192, true],
+    ["home-orrery-particles-transition-256.webp", 256, 96, true],
+    ["home-orrery-particles-transition-512.webp", 512, 192, true],
+    ["home-orrery-particles-blue-256.webp", 256, 96, true],
+    ["home-orrery-particles-blue-512.webp", 512, 192, true],
   ] as const;
 
   for (const [filename, width, height, hasAlpha] of assets) {
@@ -324,6 +345,13 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
 
   assert.ok(desktopBytes <= 1_000_000, `desktop assets use ${desktopBytes} bytes`);
   assert.ok(mobileBytes <= 520_000, `mobile assets use ${mobileBytes} bytes`);
+
+  for (const role of ["gold", "pearl", "transition", "blue"] as const) {
+    for (const size of [256, 512] as const) {
+      const filename = `home-orrery-particles-${role}-${size}.webp`;
+      assert.ok(bytesFor(filename) <= 36_000, `${filename} stays within 36 KB`);
+    }
+  }
 });
 
 test("runtime starfield assets meet exact dimensions and budgets", async () => {
