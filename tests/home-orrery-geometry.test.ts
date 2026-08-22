@@ -6,6 +6,7 @@ import {
   ellipseEquation,
   pointInsideEllipse,
   sampleCubic,
+  tangentCubic,
   type CubicPath,
   type Ellipse,
 } from "../src/lib/home-orrery-geometry.ts";
@@ -47,6 +48,25 @@ for (const [name, bodies, stage] of [
     assert.ok(
       distance(geometry.paths.earth.start, geometry.hub) >= bodies.earth.rx * 0.25,
     );
+
+    const blackHolePath = geometry.paths["black-hole"];
+    const blackHoleTangent = tangentCubic(blackHolePath, 0);
+    const blackHoleNormal = {
+      x:
+        (blackHolePath.start.x - bodies.blackHole.x) /
+        bodies.blackHole.rx ** 2,
+      y:
+        (blackHolePath.start.y - bodies.blackHole.y) /
+        bodies.blackHole.ry ** 2,
+    };
+    const tangentNormalCosine =
+      (blackHoleTangent.x * blackHoleNormal.x +
+        blackHoleTangent.y * blackHoleNormal.y) /
+      (Math.hypot(blackHoleTangent.x, blackHoleTangent.y) *
+        Math.hypot(blackHoleNormal.x, blackHoleNormal.y));
+    assert.ok(Math.abs(tangentNormalCosine) <= 1e-6);
+    assert.ok(blackHoleTangent.x > 0);
+    assert.ok(blackHoleTangent.y < 0);
   });
 }
 

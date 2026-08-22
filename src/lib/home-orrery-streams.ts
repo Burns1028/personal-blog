@@ -153,8 +153,10 @@ export const createOrreryStreamController = (
       backend = fallback;
       applyState(fallback);
       const ready = await fallback.prepare();
-      if (!ready || destroyed) {
+      if (destroyed) return false;
+      if (!ready) {
         fallback.destroy();
+        if (backend === fallback) backend = null;
         return false;
       }
       fallbackCanvas.dataset.renderer = "2d";

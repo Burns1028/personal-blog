@@ -67,6 +67,39 @@ export const ellipseBoundaryToward = (
   };
 };
 
+const ellipseTangentPointToward = (
+  ellipse: Ellipse,
+  target: Point,
+): Point => {
+  const targetX = (target.x - ellipse.x) / ellipse.rx;
+  const targetY = (target.y - ellipse.y) / ellipse.ry;
+  const distanceSquared = targetX ** 2 + targetY ** 2;
+  if (!Number.isFinite(distanceSquared) || distanceSquared <= 1) {
+    return { x: Number.NaN, y: Number.NaN };
+  }
+
+  const tangentScale = Math.sqrt(distanceSquared - 1) / distanceSquared;
+  const radialScale = 1 / distanceSquared;
+  const candidates = [1, -1].map((direction) => ({
+    x:
+      ellipse.x +
+      ellipse.rx *
+        (targetX * radialScale - direction * targetY * tangentScale),
+    y:
+      ellipse.y +
+      ellipse.ry *
+        (targetY * radialScale + direction * targetX * tangentScale),
+  }));
+
+  const rightUpCandidates = candidates.filter(
+    (point) => target.x > point.x && target.y < point.y,
+  );
+  const available = rightUpCandidates.length > 0 ? rightUpCandidates : candidates;
+  return available.reduce((rightmost, point) =>
+    point.x > rightmost.x ? point : rightmost,
+  );
+};
+
 export const sampleCubic = (path: CubicPath, progress: number): Point => {
   const t = clamp(progress, 0, 1);
   const inverse = 1 - t;
@@ -129,8 +162,8 @@ const blackHolePath = (start: Point, hub: Point): CubicPath => {
   return {
     start,
     controlA: {
-      x: start.x + Math.max(dx * 0.25, length * 0.27),
-      y: start.y - length * 0.12,
+      x: start.x + dx * 0.24,
+      y: start.y + dy * 0.24,
     },
     controlB: {
       x: hub.x - dx * 0.24,
@@ -207,7 +240,7 @@ export const createOrreryHubGeometry = (
 
   const moonStart = ellipseBoundaryToward(bodies.moon, hub);
   const earthStart = ellipseBoundaryToward(bodies.earth, hub);
-  const blackHoleStart = ellipseBoundaryToward(bodies.blackHole, hub);
+  const blackHoleStart = ellipseTangentPointToward(bodies.blackHole, hub);
   if (![moonStart, earthStart, blackHoleStart].every(finitePoint)) return null;
   if (distance(earthStart, hub) < bodies.earth.rx * 0.25) return null;
 
