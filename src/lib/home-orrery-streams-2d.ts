@@ -9,6 +9,7 @@ import {
   nebulaFade,
   nebulaSpread,
   type OrreryNebulaLayer,
+  type OrreryNebulaParticle,
   type OrreryNebulaSource,
 } from "./home-orrery-nebula.ts";
 
@@ -18,6 +19,7 @@ export type OrreryRenderSnapshot = {
   geometry: OrreryHubGeometry | null;
   width: number;
   height: number;
+  viewportWidth: number;
   dpr: number;
 };
 
@@ -33,9 +35,59 @@ type FrameDependencies = {
   requestFrame: (callback: FrameRequestCallback) => number;
   cancelFrame: (frame: number) => void;
   now: () => number;
+  environment: Orrery2DEnvironment;
+  particleFactory: typeof createOrreryNebulaParticles;
 };
 
-const fallbackParticles = createOrreryNebulaParticles(960, 1028);
+export type Orrery2DEnvironment = {
+  saveData: boolean;
+  hardwareConcurrency: number;
+};
+
+export type Orrery2DQuality = {
+  particleCount: number;
+  fps: number;
+  dpr: number;
+};
+
+export const selectOrrery2DQuality = (
+  viewportWidth: number,
+  requestedDpr: number,
+  environment: Orrery2DEnvironment,
+): Orrery2DQuality => {
+  const constrained =
+    viewportWidth < 360 || environment.saveData || environment.hardwareConcurrency <= 4;
+  if (constrained) {
+    return {
+      particleCount: 540,
+      fps: 20,
+      dpr: Math.min(1.25, Math.max(1, requestedDpr || 1)),
+    };
+  }
+  if (viewportWidth <= 767) {
+    return {
+      particleCount: 720,
+      fps: 24,
+      dpr: Math.min(1.5, Math.max(1, requestedDpr || 1)),
+    };
+  }
+  return {
+    particleCount: 960,
+    fps: 30,
+    dpr: Math.min(2, Math.max(1, requestedDpr || 1)),
+  };
+};
+
+const sharedParticleCache = new Map<number, OrreryNebulaParticle[]>();
+
+const sharedParticles = (count: number) => {
+  let particles = sharedParticleCache.get(count);
+  if (!particles) {
+    particles = createOrreryNebulaParticles(count, 1028);
+    sharedParticleCache.set(count, particles);
+  }
+  return particles;
+};
 
 const particleColors: Record<OrreryNebulaSource, Record<OrreryNebulaLayer, string>> = {
   hub: {
@@ -76,11 +128,12 @@ const drawArm = (
   time: number,
   artifact: OrreryArtifact,
   shortEdge: number,
+  particles: OrreryNebulaParticle[],
 ) => {
   const path = geometry.paths[stream];
   const emphasis = emphasisFor(artifact, stream);
 
-  for (const particle of fallbackParticles) {
+  for (const particle of particles) {
     if (particle.stream !== stream) continue;
     const progress = (particle.phase + time * particle.speed * 0.001) % 1;
     const point = sampleCubic(path, progress);
@@ -107,12 +160,13 @@ const drawHub = (
   geometry: OrreryHubGeometry,
   time: number,
   shortEdge: number,
+  particles: OrreryNebulaParticle[],
 ) => {
   const hubSize = Math.min(68, Math.max(48, shortEdge * 0.075));
   const coreRadius = hubSize * 0.28;
   const hazeRadius = hubSize * 0.5;
 
-  for (const particle of fallbackParticles) {
+  for (const particle of particles) {
     if (particle.stream !== "hub") continue;
     const angle = particle.phase * Math.PI * 2 + time * particle.speed * 0.001;
     const radius = shortEdge * (0.008 + particle.clusterSeed * 0.026);
@@ -163,11 +217,12 @@ const drawHub = (
   context.fill();
 };
 
-export const drawOrreryStreams2D = (
+const drawParticleField = (
   context: CanvasRenderingContext2D,
   snapshot: OrreryRenderSnapshot,
   time: number,
   artifact: OrreryArtifact,
+  particles: OrreryNebulaParticle[],
 ) => {
   context.clearRect(0, 0, snapshot.width, snapshot.height);
   if (!snapshot.geometry) return;
@@ -175,35 +230,79 @@ export const drawOrreryStreams2D = (
   context.save();
   context.globalCompositeOperation = "lighter";
   const shortEdge = Math.min(snapshot.width, snapshot.height);
-  drawHub(context, snapshot.geometry, time, shortEdge);
+  drawHub(context, snapshot.geometry, time, shortEdge, particles);
   for (const stream of ["moon", "earth", "black-hole"] as const) {
-    drawArm(context, snapshot.geometry, stream, time, artifact, shortEdge);
+    drawArm(context, snapshot.geometry, stream, time, artifact, shortEdge, particles);
   }
   context.restore();
   context.globalCompositeOperation = "source-over";
   context.globalAlpha = 1;
 };
 
+const defaultEnvironment = (): Orrery2DEnvironment => {
+  const browserNavigator = globalThis.navigator as Navigator & {
+    connection?: { saveData?: boolean };
+  };
+  return {
+    saveData: browserNavigator?.connection?.saveData === true,
+    hardwareConcurrency: browserNavigator?.hardwareConcurrency || 8,
+  };
+};
+
+export const drawOrreryStreams2D = (
+  context: CanvasRenderingContext2D,
+  snapshot: OrreryRenderSnapshot,
+  time: number,
+  artifact: OrreryArtifact,
+) => {
+  const quality = selectOrrery2DQuality(
+    snapshot.viewportWidth,
+    snapshot.dpr,
+    defaultEnvironment(),
+  );
+  drawParticleField(
+    context,
+    snapshot,
+    time,
+    artifact,
+    sharedParticles(quality.particleCount),
+  );
+};
+
 const browserFrames = (): FrameDependencies => ({
   requestFrame: (callback) => window.requestAnimationFrame(callback),
   cancelFrame: (frame) => window.cancelAnimationFrame(frame),
   now: () => performance.now(),
+  environment: defaultEnvironment(),
+  particleFactory: createOrreryNebulaParticles,
+});
+
+const createDependencies = (
+  overrides: Partial<FrameDependencies>,
+): FrameDependencies => ({
+  ...browserFrames(),
+  ...overrides,
 });
 
 export const createOrrery2DStreamController = (
   canvas: HTMLCanvasElement,
-  dependencies: FrameDependencies = browserFrames(),
+  dependencyOverrides: Partial<FrameDependencies> = {},
 ): OrreryStreamController | null => {
   const context = canvas.getContext("2d", { alpha: true });
   if (!context) return null;
+  const dependencies = createDependencies(dependencyOverrides);
 
   let snapshot: OrreryRenderSnapshot = {
     geometry: null,
     width: 1,
     height: 1,
+    viewportWidth: 1,
     dpr: 1,
   };
   let artifact: OrreryArtifact = "none";
+  let quality = selectOrrery2DQuality(1, 1, dependencies.environment);
+  let particles: OrreryNebulaParticle[] = [];
+  const particleCache = new Map<number, OrreryNebulaParticle[]>();
   let running = false;
   let destroyed = false;
   let frame = 0;
@@ -211,12 +310,12 @@ export const createOrrery2DStreamController = (
 
   const draw = (time = dependencies.now()) => {
     if (destroyed) return;
-    drawOrreryStreams2D(context, snapshot, time, artifact);
+    drawParticleField(context, snapshot, time, artifact, particles);
   };
 
   const tick = (time: number) => {
     if (destroyed || !running) return;
-    if (time - lastFrame >= 1000 / 30) {
+    if (time - lastFrame >= 1000 / quality.fps) {
       lastFrame = time;
       draw(time);
     }
@@ -247,11 +346,22 @@ export const createOrrery2DStreamController = (
     setGeometry(next) {
       if (destroyed) return;
       snapshot = next;
-      const backingWidth = Math.max(1, Math.round(next.width * next.dpr));
-      const backingHeight = Math.max(1, Math.round(next.height * next.dpr));
+      quality = selectOrrery2DQuality(
+        next.viewportWidth,
+        next.dpr,
+        dependencies.environment,
+      );
+      let nextParticles = particleCache.get(quality.particleCount);
+      if (!nextParticles) {
+        nextParticles = dependencies.particleFactory(quality.particleCount, 1028);
+        particleCache.set(quality.particleCount, nextParticles);
+      }
+      particles = nextParticles;
+      const backingWidth = Math.max(1, Math.round(next.width * quality.dpr));
+      const backingHeight = Math.max(1, Math.round(next.height * quality.dpr));
       if (canvas.width !== backingWidth) canvas.width = backingWidth;
       if (canvas.height !== backingHeight) canvas.height = backingHeight;
-      context.setTransform(next.dpr, 0, 0, next.dpr, 0, 0);
+      context.setTransform(quality.dpr, 0, 0, quality.dpr, 0, 0);
       draw();
     },
     destroy() {

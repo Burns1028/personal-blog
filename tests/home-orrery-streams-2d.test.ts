@@ -9,6 +9,7 @@ import {
   type OrreryRenderSnapshot,
 } from "../src/lib/home-orrery-streams-2d.ts";
 import { createOrreryHubGeometry } from "../src/lib/home-orrery-geometry.ts";
+import { createOrreryNebulaParticles } from "../src/lib/home-orrery-nebula.ts";
 
 const geometry = createOrreryHubGeometry(
   {
@@ -24,6 +25,7 @@ const snapshot: OrreryRenderSnapshot = {
   geometry,
   width: 440,
   height: 366,
+  viewportWidth: 440,
   dpr: 1,
 };
 
@@ -94,11 +96,82 @@ test("the 2D fallback clears and draws nothing for missing geometry", () => {
   const { context, calls } = recordingContext();
   drawOrreryStreams2D(
     context,
-    { geometry: null, width: 440, height: 366, dpr: 1 },
+    { geometry: null, width: 440, height: 366, viewportWidth: 440, dpr: 1 },
     0,
     "none",
   );
   assert.deepEqual(calls.map((call) => call.name), ["clearRect"]);
+});
+
+test("constrained 2D quality lowers particles, frame rate, and backing DPR", async () => {
+  const { context, calls } = recordingContext();
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => context,
+  } as unknown as HTMLCanvasElement;
+  const queued: FrameRequestCallback[] = [];
+  const particleRequests: number[] = [];
+  const controller = createOrrery2DStreamController(canvas, {
+    requestFrame(callback) {
+      queued.push(callback);
+      return queued.length;
+    },
+    cancelFrame: () => undefined,
+    now: () => 0,
+    environment: { saveData: false, hardwareConcurrency: 8 },
+    particleFactory(count, seed) {
+      particleRequests.push(count);
+      return createOrreryNebulaParticles(count, seed);
+    },
+  });
+  assert.ok(controller);
+  controller.setGeometry({
+    geometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 340,
+    dpr: 2,
+  });
+
+  assert.deepEqual(particleRequests, [540]);
+  assert.equal(canvas.width, 476);
+  assert.equal(canvas.height, 458);
+  assert.deepEqual(calls.filter((call) => call.name === "setTransform").at(-1)?.args, [
+    1.25, 0, 0, 1.25, 0, 0,
+  ]);
+  assert.equal(calls.filter((call) => call.name === "arc").length, 542);
+
+  const drawsBeforeAnimation = calls.filter((call) => call.name === "clearRect").length;
+  controller.setRunning(true);
+  queued[0]?.(49);
+  assert.equal(calls.filter((call) => call.name === "clearRect").length, drawsBeforeAnimation);
+  queued[1]?.(50);
+  assert.equal(calls.filter((call) => call.name === "clearRect").length, drawsBeforeAnimation + 1);
+
+  controller.setGeometry({
+    geometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 340,
+    dpr: 1,
+  });
+  controller.setGeometry({
+    geometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 393,
+    dpr: 1,
+  });
+  controller.setGeometry({
+    geometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 340,
+    dpr: 1,
+  });
+  assert.deepEqual(particleRequests, [540, 720]);
+  controller.destroy();
 });
 
 test("the 2D controller stops animation and ignores late frames after destroy", async () => {

@@ -388,7 +388,13 @@ export const createOrreryThreeStreamController = (
   let particleMaterial: ShaderMaterial | null = null;
   let hubGeometry: PlaneGeometry | null = null;
   let hubMaterial: ShaderMaterial | null = null;
-  let snapshot: OrreryRenderSnapshot = { geometry: null, width: 1, height: 1, dpr: 1 };
+  let snapshot: OrreryRenderSnapshot = {
+    geometry: null,
+    width: 1,
+    height: 1,
+    viewportWidth: 1,
+    dpr: 1,
+  };
   let quality = selectOrreryQuality(1, dependencies.environment);
   let artifact: OrreryArtifact = "none";
   let running = false;
@@ -429,7 +435,10 @@ export const createOrreryThreeStreamController = (
       render();
       return;
     }
-    quality = selectOrreryQuality(snapshot.width, dependencies.environment);
+    quality = selectOrreryQuality(snapshot.viewportWidth, {
+      ...dependencies.environment,
+      dpr: snapshot.dpr,
+    });
     renderer.setPixelRatio(quality.dpr);
     renderer.setSize(snapshot.width, snapshot.height, false);
     camera.left = 0;

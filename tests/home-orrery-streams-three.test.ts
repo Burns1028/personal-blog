@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
-import { Texture } from "three";
+import { InstancedBufferGeometry, Mesh, type Scene, Texture } from "three";
 
 import {
   atlasCellForParticle,
@@ -152,11 +152,19 @@ const makeHarness = () => {
     },
   } as unknown as HTMLCanvasElement;
   const calls: string[] = [];
+  const pixelRatios: number[] = [];
+  const scenes: Scene[] = [];
   const renderer = {
-    setPixelRatio: () => calls.push("pixelRatio"),
+    setPixelRatio: (value: number) => {
+      calls.push("pixelRatio");
+      pixelRatios.push(value);
+    },
     setSize: () => calls.push("size"),
     setClearColor: () => calls.push("clearColor"),
-    render: () => calls.push("render"),
+    render: (scene: Scene) => {
+      calls.push("render");
+      scenes.push(scene);
+    },
     dispose: () => calls.push("rendererDispose"),
     forceContextLoss: () => calls.push("forceContextLoss"),
   };
@@ -166,8 +174,80 @@ const makeHarness = () => {
     calls.push("textureDispose");
     originalTextureDispose();
   };
-  return { canvas, calls, renderer, texture, listeners };
+  return { canvas, calls, pixelRatios, renderer, scenes, texture, listeners };
 };
+
+test("Three controller selects constrained density from viewport rather than wider stage", async () => {
+  const harness = makeHarness();
+  const queued: FrameRequestCallback[] = [];
+  const controller = createOrreryThreeStreamController(
+    harness.canvas,
+    "/atlas.webp",
+    {
+      rendererFactory: () => harness.renderer,
+      textureLoader: async () => harness.texture,
+      requestFrame: (callback) => {
+        queued.push(callback);
+        return queued.length;
+      },
+      cancelFrame: () => undefined,
+      now: () => 100,
+      environment: { dpr: 2, saveData: false, hardwareConcurrency: 8 },
+    },
+  );
+  controller.setGeometry({
+    geometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 340,
+    dpr: 1,
+  });
+  assert.equal(await controller.prepare(), true);
+  const particleMesh = harness.scenes.at(-1)?.children.find(
+    (child) => child instanceof Mesh && child.geometry instanceof InstancedBufferGeometry,
+  ) as Mesh<InstancedBufferGeometry> | undefined;
+  assert.equal(particleMesh?.geometry.instanceCount, 720);
+  const rendersBeforeAnimation = harness.calls.filter((call) => call === "render").length;
+  controller.setRunning(true);
+  queued[0]?.(41);
+  assert.equal(harness.calls.filter((call) => call === "render").length, rendersBeforeAnimation);
+  queued[1]?.(42);
+  assert.equal(harness.calls.filter((call) => call === "render").length, rendersBeforeAnimation + 1);
+  controller.destroy();
+});
+
+test("Three controller reapplies live snapshot DPR on the same renderer", async () => {
+  const harness = makeHarness();
+  const controller = createOrreryThreeStreamController(
+    harness.canvas,
+    "/atlas.webp",
+    {
+      rendererFactory: () => harness.renderer,
+      textureLoader: async () => harness.texture,
+      requestFrame: () => 1,
+      cancelFrame: () => undefined,
+      now: () => 100,
+      environment: { dpr: 3, saveData: false, hardwareConcurrency: 8 },
+    },
+  );
+  controller.setGeometry({
+    geometry,
+    width: 440,
+    height: 366,
+    viewportWidth: 1440,
+    dpr: 1,
+  });
+  assert.equal(await controller.prepare(), true);
+  controller.setGeometry({
+    geometry,
+    width: 440,
+    height: 366,
+    viewportWidth: 1440,
+    dpr: 2,
+  });
+  assert.deepEqual(harness.pixelRatios.slice(-2), [1, 2]);
+  controller.destroy();
+});
 
 test("Three.js controller prepares, renders shared geometry, and disposes once", async () => {
   const harness = makeHarness();
@@ -183,7 +263,7 @@ test("Three.js controller prepares, renders shared geometry, and disposes once",
       environment: { dpr: 2, saveData: false, hardwareConcurrency: 8 },
     },
   );
-  controller.setGeometry({ geometry, width: 440, height: 366, dpr: 1.5 });
+  controller.setGeometry({ geometry, width: 440, height: 366, viewportWidth: 440, dpr: 1.5 });
   assert.equal(await controller.prepare(), true);
   assert.ok(harness.calls.includes("render"));
   controller.destroy();

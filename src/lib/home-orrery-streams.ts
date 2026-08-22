@@ -54,12 +54,17 @@ export const createOrrerySnapshot = (
   stageRect: RectLike,
   bodyRects: OrreryBodyRects,
   devicePixelRatio: number,
+  viewportWidth = stageRect.width,
 ): OrreryRenderSnapshot => {
   const width = Math.max(0, Number.isFinite(stageRect.width) ? stageRect.width : 0);
   const height = Math.max(0, Number.isFinite(stageRect.height) ? stageRect.height : 0);
+  const measuredViewportWidth = Math.max(
+    0,
+    Number.isFinite(viewportWidth) ? viewportWidth : width,
+  );
   const dpr = Math.min(2, Math.max(1, devicePixelRatio || 1));
   if (!usableRect(stageRect) || !Object.values(bodyRects).every(usableRect)) {
-    return { geometry: null, width, height, dpr };
+    return { geometry: null, width, height, viewportWidth: measuredViewportWidth, dpr };
   }
   const bodies = {
     moon: ellipseFromRect(bodyRects.moon, stageRect),
@@ -70,6 +75,7 @@ export const createOrrerySnapshot = (
     geometry: createOrreryHubGeometry(bodies, { width, height }),
     width,
     height,
+    viewportWidth: measuredViewportWidth,
     dpr,
   };
 };
@@ -105,6 +111,7 @@ export const createOrreryStreamController = (
     geometry: null,
     width: 1,
     height: 1,
+    viewportWidth: 1,
     dpr: 1,
   };
   let running = false;
@@ -115,14 +122,20 @@ export const createOrreryStreamController = (
 
   const measure = () => {
     if (!stage) return snapshot;
+    const stageRect = stage.getBoundingClientRect();
+    const viewportWidths = [
+      window.innerWidth,
+      document.documentElement?.clientWidth,
+    ].filter((value) => Number.isFinite(value) && value > 0);
     snapshot = createOrrerySnapshot(
-      stage.getBoundingClientRect(),
+      stageRect,
       {
         moon: bodyElements.moon.getBoundingClientRect(),
         earth: bodyElements.earth.getBoundingClientRect(),
         blackHole: bodyElements.blackHole.getBoundingClientRect(),
       },
       window.devicePixelRatio || 1,
+      viewportWidths.length > 0 ? Math.min(...viewportWidths) : stageRect.width,
     );
     return snapshot;
   };

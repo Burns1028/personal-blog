@@ -68,13 +68,14 @@ const installFacadeBrowser = () => {
     disconnect() {}
   }
   Reflect.set(globalThis, "window", {
+    innerWidth: 340,
     devicePixelRatio: 2,
     requestAnimationFrame: () => nextFrame++,
     cancelAnimationFrame: () => {},
     addEventListener: () => {},
     removeEventListener: () => {},
   });
-  Reflect.set(globalThis, "document", {});
+  Reflect.set(globalThis, "document", { documentElement: { clientWidth: 340 } });
   Reflect.set(globalThis, "ResizeObserver", MockResizeObserver);
   const body = (left: number, top: number, width: number, height: number) => ({
     getBoundingClientRect: () => ({ left, top, width, height }),
@@ -121,9 +122,11 @@ test("a render snapshot measures visible bodies instead of legacy center anchors
       blackHole: { left: 70, top: 290, width: 64, height: 64 },
     },
     3,
+    340,
   );
   assert.equal(snapshot.width, 440);
   assert.equal(snapshot.height, 366);
+  assert.equal(snapshot.viewportWidth, 340);
   assert.equal(snapshot.dpr, 2);
   assert.ok(snapshot.geometry);
   assert.deepEqual(snapshot.geometry.paths.moon.end, snapshot.geometry.hub);
@@ -140,6 +143,7 @@ test("invalid stage measurements return a cleared snapshot", () => {
       blackHole: { left: 40, top: 40, width: 10, height: 10 },
     },
     1,
+    440,
   );
   assert.equal(snapshot.geometry, null);
 });
@@ -168,6 +172,7 @@ test("facade replaces the canvas and preserves state when Three import fails", a
   assert.equal(await facade.prepare(), true);
   assert.ok(browser.lastReplacement);
   assert.equal(fallback.geometries.at(-1)?.geometry !== null, true);
+  assert.equal(fallback.geometries.at(-1)?.viewportWidth, 340);
   assert.equal(fallback.running.at(-1), true);
   assert.equal(fallback.artifacts.at(-1), "repo");
   assert.equal((browser.lastReplacement as { dataset: Record<string, string> }).dataset.renderer, "2d");
