@@ -1,7 +1,25 @@
 export type OrreryArtifact = "none" | "document" | "repo" | "idea";
 export type OrreryStream = "black-hole" | "moon";
 
-type Point = { x: number; y: number };
+export type Point = { x: number; y: number };
+export type RectLike = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+export type OrreryAnchorPoints = {
+  moon: Point;
+  earth: Point;
+  blackHole: Point;
+};
+export type CubicPath = {
+  start: Point;
+  controlA: Point;
+  controlB: Point;
+  end: Point;
+};
+export type OrreryPathGeometry = Record<OrreryStream, CubicPath>;
 type Color = [number, number, number];
 
 const BLACK_HOLE: Point = { x: 0.225, y: 0.81 };
@@ -27,6 +45,73 @@ const cubicPoint = (
     3 * inverse * t ** 2 * controlB[key] +
     t ** 3 * end[key];
   return { x: sample("x"), y: sample("y") };
+};
+
+export const pointRelativeToRect = (
+  pointRect: RectLike,
+  stageRect: RectLike,
+): Point => ({
+  x: pointRect.left + pointRect.width / 2 - stageRect.left,
+  y: pointRect.top + pointRect.height / 2 - stageRect.top,
+});
+
+export const createOrreryPathGeometry = (
+  anchors: OrreryAnchorPoints,
+  viewport: { width: number; height: number },
+): OrreryPathGeometry => {
+  const moonDelta = {
+    x: anchors.earth.x - anchors.moon.x,
+    y: anchors.earth.y - anchors.moon.y,
+  };
+  const blackHoleDelta = {
+    x: anchors.earth.x - anchors.blackHole.x,
+    y: anchors.earth.y - anchors.blackHole.y,
+  };
+
+  return {
+    moon: {
+      start: { ...anchors.moon },
+      controlA: {
+        x: anchors.moon.x + moonDelta.x * 0.35,
+        y: anchors.moon.y + moonDelta.y * -0.05,
+      },
+      controlB: {
+        x: anchors.moon.x + moonDelta.x * 0.72,
+        y: anchors.moon.y + moonDelta.y * 0.24,
+      },
+      end: { ...anchors.earth },
+    },
+    "black-hole": {
+      start: { ...anchors.blackHole },
+      controlA: {
+        x: Math.max(
+          viewport.width * 0.02,
+          anchors.blackHole.x - blackHoleDelta.x * 0.42,
+        ),
+        y: anchors.blackHole.y + blackHoleDelta.y * 0.28,
+      },
+      controlB: {
+        x: anchors.blackHole.x + blackHoleDelta.x * 0.2,
+        y: anchors.earth.y,
+      },
+      end: { ...anchors.earth },
+    },
+  };
+};
+
+export const sampleOrreryPath = (
+  geometry: OrreryPathGeometry,
+  stream: OrreryStream,
+  progress: number,
+): Point => {
+  const path = geometry[stream];
+  return cubicPoint(
+    path.start,
+    path.controlA,
+    path.controlB,
+    path.end,
+    progress,
+  );
 };
 
 export const sampleBlackHoleToEarthPath = (progress: number): Point =>

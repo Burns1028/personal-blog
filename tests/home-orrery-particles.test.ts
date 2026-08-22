@@ -8,22 +8,66 @@ const modulePath = resolve(
   "../src/lib/home-orrery-particles.ts",
 );
 
-test("two asymmetric particle streams converge on Earth without serially crossing the Moon", async () => {
+test("two responsive particle streams use live anchors and converge on Earth", async () => {
   assert.ok(existsSync(modulePath), "particle controller module must exist");
-  const { sampleBlackHoleToEarthPath, sampleMoonToEarthPath } = await import(
+  const { createOrreryPathGeometry, sampleOrreryPath } = await import(
     "../src/lib/home-orrery-particles.ts"
   );
 
-  assert.deepEqual(sampleBlackHoleToEarthPath(0), { x: 0.225, y: 0.81 });
-  assert.deepEqual(sampleMoonToEarthPath(0), { x: 0.295, y: 0.205 });
-  assert.deepEqual(sampleBlackHoleToEarthPath(1), { x: 0.68, y: 0.37 });
-  assert.deepEqual(sampleMoonToEarthPath(1), { x: 0.68, y: 0.37 });
+  const anchors = {
+    blackHole: { x: 180, y: 600 },
+    moon: { x: 250, y: 160 },
+    earth: { x: 640, y: 280 },
+  };
+  const geometry = createOrreryPathGeometry(anchors, {
+    width: 900,
+    height: 700,
+  });
 
-  const blackMidpoint = sampleBlackHoleToEarthPath(0.5);
-  const moonMidpoint = sampleMoonToEarthPath(0.5);
-  assert.ok(blackMidpoint.y > moonMidpoint.y + 0.12);
-  assert.ok(blackMidpoint.x < 0.55);
-  assert.ok(moonMidpoint.x > 0.4);
+  assert.deepEqual(sampleOrreryPath(geometry, "black-hole", 0), anchors.blackHole);
+  assert.deepEqual(sampleOrreryPath(geometry, "moon", 0), anchors.moon);
+  assert.deepEqual(sampleOrreryPath(geometry, "black-hole", 1), anchors.earth);
+  assert.deepEqual(sampleOrreryPath(geometry, "moon", 1), anchors.earth);
+
+  const blackMidpoint = sampleOrreryPath(geometry, "black-hole", 0.5);
+  const moonMidpoint = sampleOrreryPath(geometry, "moon", 0.5);
+  assert.ok(blackMidpoint.y > moonMidpoint.y + 90);
+  assert.ok(blackMidpoint.x < 500);
+  assert.ok(moonMidpoint.x > 380);
+});
+
+test("anchor centers convert from viewport coordinates into canvas pixels", async () => {
+  const { pointRelativeToRect } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+
+  assert.deepEqual(
+    pointRelativeToRect(
+      { left: 225, top: 140, width: 2, height: 2 },
+      { left: 25, top: 40, width: 900, height: 700 },
+    ),
+    { x: 201, y: 101 },
+  );
+});
+
+test("mobile anchor movement changes only the measured endpoints", async () => {
+  const { createOrreryPathGeometry, sampleOrreryPath } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+  const anchors = {
+    blackHole: { x: 86, y: 378 },
+    moon: { x: 94, y: 105 },
+    earth: { x: 309, y: 204 },
+  };
+  const geometry = createOrreryPathGeometry(anchors, {
+    width: 436,
+    height: 480,
+  });
+
+  assert.deepEqual(sampleOrreryPath(geometry, "moon", 0), anchors.moon);
+  assert.deepEqual(sampleOrreryPath(geometry, "moon", 1), anchors.earth);
+  assert.deepEqual(sampleOrreryPath(geometry, "black-hole", 0), anchors.blackHole);
+  assert.deepEqual(sampleOrreryPath(geometry, "black-hole", 1), anchors.earth);
 });
 
 test("each stream keeps its mother-image palette while converging to blue", async () => {
