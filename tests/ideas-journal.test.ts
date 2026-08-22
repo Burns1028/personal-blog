@@ -5,8 +5,11 @@ import test from "node:test";
 import sharp from "sharp";
 import {
   filterIdeas,
+  ideaArchiveHref,
   ideaDateKey,
   listIdeaDates,
+  listIdeaThemes,
+  normalizeIdeaTheme,
 } from "../src/lib/idea-archive.ts";
 
 const projectRoot = resolve(import.meta.dirname, "..");
@@ -65,6 +68,66 @@ test("Ideas journal combines keyword and exact date filtering in stable order", 
 
 test("Ideas journal exposes unique dates newest first", () => {
   assert.deepEqual(listIdeaDates(ideas), ["2026-08-07", "2026-08-02"]);
+});
+
+test("Ideas themes are counted and ordered by count then recency", () => {
+  const facets = listIdeaThemes([
+    ...ideas,
+    {
+      sourceKey: "learning-again",
+      text: "再学一次",
+      theme: "学习",
+      capturedAt: "2026-08-08T00:00:00+08:00",
+    },
+    {
+      sourceKey: "literature-again",
+      text: "再读一次",
+      theme: "文学",
+      capturedAt: "2026-08-06T00:00:00+08:00",
+    },
+  ]);
+
+  assert.deepEqual(
+    facets.map(({ name, count }) => ({ name, count })),
+    [
+      { name: "学习", count: 2 },
+      { name: "文学", count: 2 },
+      { name: "处事", count: 1 },
+    ],
+  );
+});
+
+test("Ideas validates exact themes and combines all filters", () => {
+  const facets = listIdeaThemes(ideas);
+
+  assert.equal(normalizeIdeaTheme(" 文学 ", facets), "文学");
+  assert.equal(normalizeIdeaTheme("不存在", facets), "");
+  assert.deepEqual(
+    filterIdeas(ideas, "良夜", "2026-08-07", "文学").map(
+      ({ sourceKey }) => sourceKey,
+    ),
+    ["poem-night"],
+  );
+  assert.deepEqual(
+    filterIdeas(ideas, "", "", "学习").map(({ sourceKey }) => sourceKey),
+    ["learning-fast"],
+  );
+});
+
+test("Ideas filter URLs preserve and clear independent constraints", () => {
+  assert.equal(
+    ideaArchiveHref({
+      query: " Agent ",
+      date: "2026-08-21",
+      theme: "系统",
+    }),
+    "/ideas?q=Agent&theme=%E7%B3%BB%E7%BB%9F&date=2026-08-21",
+  );
+  assert.equal(
+    ideaArchiveHref({ query: "Agent", date: "2026-08-21", theme: "" }),
+    "/ideas?q=Agent&date=2026-08-21",
+  );
+  assert.equal(ideaArchiveHref({}), "/ideas");
 });
 
 test("Ideas page renders URL-backed search and an unboxed timeline journal", () => {
