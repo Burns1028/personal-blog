@@ -152,6 +152,33 @@ test("Ideas page renders URL-backed search and an unboxed timeline journal", () 
   assert.doesNotMatch(page, /signal-card__permalink/);
 });
 
+test("Ideas page exposes category navigation across the filter rail and entries", () => {
+  const page = readFileSync(
+    resolve(projectRoot, "src/pages/ideas/index.astro"),
+    "utf8",
+  );
+
+  assert.match(page, /Astro\.url\.searchParams\.get\("theme"\)/);
+  assert.match(page, /listIdeaThemes\(allIdeas\)/);
+  assert.match(page, /name="theme"/);
+  assert.match(page, /data-ideas-theme-index/);
+  assert.match(page, /data-ideas-theme-filter/);
+  assert.match(page, /分类索引/);
+  assert.match(page, /更多\s*\{moreThemes\.length\}\s*类/);
+  assert.match(
+    page,
+    /aria-current=\{theme\.name === selectedTheme \? "page" : undefined\}/,
+  );
+  assert.match(
+    page,
+    /aria-label=\{`查看“\$\{idea\.theme\}”分类的灵感`\}/,
+  );
+  assert.match(
+    page,
+    /ideaArchiveHref\(\{[\s\S]*?theme:\s*idea\.theme/,
+  );
+});
+
 test("Ideas date filtering uses a custom archive index instead of the native select popup", () => {
   const page = readFileSync(
     resolve(projectRoot, "src/pages/ideas/index.astro"),

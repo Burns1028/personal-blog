@@ -3,8 +3,11 @@ import IdeasSingularity from "../../components/IdeasSingularity.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import {
   filterIdeas,
+  ideaArchiveHref,
   ideaDateKey,
   listIdeaDates,
+  listIdeaThemes,
+  normalizeIdeaTheme,
 } from "../../lib/idea-archive";
 import { normalizeSearch } from "../../lib/archive-query";
 import { listPublishedIdeas } from "../../lib/server/idea-store";
@@ -16,7 +19,25 @@ const allIdeas = listPublishedIdeas();
 const query = normalizeSearch(Astro.url.searchParams.get("q"));
 const selectedDate = ideaDateKey(Astro.url.searchParams.get("date") ?? "");
 const dates = listIdeaDates(allIdeas);
-const ideas = filterIdeas(allIdeas, query, selectedDate);
+const themes = listIdeaThemes(allIdeas);
+const selectedTheme = normalizeIdeaTheme(
+  Astro.url.searchParams.get("theme"),
+  themes,
+);
+const ideas = filterIdeas(allIdeas, query, selectedDate, selectedTheme);
+const leadingThemes = themes.slice(0, 4);
+const activeLongTail =
+  selectedTheme &&
+  !leadingThemes.some(({ name }) => name === selectedTheme)
+    ? themes.find(({ name }) => name === selectedTheme)
+    : undefined;
+const visibleThemes = activeLongTail
+  ? [...leadingThemes, activeLongTail]
+  : leadingThemes;
+const visibleThemeNames = new Set(visibleThemes.map(({ name }) => name));
+const moreThemes = themes.filter(({ name }) => !visibleThemeNames.has(name));
+const hrefForTheme = (theme: string) =>
+  ideaArchiveHref({ query, date: selectedDate, theme });
 const sequenceByKey = new Map(
   allIdeas.map((idea, index) => [idea.sourceKey, index + 1]),
 );
@@ -55,67 +76,164 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
         role="search"
         data-ideas-search
       >
-        <label class="sr-only" for="ideas-query">搜索灵感或关键词</label>
-        <svg class="ideas-journal__search-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10.5" cy="10.5" r="6.4"></circle>
-          <path d="m15.3 15.3 4.6 4.6"></path>
-        </svg>
-        <input
-          id="ideas-query"
-          type="search"
-          name="q"
-          value={query}
-          placeholder="搜索灵感或关键词"
-          autocomplete="off"
-        />
+        <div class="ideas-journal__query">
+          <label class="sr-only" for="ideas-query">搜索灵感或关键词</label>
+          <svg class="ideas-journal__search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="10.5" cy="10.5" r="6.4"></circle>
+            <path d="m15.3 15.3 4.6 4.6"></path>
+          </svg>
+          <input
+            id="ideas-query"
+            type="search"
+            name="q"
+            value={query}
+            placeholder="搜索灵感或关键词"
+            autocomplete="off"
+          />
+        </div>
 
-        <span class="ideas-journal__search-divider" aria-hidden="true"></span>
+        <div class="ideas-journal__filter-controls">
+          <input type="hidden" name="theme" value={selectedTheme} />
+          <details class="ideas-journal__theme-filter" data-ideas-theme-filter>
+            <summary aria-label={`按分类筛选，当前：${selectedTheme || "全部分类"}`}>
+              <svg class="ideas-journal__theme-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5h9l5 5-9 9-5-5z"></path>
+                <circle cx="9" cy="9" r="1.2"></circle>
+              </svg>
+              <span>{selectedTheme || "全部分类"}</span>
+              <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m4 6 4 4 4-4"></path>
+              </svg>
+            </summary>
 
-        <input
-          type="hidden"
-          name="date"
-          value={selectedDate}
-          data-ideas-date-value
-        />
-        <details class="ideas-journal__date-filter" data-ideas-date-filter>
-          <summary aria-label={`按日期筛选，当前：${selectedDate || "全部日期"}`}>
-            <svg class="ideas-journal__calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 7.5h14v12H5z"></path>
-              <path d="M8 4.5v5M16 4.5v5M5 11h14"></path>
-            </svg>
-            <span>{selectedDate || "全部日期"}</span>
-            <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="m4 6 4 4 4-4"></path>
-            </svg>
-          </summary>
-
-          <div class="ideas-journal__date-menu">
-            <div role="group" aria-label="选择灵感日期">
-              <button
-                class="ideas-journal__date-option"
-                type="button"
-                data-ideas-date-option
-                data-date-value=""
-                aria-current={!selectedDate ? "page" : undefined}
-              >
-                全部日期
-              </button>
-              {
-                dates.map((date) => (
-                  <button
-                    class="ideas-journal__date-option"
-                    type="button"
-                    data-ideas-date-option
-                    data-date-value={date}
-                    aria-current={date === selectedDate ? "page" : undefined}
-                  >
-                    {date}
-                  </button>
-                ))
-              }
+            <div class="ideas-journal__theme-menu" data-ideas-theme-menu>
+              <div role="group" aria-label="选择灵感分类">
+                <a
+                  class="ideas-journal__theme-option"
+                  href={hrefForTheme("")}
+                  aria-current={!selectedTheme ? "page" : undefined}
+                >
+                  <span>全部分类</span>
+                  <b>{String(allIdeas.length).padStart(2, "0")}</b>
+                </a>
+                {
+                  themes.map((theme) => (
+                    <a
+                      class="ideas-journal__theme-option"
+                      href={hrefForTheme(theme.name)}
+                      aria-current={theme.name === selectedTheme ? "page" : undefined}
+                    >
+                      <span>{theme.name}</span>
+                      <b>{String(theme.count).padStart(2, "0")}</b>
+                    </a>
+                  ))
+                }
+              </div>
             </div>
-          </div>
-        </details>
+          </details>
+
+          <span class="ideas-journal__filter-divider" aria-hidden="true"></span>
+
+          <input
+            type="hidden"
+            name="date"
+            value={selectedDate}
+            data-ideas-date-value
+          />
+          <details class="ideas-journal__date-filter" data-ideas-date-filter>
+            <summary aria-label={`按日期筛选，当前：${selectedDate || "全部日期"}`}>
+              <svg class="ideas-journal__calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 7.5h14v12H5z"></path>
+                <path d="M8 4.5v5M16 4.5v5M5 11h14"></path>
+              </svg>
+              <span>{selectedDate || "全部日期"}</span>
+              <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m4 6 4 4 4-4"></path>
+              </svg>
+            </summary>
+
+            <div class="ideas-journal__date-menu">
+              <div role="group" aria-label="选择灵感日期">
+                <button
+                  class="ideas-journal__date-option"
+                  type="button"
+                  data-ideas-date-option
+                  data-date-value=""
+                  aria-current={!selectedDate ? "page" : undefined}
+                >
+                  全部日期
+                </button>
+                {
+                  dates.map((date) => (
+                    <button
+                      class="ideas-journal__date-option"
+                      type="button"
+                      data-ideas-date-option
+                      data-date-value={date}
+                      aria-current={date === selectedDate ? "page" : undefined}
+                    >
+                      {date}
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <nav
+          class="ideas-journal__theme-index"
+          data-ideas-theme-index
+          aria-label="按分类筛选灵感"
+        >
+          <span class="ideas-journal__theme-index-label">分类索引</span>
+          <a
+            class="ideas-journal__theme-index-option"
+            href={hrefForTheme("")}
+            aria-current={!selectedTheme ? "page" : undefined}
+          >
+            <span>全部</span>
+            <b>{allIdeas.length}</b>
+          </a>
+          {
+            visibleThemes.map((theme) => (
+              <a
+                class="ideas-journal__theme-index-option"
+                href={hrefForTheme(theme.name)}
+                aria-current={theme.name === selectedTheme ? "page" : undefined}
+              >
+                <span>{theme.name}</span>
+                <b>{theme.count}</b>
+              </a>
+            ))
+          }
+          {
+            moreThemes.length > 0 && (
+              <details class="ideas-journal__theme-more" data-ideas-theme-more>
+                <summary>
+                  <span>更多 {moreThemes.length} 类</span>
+                  <svg class="ideas-journal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="m4 6 4 4 4-4"></path>
+                  </svg>
+                </summary>
+                <div class="ideas-journal__theme-menu ideas-journal__theme-menu--desktop">
+                  <div role="group" aria-label="更多灵感分类">
+                    {moreThemes.map((theme) => (
+                      <a
+                        class="ideas-journal__theme-option"
+                        href={hrefForTheme(theme.name)}
+                        aria-current={theme.name === selectedTheme ? "page" : undefined}
+                      >
+                        <span>{theme.name}</span>
+                        <b>{String(theme.count).padStart(2, "0")}</b>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            )
+          }
+        </nav>
         <button class="sr-only" type="submit">筛选灵感</button>
       </form>
 
@@ -155,7 +273,17 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
                         <b aria-hidden="true">
                           {formatIdeaNumber(sequenceByKey.get(idea.sourceKey) ?? index + 1)}
                         </b>
-                        <span>{idea.theme}</span>
+                        <a
+                          class="ideas-journal__entry-theme"
+                          href={ideaArchiveHref({
+                            query,
+                            date: selectedDate,
+                            theme: idea.theme,
+                          })}
+                          aria-label={`查看“${idea.theme}”分类的灵感`}
+                        >
+                          {idea.theme}
+                        </a>
                       </span>
                       <time datetime={idea.capturedAt}>
                         {ideaDateKey(idea.capturedAt)}
@@ -178,8 +306,8 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
           </div>
         ) : (
           <div class="ideas-journal__empty" role="status">
-            <p>这段时间里没有找到对应的灵感。</p>
-            <a href="/ideas">清空搜索与日期</a>
+            <p>当前条件下没有找到对应的灵感。</p>
+            <a href="/ideas">清空全部筛选</a>
           </div>
         )
       }
@@ -193,6 +321,15 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
     const queryInput = document.querySelector<HTMLInputElement>("#ideas-query");
     const dateFilter = document.querySelector<HTMLDetailsElement>(
       "[data-ideas-date-filter]",
+    );
+    const themeFilter = document.querySelector<HTMLDetailsElement>(
+      "[data-ideas-theme-filter]",
+    );
+    const themeMore = document.querySelector<HTMLDetailsElement>(
+      "[data-ideas-theme-more]",
+    );
+    const disclosures = [dateFilter, themeFilter, themeMore].filter(
+      (disclosure): disclosure is HTMLDetailsElement => Boolean(disclosure),
     );
     const dateValue = document.querySelector<HTMLInputElement>(
       "[data-ideas-date-value]",
@@ -210,20 +347,29 @@ const formatIdeaNumber = (index: number) => String(index).padStart(2, "0");
       });
     });
 
+    disclosures.forEach((disclosure) => {
+      disclosure.addEventListener("toggle", () => {
+        if (!disclosure.open) return;
+        disclosures.forEach((candidate) => {
+          if (candidate !== disclosure) candidate.removeAttribute("open");
+        });
+      });
+    });
+
     document.addEventListener("pointerdown", (event) => {
-      if (
-        dateFilter?.open &&
-        event.target instanceof Node &&
-        !dateFilter.contains(event.target)
-      ) {
-        dateFilter.removeAttribute("open");
-      }
+      if (!(event.target instanceof Node)) return;
+      disclosures.forEach((disclosure) => {
+        if (disclosure.open && !disclosure.contains(event.target as Node)) {
+          disclosure.removeAttribute("open");
+        }
+      });
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && dateFilter?.open) {
-        dateFilter.removeAttribute("open");
-        dateFilter.querySelector("summary")?.focus();
+      const openDisclosure = disclosures.find(({ open }) => open);
+      if (event.key === "Escape" && openDisclosure) {
+        openDisclosure.removeAttribute("open");
+        openDisclosure.querySelector("summary")?.focus();
         return;
       }
 
