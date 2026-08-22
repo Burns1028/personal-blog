@@ -286,7 +286,8 @@ const particleVertexShader = `
     vec2 atlasCell = vec2(mod(iStyle.w, 4.0), floor(iStyle.w / 4.0));
     vAtlasUv = (uv + atlasCell) * 0.25;
     vColor = mix(iStartColor, iEndColor, smoothstep(0.45, 0.9, progress));
-    vAlpha = iStyle.y * (0.65 + 0.35 * sin(progress * 3.14159265));
+    float edgeFade = min(1.0, min(progress / 0.08, (1.0 - progress) / 0.06));
+    vAlpha = iStyle.z > 2.5 ? iStyle.y : iStyle.y * max(0.0, edgeFade);
     vStream = iStyle.z;
   }
 `;

@@ -83,6 +83,21 @@ test("hub particles share the instanced draw without exceeding the WebGL attribu
   );
 });
 
+test("arm particles fade at fract endpoints while hub particles stay visible", () => {
+  const source = readFileSync(
+    resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
+    "utf8",
+  );
+  assert.match(
+    source,
+    /float edgeFade = min\(1\.0, min\(progress \/ 0\.08, \(1\.0 - progress\) \/ 0\.06\)\);/,
+  );
+  assert.match(
+    source,
+    /vAlpha = iStyle\.z > 2\.5 \? iStyle\.y : iStyle\.y \* max\(0\.0, edgeFade\);/,
+  );
+});
+
 test("screen-space quads remain visible with the downward CSS-pixel camera", () => {
   const source = readFileSync(
     resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
