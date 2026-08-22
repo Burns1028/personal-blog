@@ -2,6 +2,7 @@
 
 - Date: 2026-08-23 (Asia/Shanghai)
 - Critical visual rework commit under test: `8f64e04595580e19dd17237d902a05a549fc265b`
+- Final responsive performance fix: `b3ca2539b9e6f5dcaa92994356830ce597054c60`
 - Scope: local contract, test, build, and real-browser release verification only
 
 ## Strengthened no-line source contract
@@ -18,8 +19,8 @@ The strengthened contract passed on first execution because the critical visual 
 
 | Gate | Exact result |
 | --- | --- |
-| Focused five-file suite | 49 passed, 0 failed, exit 0 |
-| `npm run test:content` | 190 passed, 0 failed, exit 0 |
+| Final renderer/facade focused suite | 48 passed, 0 failed, exit 0 |
+| `npm run test:content` | 193 passed, 0 failed, exit 0 |
 | `npm run build` | exit 0; Astro check: 121 files, 0 errors, 0 warnings, 0 hints; server build complete |
 | `git diff --check` | exit 0, no output |
 
@@ -44,6 +45,16 @@ Independent `sips` checks confirmed that every PNG exactly matches its named vie
 - the Moon, Earth, black hole, satellite, navigation, and overall celestial layout are unchanged.
 
 Commit `8f64e04595580e19dd17237d902a05a549fc265b` changes only nebula renderer/model sources and their focused tests. It has no diff from the prior verification commit in `src/components/HomeOrrery.astro`, `src/styles/home-orrery.css`, `src/components/SiteNav.astro`, or `src/styles/navigation.css`.
+
+## Final responsive performance review
+
+The final branch review found that the rendered stage can be wider than the real viewport on phones and that the original 2D fallback did not share the constrained-device budget. Commit `b3ca2539b9e6f5dcaa92994356830ce597054c60` closes both issues without changing celestial geometry, shaders, colors, or CSS:
+
+- Three.js selects quality from the live viewport width and reapplies the latest measured DPR after resize or display changes.
+- A `340 px` viewport with a `380.8 px` stage now enters the constrained Three profile instead of the regular mobile profile.
+- The 2D fallback uses deterministic cached profiles: `960 / 30 fps / DPR 2` on desktop, `720 / 24 fps / DPR 1.5` on phones, and `540 / 20 fps / DPR 1.25` for narrow, data-saver, or low-core devices.
+- Controller-level tests verify particle instance counts, frame throttling, backing-canvas DPR, cache reuse, and live renderer pixel-ratio calls.
+- The final independent re-review reported no Critical, Important, or Minor findings and marked the branch ready.
 
 ## Deployment boundary
 
