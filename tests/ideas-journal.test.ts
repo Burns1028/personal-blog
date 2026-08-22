@@ -211,6 +211,31 @@ test("Ideas date filtering uses a custom archive index instead of the native sel
   assert.doesNotMatch(css, /#[0-9a-fA-F]{0,2}4096ff|dodgerblue/);
 });
 
+test("Ideas category filtering uses a two-level catalogue rail on wide screens", () => {
+  const css = readFileSync(
+    resolve(projectRoot, "src/styles/ideas-journal.css"),
+    "utf8",
+  );
+
+  assert.match(css, /--ideas-search-height:\s*88px/);
+  assert.match(
+    css,
+    /\.ideas-journal__search\s*\{[^}]*grid-template-rows:\s*50px 38px/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__theme-index\s*\{[^}]*display:\s*flex/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__theme-menu\s*>\s*div\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+  );
+  assert.match(
+    css,
+    /\.ideas-journal__entry-theme:is\(:hover,\s*:focus-visible\)/,
+  );
+});
+
 test("Ideas singularity is a decorative fixed-background component", () => {
   const singularity = readFileSync(
     resolve(projectRoot, "src/components/IdeasSingularity.astro"),

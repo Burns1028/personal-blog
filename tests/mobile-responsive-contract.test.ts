@@ -203,7 +203,7 @@ test("Ideas turns each phone entry into a full-width single-column record", () =
   assert.match(mobile, /\.ideas-journal__entry h2[\s\S]*?line-height:\s*1\.68/);
   assert.match(
     mobile,
-    /body\[data-route="\/ideas"\]\s*\{[^}]*--ideas-search-height:\s*48px/,
+    /body\[data-route="\/ideas"\]\s*\{[^}]*--ideas-search-height:\s*92px/,
   );
   assert.match(
     mobile,
@@ -262,11 +262,10 @@ test("Ideas gives long phone entries an unmistakable reading break", () => {
   );
 });
 
-test("Ideas narrow-phone controls clear content without reviving the old grid", () => {
+test("Ideas phone controls expose category and date without compressing search", () => {
   const css = read("src/styles/ideas-journal.css");
   const phone = mobileBlockContaining(css, "Mobile responsive contract: Ideas");
   const legacyNarrow = blockAtMaxWidth(css, 619);
-  const narrow = blockAtMaxWidth(css, 380);
 
   assert.ok(
     css.indexOf("@media (max-width: 619px)") >
@@ -281,22 +280,26 @@ test("Ideas narrow-phone controls clear content without reviving the old grid", 
 
   assert.match(
     phone,
-    /\.ideas-journal__search\s*\{[^}]*grid-template-columns:\s*20px minmax\(0,\s*1fr\) 1px minmax\(132px,\s*160px\)/,
+    /\.ideas-journal__search\s*\{[^}]*grid-template-rows:\s*48px 44px/,
   );
   assert.match(
-    narrow,
-    /body\[data-route="\/ideas"\]\s*\{[^}]*--ideas-search-height:\s*88px/,
+    phone,
+    /\.ideas-journal__theme-index\s*\{[^}]*display:\s*none/,
   );
   assert.match(
-    narrow,
-    /\.ideas-journal__search\s*\{[^}]*height:\s*88px[^}]*grid-template-columns:\s*20px minmax\(0,\s*1fr\)[^}]*grid-template-rows:\s*44px 44px/,
+    phone,
+    /\.ideas-journal__theme-filter\s*\{[^}]*display:\s*block/,
   );
   assert.match(
-    narrow,
-    /\.ideas-journal__content\s*\{[^}]*padding-top:\s*calc\(\s*var\(--ideas-search-top\)\s*\+\s*var\(--ideas-search-height\)\s*\)/,
+    phone,
+    /\.ideas-journal__filter-controls\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) 1px minmax\(0,\s*1fr\)/,
   );
   assert.match(
-    narrow,
-    /\.ideas-journal__date-filter\s*\{[^}]*grid-column:\s*1 \/ -1[^}]*min-height:\s*44px/,
+    phone,
+    /\.ideas-journal__theme-option\s*\{[^}]*min-height:\s*44px/,
+  );
+  assert.match(
+    phone,
+    /\.ideas-journal__entry-theme\s*\{[^}]*min-height:\s*44px/,
   );
 });
