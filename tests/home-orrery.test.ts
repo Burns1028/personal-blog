@@ -225,10 +225,16 @@ test("legacy stretched connection runtime is absent from shipped source", () => 
 test("homepage nebula streams do not ship a continuous connection line", () => {
   const three = readExisting("src/lib/home-orrery-streams-three.ts");
   const fallback = readExisting("src/lib/home-orrery-streams-2d.ts");
-  assert.doesNotMatch(three, /createRibbonGeometry|ribbonMaterial/);
-  assert.doesNotMatch(fallback, /\.stroke\(\)|bezierCurveTo/);
-  assert.match(three, /createOrreryNebulaParticles/);
-  assert.match(fallback, /createOrreryNebulaParticles/);
+  assert.doesNotMatch(
+    three,
+    /createRibbonGeometry|ribbonGeometry|ribbonMaterial|LineBasicMaterial|LineSegments|TubeGeometry/,
+  );
+  assert.doesNotMatch(
+    fallback,
+    /stroke\s*\(|bezierCurveTo|lineTo|Path2D/,
+  );
+  assert.match(three, /createOrreryNebulaParticles\s*\(/);
+  assert.match(fallback, /createOrreryNebulaParticles\s*\(/);
 });
 
 test("orrery connections recover from visibility changes and the back-forward cache", () => {
