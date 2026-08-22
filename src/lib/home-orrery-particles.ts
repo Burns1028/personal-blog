@@ -51,6 +51,11 @@ export const pointRelativeToRect = (
   y: pointRect.top + pointRect.height / 2 - stageRect.top,
 });
 
+export const isUsableAnchorRect = (rect: RectLike) =>
+  rect.width > 0 &&
+  rect.height > 0 &&
+  [rect.left, rect.top, rect.width, rect.height].every(Number.isFinite);
+
 export const createOrreryPathGeometry = (
   anchors: OrreryAnchorPoints,
   viewport: { width: number; height: number },
@@ -142,7 +147,7 @@ type Particle = {
   phase: number;
   duration: number;
   radius: number;
-  normalOffset: number;
+  normalOffsetRatio: number;
   alpha: number;
 };
 
@@ -191,6 +196,7 @@ export const createOrreryParticleController = (
   let active: OrreryArtifact = "none";
   let frame = 0;
   let lastFrame = 0;
+  let resizeFrame = 0;
   let elapsed = 0;
   let geometry: OrreryPathGeometry | null = null;
 
@@ -210,10 +216,8 @@ export const createOrreryParticleController = (
         phase: random(),
         duration: (stream === "black-hole" ? 13 : 11) + random() * 8,
         radius: 0.6 + random() * 1.1,
-        normalOffset:
-          (random() - 0.5) *
-          Math.min(width, height) *
-          (stream === "black-hole" ? 0.025 : 0.012),
+        normalOffsetRatio:
+          (random() - 0.5) * (stream === "black-hole" ? 0.025 : 0.012),
         alpha: 0.28 + random() * 0.48,
       };
     });
@@ -343,7 +347,8 @@ export const createOrreryParticleController = (
       const tangentY = after.y - before.y;
       const tangentLength = Math.hypot(tangentX, tangentY) || 1;
       const jitter = Math.sin(progress * Math.PI * 13 + particle.phase * 8) * 1.35;
-      const normal = particle.normalOffset + jitter;
+      const normal =
+        particle.normalOffsetRatio * Math.min(width, height) + jitter;
       const x = point.x + (-tangentY / tangentLength) * normal;
       const y = point.y + (tangentX / tangentLength) * normal;
       const [red, green, blue] = sampleStreamColor(particle.stream, progress);
@@ -378,45 +383,61 @@ export const createOrreryParticleController = (
 
   const resize = () => {
     const bounds = canvas.getBoundingClientRect();
-    if (bounds.width <= 0 || bounds.height <= 0) {
+    const anchorRects = {
+      moon: anchorElements.moon.getBoundingClientRect(),
+      earth: anchorElements.earth.getBoundingClientRect(),
+      blackHole: anchorElements.blackHole.getBoundingClientRect(),
+    };
+    if (
+      !isUsableAnchorRect(bounds) ||
+      !Object.values(anchorRects).every(isUsableAnchorRect)
+    ) {
       geometry = null;
+      context.clearRect(0, 0, width, height);
       return;
     }
-    width = Math.max(1, bounds.width);
-    height = Math.max(1, bounds.height);
-    dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const nextWidth = Math.max(1, bounds.width);
+    const nextHeight = Math.max(1, bounds.height);
+    const nextDpr = Math.min(2, window.devicePixelRatio || 1);
+    const backingStoreChanged =
+      width !== nextWidth || height !== nextHeight || dpr !== nextDpr;
+    width = nextWidth;
+    height = nextHeight;
+    dpr = nextDpr;
+    if (backingStoreChanged) {
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
     geometry = createOrreryPathGeometry(
       {
-        moon: pointRelativeToRect(
-          anchorElements.moon.getBoundingClientRect(),
-          bounds,
-        ),
-        earth: pointRelativeToRect(
-          anchorElements.earth.getBoundingClientRect(),
-          bounds,
-        ),
-        blackHole: pointRelativeToRect(
-          anchorElements.blackHole.getBoundingClientRect(),
-          bounds,
-        ),
+        moon: pointRelativeToRect(anchorRects.moon, bounds),
+        earth: pointRelativeToRect(anchorRects.earth, bounds),
+        blackHole: pointRelativeToRect(anchorRects.blackHole, bounds),
       },
       { width, height },
     );
-    makeParticles();
+    const nextParticleCount = particleCountForWidth(width);
+    if (particles.length !== nextParticleCount) makeParticles();
     draw(performance.now());
   };
 
-  const resizeObserver = new ResizeObserver(resize);
+  const scheduleResize = () => {
+    if (destroyed || resizeFrame !== 0) return;
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = 0;
+      resize();
+    });
+  };
+
+  const resizeObserver = new ResizeObserver(scheduleResize);
   resizeObserver.observe(canvas);
   Object.values(anchorElements).forEach((anchor) =>
     resizeObserver.observe(anchor),
   );
-  window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("resize", scheduleResize, { passive: true });
   void document.fonts?.ready.then(() => {
-    if (!destroyed) resize();
+    scheduleResize();
   });
   resize();
 
@@ -441,8 +462,9 @@ export const createOrreryParticleController = (
       destroyed = true;
       running = false;
       window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(resizeFrame);
       resizeObserver.disconnect();
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", scheduleResize);
       context.clearRect(0, 0, width, height);
     },
   };

@@ -52,6 +52,25 @@ test("anchor centers convert from viewport coordinates into canvas pixels", asyn
   );
 });
 
+test("zero-sized or non-finite anchor rectangles are rejected", async () => {
+  const { isUsableAnchorRect } = await import(
+    "../src/lib/home-orrery-particles.ts"
+  );
+
+  assert.equal(
+    isUsableAnchorRect({ left: 10, top: 20, width: 2, height: 2 }),
+    true,
+  );
+  assert.equal(
+    isUsableAnchorRect({ left: 10, top: 20, width: 0, height: 2 }),
+    false,
+  );
+  assert.equal(
+    isUsableAnchorRect({ left: Number.NaN, top: 20, width: 2, height: 2 }),
+    false,
+  );
+});
+
 test("mobile anchor movement changes only the measured endpoints", async () => {
   const { createOrreryPathGeometry, sampleOrreryPath } = await import(
     "../src/lib/home-orrery-particles.ts"
@@ -118,8 +137,25 @@ test("the renderer measures live anchors only during responsive resize", () => {
     particleSource,
     /createOrreryParticleController\s*=\s*\(\s*canvas:[^,]+,\s*anchorElements:/,
   );
-  assert.match(particleSource, /pointRelativeToRect\([\s\S]*?getBoundingClientRect\(\)/);
+  assert.match(
+    particleSource,
+    /const anchorRects = \{[\s\S]*?getBoundingClientRect\(\)[\s\S]*?\};/,
+  );
+  assert.match(particleSource, /pointRelativeToRect\(anchorRects\.moon, bounds\)/);
   assert.match(particleSource, /Object\.values\(anchorElements\)[\s\S]*?resizeObserver\.observe/);
   assert.match(particleSource, /Math\.min\(2,\s*window\.devicePixelRatio \|\| 1\)/);
+  assert.match(particleSource, /new ResizeObserver\(scheduleResize\)/);
+  assert.match(
+    particleSource,
+    /window\.addEventListener\("resize", scheduleResize/,
+  );
+  assert.match(
+    particleSource,
+    /Object\.values\(anchorRects\)\.every\(isUsableAnchorRect\)/,
+  );
+  assert.match(
+    particleSource,
+    /particles\.length !== nextParticleCount[\s\S]*?makeParticles\(\)/,
+  );
   assert.doesNotMatch(particleSource, /const (?:BLACK_HOLE|MOON|EARTH): Point/);
 });

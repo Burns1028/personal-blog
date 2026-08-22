@@ -380,17 +380,76 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       void activateStaticScene();
     };
 
+    const handleVisibilityChange = () => {
+      if (!document.hidden) particles?.resize();
+      updateMotionState();
+    };
+
+    const listenForNavigation = () => {
+      document.removeEventListener(
+        "burns:artifact-navigation-start",
+        pauseForNavigation,
+      );
+      document.addEventListener(
+        "burns:artifact-navigation-start",
+        pauseForNavigation,
+        { once: true },
+      );
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      navigationPaused = false;
+      listenForNavigation();
+      particles?.resize();
+      updateActiveArtifact();
+      updateMotionState();
+      if (
+        sceneMode === "preparing" &&
+        !reducedMotion.matches &&
+        !savesData
+      ) {
+        void prepareAnimatedScene();
+      }
+    };
+
+    const destroyControllers = () => {
+      pageActive = false;
+      observer.disconnect();
+      activeObserver.disconnect();
+      particles?.destroy();
+      moonMotion?.destroy();
+      earthMotion?.destroy();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener(
+        "burns:artifact-navigation-start",
+        pauseForNavigation,
+      );
+      reducedMotion.removeEventListener("change", updateMotionState);
+      orrery.removeEventListener(
+        "burns:celestial-surface-failed",
+        handleSurfaceFailure,
+      );
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+
+    const handlePageHide = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        navigationPaused = true;
+        updateMotionState();
+        return;
+      }
+      destroyControllers();
+    };
+
     observer.observe(orrery);
     activeObserver.observe(orrery, {
       attributes: true,
       attributeFilter: ["data-active-artifact"],
     });
-    document.addEventListener("visibilitychange", updateMotionState);
-    document.addEventListener(
-      "burns:artifact-navigation-start",
-      pauseForNavigation,
-      { once: true },
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    listenForNavigation();
     reducedMotion.addEventListener("change", updateMotionState);
     orrery.addEventListener(
       "burns:celestial-surface-failed",
@@ -411,27 +470,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       );
     }
 
-    window.addEventListener(
-      "pagehide",
-      () => {
-        pageActive = false;
-        observer.disconnect();
-        activeObserver.disconnect();
-        particles?.destroy();
-        moonMotion?.destroy();
-        earthMotion?.destroy();
-        document.removeEventListener("visibilitychange", updateMotionState);
-        document.removeEventListener(
-          "burns:artifact-navigation-start",
-          pauseForNavigation,
-        );
-        reducedMotion.removeEventListener("change", updateMotionState);
-        orrery.removeEventListener(
-          "burns:celestial-surface-failed",
-          handleSurfaceFailure,
-        );
-      },
-      { once: true },
-    );
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
   }
 </script>

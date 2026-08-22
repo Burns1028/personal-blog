@@ -192,6 +192,29 @@ test("live composition keeps mother-matched bases fixed and confines motion to o
   assert.doesNotMatch(css, /\.home-cosmos__surface-viewport[\s\S]*?background:\s*#000/);
 });
 
+test("orrery connections recover from visibility changes and the back-forward cache", () => {
+  const component = readExisting("src/components/HomeOrrery.astro");
+
+  assert.match(
+    component,
+    /const handleVisibilityChange = \(\) => \{[\s\S]*?if \(!document\.hidden\) particles\?\.resize\(\);[\s\S]*?updateMotionState\(\);[\s\S]*?\};/,
+  );
+  assert.match(
+    component,
+    /const handlePageHide = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(event\.persisted\) \{[\s\S]*?updateMotionState\(\);[\s\S]*?return;[\s\S]*?destroyControllers\(\);/,
+  );
+  assert.match(
+    component,
+    /const destroyControllers = \(\) => \{[\s\S]*?particles\?\.destroy\(\);[\s\S]*?window\.removeEventListener\("pageshow", handlePageShow\);/,
+  );
+  assert.match(
+    component,
+    /const handlePageShow = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(!event\.persisted\) return;[\s\S]*?navigationPaused = false;[\s\S]*?particles\?\.resize\(\);[\s\S]*?updateMotionState\(\);/,
+  );
+  assert.match(component, /window\.addEventListener\("pagehide", handlePageHide\)/);
+  assert.match(component, /window\.addEventListener\("pageshow", handlePageShow\)/);
+});
+
 test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and transfer budgets", async () => {
   const assets = [
     ["home-orrery-connection-base-v4-881.webp", 881, 732, true],
