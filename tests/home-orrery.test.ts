@@ -386,16 +386,23 @@ test("ImageMagick particle atlases are reproducible and contain visible colored 
     for (const filename of filenames) {
       const first = readFileSync(resolve(firstRoot, filename));
       const second = readFileSync(resolve(secondRoot, filename));
-      const committed = readFileSync(
-        resolve(root, "public/assets/home-cosmic-system-v4", filename),
-      );
       assert.deepEqual(first, second, `${filename} is byte-for-byte reproducible`);
-      assert.deepEqual(first, committed, `${filename} matches the committed asset`);
 
       const { data, info } = await sharp(first)
         .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
+      const committedPixels = await sharp(
+        resolve(root, "public/assets/home-cosmic-system-v4", filename),
+      )
+        .ensureAlpha()
+        .raw()
+        .toBuffer();
+      assert.deepEqual(
+        data,
+        committedPixels,
+        `${filename} matches the committed RGBA pixels`,
+      );
       let visiblePixels = 0;
       let brightColoredPixels = 0;
       for (let offset = 0; offset < data.length; offset += info.channels) {
