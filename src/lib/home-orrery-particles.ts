@@ -510,8 +510,10 @@ export const createOrreryParticleController = (
       context.save();
       context.translate(stamp.center.x, stamp.center.y);
       context.rotate(stamp.angle);
-      context.globalAlpha =
-        stamp.alpha * emphasisFor(active, stamp.stream, stamp.progress);
+      context.globalAlpha = Math.min(
+        1,
+        stamp.alpha * 1.2 * emphasisFor(active, stamp.stream, stamp.progress),
+      );
       context.drawImage(
         image,
         -stamp.width / 2,
