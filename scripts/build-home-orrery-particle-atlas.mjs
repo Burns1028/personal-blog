@@ -23,12 +23,24 @@ const resolveOutputRoot = (args) => {
 
 const outputRoot = resolveOutputRoot(process.argv.slice(2));
 
-const roles = {
-  gold: { seed: 1028, color: [230, 160, 58], count: 74, spread: 0.72 },
-  pearl: { seed: 2048, color: [236, 226, 202], count: 58, spread: 0.58 },
-  transition: { seed: 4096, color: [164, 191, 194], count: 66, spread: 0.66 },
-  blue: { seed: 8192, color: [88, 181, 239], count: 70, spread: 0.68 },
-};
+const spriteColors = [
+  [235, 165, 62],
+  [248, 188, 86],
+  [225, 132, 38],
+  [255, 215, 138],
+  [238, 228, 207],
+  [255, 245, 222],
+  [187, 203, 206],
+  [155, 198, 219],
+  [88, 181, 239],
+  [108, 205, 255],
+  [151, 220, 255],
+  [204, 239, 255],
+  [235, 177, 86],
+  [179, 205, 221],
+  [116, 191, 239],
+  [220, 245, 255],
+];
 
 const seededRandom = (seed) => {
   let state = seed >>> 0;
@@ -42,28 +54,27 @@ const clampByte = (value) => Math.max(0, Math.min(255, Math.round(value)));
 const rgba = (color, alpha) =>
   `rgba(${color[0]},${color[1]},${color[2]},${alpha.toFixed(3)})`;
 
-const createDrawCommands = ({ seed, color, count, spread }, scale) => {
-  const random = seededRandom(seed);
+const createDrawCommands = (scale) => {
+  const random = seededRandom(1028);
   const width = 256 * scale;
-  const height = 96 * scale;
-  const centerY = height / 2;
+  const cellSize = width / 4;
   const commands = [];
 
-  for (let index = 0; index < count; index += 1) {
-    const progress = 0.035 + random() * 0.93;
-    const edgeFade = Math.pow(Math.sin(progress * Math.PI), 0.55);
-    const x = progress * width;
-    const localSpread = height * spread * (0.48 + edgeFade * 0.52);
-    const y = centerY + (random() - 0.5) * localSpread;
-    const radius = (0.24 + Math.pow(random(), 2.2) * 1.18) * scale;
-    const alpha = (0.16 + random() * 0.5) * edgeFade;
-    const tint = color.map((channel) =>
-      clampByte(channel + (random() - 0.5) * 18),
-    );
-
+  for (let index = 0; index < spriteColors.length; index += 1) {
+    const color = spriteColors[index];
+    const column = index % 4;
+    const row = Math.floor(index / 4);
+    const centerX = (column + 0.5) * cellSize;
+    const centerY = (row + 0.5) * cellSize;
+    const radius = cellSize * (0.07 + random() * 0.035);
+    const horizontal = radius * (1.25 + random() * 1.4);
+    const vertical = radius * (0.65 + random() * 0.45);
+    const tint = color.map((channel) => clampByte(channel + (random() - 0.5) * 14));
     commands.push(
-      `fill '${rgba(tint, alpha * 0.14)}' circle ${x.toFixed(2)},${y.toFixed(2)} ${(x + radius * 1.9).toFixed(2)},${y.toFixed(2)}`,
-      `fill '${rgba(tint, alpha)}' circle ${x.toFixed(2)},${y.toFixed(2)} ${(x + radius).toFixed(2)},${y.toFixed(2)}`,
+      `fill '${rgba(tint, 0.12)}' ellipse ${centerX.toFixed(2)},${centerY.toFixed(2)} ${(horizontal * 2.5).toFixed(2)},${(vertical * 2.5).toFixed(2)} 0,360`,
+      `fill '${rgba(tint, 0.34)}' ellipse ${centerX.toFixed(2)},${centerY.toFixed(2)} ${(horizontal * 1.55).toFixed(2)},${(vertical * 1.55).toFixed(2)} 0,360`,
+      `fill '${rgba(tint, 0.94)}' ellipse ${centerX.toFixed(2)},${centerY.toFixed(2)} ${horizontal.toFixed(2)},${vertical.toFixed(2)} 0,360`,
+      `fill '${rgba([255, 250, 235], 0.72)}' circle ${centerX.toFixed(2)},${centerY.toFixed(2)} ${(centerX + radius * 0.42).toFixed(2)},${centerY.toFixed(2)}`,
     );
   }
 
@@ -86,23 +97,22 @@ const ensureImageMagick = async () => {
   }
 };
 
-const outputParticleStrip = async (role, config, scale) => {
-  const width = 256 * scale;
-  const height = 96 * scale;
+const outputParticleAtlas = async (scale) => {
+  const size = 256 * scale;
   const output = resolve(
     outputRoot,
-    `home-orrery-particles-${role}-${width}.webp`,
+    `home-orrery-particle-atlas-${size}.webp`,
   );
   await execFileAsync("magick", [
     "-size",
-    `${width}x${height}`,
+    `${size}x${size}`,
     "xc:none",
     "-draw",
-    createDrawCommands(config, scale),
+    createDrawCommands(scale),
     "-channel",
     "RGBA",
     "-blur",
-    `0x${0.28 * scale}`,
+    `0x${0.34 * scale}`,
     "-define",
     "webp:lossless=true",
     "-quality",
@@ -114,7 +124,5 @@ const outputParticleStrip = async (role, config, scale) => {
 await ensureImageMagick();
 await mkdir(outputRoot, { recursive: true });
 
-for (const [role, config] of Object.entries(roles)) {
-  await outputParticleStrip(role, config, 1);
-  await outputParticleStrip(role, config, 2);
-}
+await outputParticleAtlas(1);
+await outputParticleAtlas(2);

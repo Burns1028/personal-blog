@@ -7,23 +7,9 @@ export const homeOrreryAssets = {
     standard: `${matchedLayerRoot}/home-orrery-connection-base-v4-881.webp`,
     retina: `${matchedLayerRoot}/home-orrery-connection-base-v4-1762.webp`,
   },
-  connectionParticles: {
-    gold: {
-      standard: `${matchedLayerRoot}/home-orrery-particles-gold-256.webp`,
-      retina: `${matchedLayerRoot}/home-orrery-particles-gold-512.webp`,
-    },
-    pearl: {
-      standard: `${matchedLayerRoot}/home-orrery-particles-pearl-256.webp`,
-      retina: `${matchedLayerRoot}/home-orrery-particles-pearl-512.webp`,
-    },
-    transition: {
-      standard: `${matchedLayerRoot}/home-orrery-particles-transition-256.webp`,
-      retina: `${matchedLayerRoot}/home-orrery-particles-transition-512.webp`,
-    },
-    blue: {
-      standard: `${matchedLayerRoot}/home-orrery-particles-blue-256.webp`,
-      retina: `${matchedLayerRoot}/home-orrery-particles-blue-512.webp`,
-    },
+  connectionParticleAtlas: {
+    standard: `${matchedLayerRoot}/home-orrery-particle-atlas-256.webp`,
+    retina: `${matchedLayerRoot}/home-orrery-particle-atlas-512.webp`,
   },
   background: {
     starfield: {

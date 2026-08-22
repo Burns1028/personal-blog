@@ -78,15 +78,11 @@ test("home orrery manifest exposes the mother-matched v4 independent layers", ()
     assert.match(manifest, new RegExp(asset));
   }
 
-  assert.match(manifest, /connectionParticles:\s*\{/);
-  for (const role of ["gold", "pearl", "transition", "blue"] as const) {
-    assert.match(
-      manifest,
-      new RegExp(
-        `${role}:[\\s\\S]*?home-orrery-particles-${role}-256\\.webp[\\s\\S]*?home-orrery-particles-${role}-512\\.webp`,
-      ),
-    );
-  }
+  assert.match(manifest, /connectionParticleAtlas:\s*\{/);
+  assert.match(
+    manifest,
+    /home-orrery-particle-atlas-256\.webp[\s\S]*?home-orrery-particle-atlas-512\.webp/,
+  );
 
   assert.doesNotMatch(manifest, /approvedScene|approved-scene|inner-v11/);
 });
@@ -268,14 +264,8 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
     ["home-orrery-ideas-core-v4-960.webp", 960, 960, true],
     ["home-orrery-ideas-field-v4-960.webp", 960, 540, true],
     ["home-orrery-ideas-field-v4-1600.webp", 1600, 900, true],
-    ["home-orrery-particles-gold-256.webp", 256, 96, true],
-    ["home-orrery-particles-gold-512.webp", 512, 192, true],
-    ["home-orrery-particles-pearl-256.webp", 256, 96, true],
-    ["home-orrery-particles-pearl-512.webp", 512, 192, true],
-    ["home-orrery-particles-transition-256.webp", 256, 96, true],
-    ["home-orrery-particles-transition-512.webp", 512, 192, true],
-    ["home-orrery-particles-blue-256.webp", 256, 96, true],
-    ["home-orrery-particles-blue-512.webp", 512, 192, true],
+    ["home-orrery-particle-atlas-256.webp", 256, 256, true],
+    ["home-orrery-particle-atlas-512.webp", 512, 512, true],
   ] as const;
 
   for (const [filename, width, height, hasAlpha] of assets) {
@@ -355,15 +345,13 @@ test("mother-matched v4 layers keep exact dimensions, alpha, tight bounds, and t
   assert.ok(desktopBytes <= 1_000_000, `desktop assets use ${desktopBytes} bytes`);
   assert.ok(mobileBytes <= 520_000, `mobile assets use ${mobileBytes} bytes`);
 
-  for (const role of ["gold", "pearl", "transition", "blue"] as const) {
-    for (const size of [256, 512] as const) {
-      const filename = `home-orrery-particles-${role}-${size}.webp`;
-      assert.ok(bytesFor(filename) <= 36_000, `${filename} stays within 36 KB`);
-    }
+  for (const size of [256, 512] as const) {
+    const filename = `home-orrery-particle-atlas-${size}.webp`;
+    assert.ok(bytesFor(filename) <= 48_000, `${filename} stays within 48 KB`);
   }
 });
 
-test("ImageMagick particle atlases are reproducible and contain visible colored dust", async () => {
+test("ImageMagick particle atlas is reproducible and contains sixteen reusable sprites", async () => {
   const version = execFileSync("magick", ["-version"], { encoding: "utf8" });
   assert.match(version, /ImageMagick 7\./, "ImageMagick 7 is required");
   assert.match(version, /Delegates[^\n]*\bwebp\b/i, "WebP delegate is required");
@@ -372,10 +360,8 @@ test("ImageMagick particle atlases are reproducible and contain visible colored 
   const secondRoot = mkdtempSync(resolve(tmpdir(), "orrery-atlas-second-"));
   const builder = resolve(root, "scripts/build-home-orrery-particle-atlas.mjs");
   const filenames = [
-    ...["gold", "pearl", "transition", "blue"].flatMap((role) => [
-      `home-orrery-particles-${role}-256.webp`,
-      `home-orrery-particles-${role}-512.webp`,
-    ]),
+    "home-orrery-particle-atlas-256.webp",
+    "home-orrery-particle-atlas-512.webp",
   ];
   const normalizedCoverage = new Map<string, number>();
 
@@ -392,6 +378,9 @@ test("ImageMagick particle atlases are reproducible and contain visible colored 
         .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
+      const expectedSize = filename.endsWith("-512.webp") ? 512 : 256;
+      assert.equal(info.width, expectedSize);
+      assert.equal(info.height, expectedSize);
       const committedPixels = await sharp(
         resolve(root, "public/assets/home-cosmic-system-v4", filename),
       )
@@ -405,6 +394,7 @@ test("ImageMagick particle atlases are reproducible and contain visible colored 
       );
       let visiblePixels = 0;
       let brightColoredPixels = 0;
+      const cellVisiblePixels = Array.from({ length: 16 }, () => 0);
       for (let offset = 0; offset < data.length; offset += info.channels) {
         const red = data[offset];
         const green = data[offset + 1];
@@ -414,33 +404,38 @@ test("ImageMagick particle atlases are reproducible and contain visible colored 
         if (alpha > 12 && Math.max(red, green, blue) > 64) {
           brightColoredPixels += 1;
         }
+        if (alpha > 4) {
+          const pixel = offset / info.channels;
+          const x = pixel % info.width;
+          const y = Math.floor(pixel / info.width);
+          const cellX = Math.floor((x / info.width) * 4);
+          const cellY = Math.floor((y / info.height) * 4);
+          cellVisiblePixels[cellY * 4 + cellX] += 1;
+        }
       }
       const pixelCount = info.width * info.height;
       normalizedCoverage.set(filename, visiblePixels / pixelCount);
-      assert.ok(visiblePixels > pixelCount * 0.001, `${filename} is not empty`);
+      assert.ok(visiblePixels > pixelCount * 0.006, `${filename} is not empty`);
       assert.ok(
-        visiblePixels < pixelCount * 0.15,
-        `${filename} remains a sparse transparent strip`,
+        visiblePixels < pixelCount * 0.3,
+        `${filename} remains a sparse transparent atlas`,
       );
       assert.ok(
         brightColoredPixels > 30,
         `${filename} contains non-black colored particles`,
       );
+      for (const [index, count] of cellVisiblePixels.entries()) {
+        assert.ok(count > 8, `${filename} cell ${index} contains a sprite`);
+      }
     }
 
-    for (const role of ["gold", "pearl", "transition", "blue"] as const) {
-      const standard = normalizedCoverage.get(
-        `home-orrery-particles-${role}-256.webp`,
-      );
-      const retina = normalizedCoverage.get(
-        `home-orrery-particles-${role}-512.webp`,
-      );
-      assert.ok(standard && retina, `${role} coverage measurements exist`);
-      assert.ok(
-        retina / standard >= 0.7 && retina / standard <= 1.1,
-        `${role} standard and Retina strips keep comparable normalized density`,
-      );
-    }
+    const standard = normalizedCoverage.get("home-orrery-particle-atlas-256.webp");
+    const retina = normalizedCoverage.get("home-orrery-particle-atlas-512.webp");
+    assert.ok(standard && retina, "both atlas coverage measurements exist");
+    assert.ok(
+      retina / standard >= 0.7 && retina / standard <= 1.1,
+      "standard and Retina atlases keep comparable normalized density",
+    );
   } finally {
     rmSync(firstRoot, { recursive: true, force: true });
     rmSync(secondRoot, { recursive: true, force: true });
