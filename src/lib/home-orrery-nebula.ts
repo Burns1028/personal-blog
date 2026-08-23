@@ -34,9 +34,9 @@ const visualGain: Record<
   OrreryNebulaSource,
   { opacity: number; size: number }
 > = {
-  moon: { opacity: 1.1, size: 1.05 },
-  earth: { opacity: 0.82, size: 0.92 },
-  "black-hole": { opacity: 1.16, size: 1.08 },
+  moon: { opacity: 1.45, size: 1.18 },
+  earth: { opacity: 0.9, size: 0.98 },
+  "black-hole": { opacity: 1.38, size: 1.22 },
   hub: { opacity: 1, size: 1 },
 };
 

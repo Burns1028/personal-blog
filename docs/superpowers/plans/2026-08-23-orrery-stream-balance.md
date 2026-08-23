@@ -184,9 +184,9 @@ Use these shared visual gains:
 
 ```ts
 const visualGain = {
-  moon: { opacity: 1.1, size: 1.05 },
-  earth: { opacity: 0.82, size: 0.92 },
-  "black-hole": { opacity: 1.16, size: 1.08 },
+  moon: { opacity: 1.45, size: 1.18 },
+  earth: { opacity: 0.9, size: 0.98 },
+  "black-hole": { opacity: 1.38, size: 1.22 },
   hub: { opacity: 1, size: 1 },
 } as const;
 ```
@@ -246,6 +246,8 @@ blackHole:  { start: 0xf09a3a, end: 0xc5c2ad },
 ```
 
 Move the Three color transition to the final third of each arm with `smoothstep(0.68, 0.94, progress)`. Update the 2D palette to the same identities without adding per-particle strokes or a continuous fog ribbon.
+
+The particle atlas supplies alpha and luminance texture only. Convert sampled RGB to luminance before tinting with the stream palette; do not multiply `sprite.rgb * vColor`, which shifts the approved Moon gold toward green.
 
 - [ ] **Step 4: Run focused tests and commit**
 

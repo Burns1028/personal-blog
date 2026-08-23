@@ -76,6 +76,8 @@ test("Three streams contain no continuous ribbon mesh", () => {
   assert.doesNotMatch(source, /createRibbonGeometry|ribbonGeometry|ribbonMaterial/);
   assert.doesNotMatch(source, /new MeshBasicMaterial/);
   assert.doesNotMatch(source, /index\s*%\s*streams\.length/);
+  assert.doesNotMatch(source, /sprite\.rgb \* vColor/);
+  assert.match(source, /dot\(sprite\.rgb, vec3\(0\.2126, 0\.7152, 0\.0722\)\)/);
   assert.match(source, /createOrreryNebulaParticles/);
   assert.match(source, /smoothstep\(0\.68, 0\.94, progress\)/);
   for (const color of ["0xf4cf83", "0xb9d9ea", "0x4698d1", "0xa8d8ee", "0xf09a3a", "0xc5c2ad"]) {

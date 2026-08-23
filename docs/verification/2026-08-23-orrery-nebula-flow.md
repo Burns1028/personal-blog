@@ -3,6 +3,9 @@
 - Date: 2026-08-23 (Asia/Shanghai)
 - Critical visual rework commit under test: `8f64e04595580e19dd17237d902a05a549fc265b`
 - Final responsive performance fix: `b3ca2539b9e6f5dcaa92994356830ce597054c60`
+- Earth glint anchor: `d9e5dfb`
+- Geometry-weighted particle allocation: `55a5bbc`
+- Shared Three/2D balance baseline: `7811603`
 - Scope: local contract, test, build, and real-browser release verification only
 
 ## Strengthened no-line source contract
@@ -19,8 +22,8 @@ The strengthened contract passed on first execution because the critical visual 
 
 | Gate | Exact result |
 | --- | --- |
-| Final renderer/facade focused suite | 48 passed, 0 failed, exit 0 |
-| `npm run test:content` | 193 passed, 0 failed, exit 0 |
+| Final renderer/facade focused suite | 63 passed, 0 failed, exit 0 |
+| `npm run test:content` | 200 passed, 0 failed, exit 0 |
 | `npm run build` | exit 0; Astro check: 121 files, 0 errors, 0 warnings, 0 hints; server build complete |
 | `git diff --check` | exit 0, no output |
 
@@ -32,13 +35,17 @@ The main controller verified the reworked homepage in a real local browser. All 
 
 | Exact viewport | Renderer | Horizontal overflow | Console warn/error | Screenshot |
 | --- | --- | --- | --- | --- |
-| 360×800 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-nebula-final/orrery-nebula-360x800.png` |
-| 393×852 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-nebula-final/orrery-nebula-393x852.png` |
-| 430×932 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-nebula-final/orrery-nebula-430x932.png` |
-| 1440×900 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-nebula-final/orrery-nebula-1440x900.png` |
+| 360×800 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-balanced-final/orrery-balanced-360x800.png` |
+| 393×852 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-balanced-final/orrery-balanced-393x852.png` |
+| 430×932 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-balanced-final/orrery-balanced-430x932.png` |
+| 1440×900 | `data-renderer="three"` | `scrollWidth === innerWidth` | `[]` | `/tmp/burns-orrery-balanced-final/orrery-balanced-1440x900.png` |
 
 Independent `sips` checks confirmed that every PNG exactly matches its named viewport. Original-resolution inspection of the four approved captures confirms:
 
+- Earth starts at the measured upper-left blue-white glint, leaves along the down-left tangent, and no longer uses the former lower-left nearest-hub attachment;
+- the Moon arm is a continuous warm-gold to silver-blue particle flow rather than sparse green dots;
+- the Earth arm remains blue without becoming the only thick or overexposed arm;
+- the black-hole arm remains continuous orange-gold through its middle and keeps the widest dust halo;
 - all three particle arms are statically traceable from their celestial bodies to the shared hub;
 - a small blue-white-gold asymmetric hub is clearly visible;
 - there is no continuous line spine, hard Y junction, cross, or circular weld point;

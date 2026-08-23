@@ -273,8 +273,10 @@ const particleFragmentShader = `
 
   void main() {
     vec4 sprite = texture2D(uAtlas, vAtlasUv);
+    float spriteLuma = dot(sprite.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 tintedColor = vColor * (0.72 + spriteLuma * 0.38);
     float emphasis = uActiveStream < -0.5 || abs(uActiveStream - vStream) < 0.25 ? 1.0 : 0.66;
-    gl_FragColor = vec4(sprite.rgb * vColor, sprite.a * vAlpha * emphasis);
+    gl_FragColor = vec4(tintedColor, sprite.a * vAlpha * emphasis);
   }
 `;
 

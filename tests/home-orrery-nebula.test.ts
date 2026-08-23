@@ -82,6 +82,12 @@ test("arm quotas follow measured curve mass instead of equal thirds", () => {
 });
 
 test("shared visual gains restrain Earth and reinforce the longer warm arms", () => {
+  assert.deepEqual(nebulaVisualGain("moon"), { opacity: 1.45, size: 1.18 });
+  assert.deepEqual(nebulaVisualGain("earth"), { opacity: 0.9, size: 0.98 });
+  assert.deepEqual(nebulaVisualGain("black-hole"), {
+    opacity: 1.38,
+    size: 1.22,
+  });
   assert.ok(nebulaVisualGain("earth").opacity < 1);
   assert.ok(
     nebulaVisualGain("moon").opacity > nebulaVisualGain("earth").opacity,
