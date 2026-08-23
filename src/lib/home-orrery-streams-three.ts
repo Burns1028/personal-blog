@@ -169,7 +169,7 @@ const createParticleGeometry = (
     const end = path?.end ?? geometry.hub;
     const spread = particle.stream === "hub"
       ? stageShortEdge * (0.008 + particle.clusterSeed * 0.026)
-      : nebulaSpread(particle.stream, particle.layer, particle.phase, stageShortEdge) * particle.lateralSeed;
+      : nebulaSpread(particle.stream, particle.layer, 0.5, stageShortEdge) * particle.lateralSeed;
     const signedSpread = spread;
     const palette = streamPalette(particle.stream);
     const gain = nebulaVisualGain(particle.stream);
@@ -179,7 +179,7 @@ const createParticleGeometry = (
     ends.push(end.x, end.y);
     motions.push(
       particle.phase,
-      particle.speed,
+      particle.emitter ? -1 : particle.speed,
       signedSpread,
       particle.size * gain.size,
     );
@@ -236,7 +236,8 @@ const particleVertexShader = `
   }
 
   void main() {
-    float progress = fract(iMotion.x + uTime * iMotion.y);
+    float emitterParticle = step(iMotion.y, -0.5);
+    float progress = emitterParticle > 0.5 ? iMotion.x : fract(iMotion.x + uTime * iMotion.y);
     vec2 center = cubic(progress);
     vec2 tangent = normalize(cubicTangent(progress) + vec2(0.0001));
     vec2 normal = vec2(-tangent.y, tangent.x);
@@ -244,21 +245,28 @@ const particleVertexShader = `
       float angle = iMotion.x * 6.2831853 + uTime * iMotion.y;
       center = iStart + vec2(cos(angle), sin(angle) * 0.58) * abs(iMotion.z);
     } else {
-      center += normal * iMotion.z;
+      float convergence = 0.18 + sin(3.14159265 * progress) * 0.82;
+      float sourceTaper = iStyle.z > 0.5 && iStyle.z < 1.5 ? smoothstep(0.0, 0.08, progress) : 1.0;
+      center += normal * iMotion.z * convergence * sourceTaper;
     }
     float cosine = cos(iStyle.x);
     float sine = sin(iStyle.x);
+    float emitterSourceBoost = emitterParticle * (1.0 - smoothstep(0.0, 0.56, progress));
+    float emitterOpacity = 1.0 + emitterParticle * 0.7 + emitterSourceBoost * 0.8;
+    float emitterSize = 1.0 + emitterParticle * 0.18 + emitterSourceBoost * 0.18;
     vec2 local = vec2(
       position.x * cosine - position.y * sine,
       position.x * sine + position.y * cosine
     );
-    vec2 oriented = tangent * local.x * iMotion.w * 2.2 + normal * local.y * iMotion.w;
+    vec2 oriented = (tangent * local.x * iMotion.w * 2.2 + normal * local.y * iMotion.w) * emitterSize;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(center + oriented, 0.0, 1.0);
     vec2 atlasCell = vec2(mod(iStyle.w, 4.0), floor(iStyle.w / 4.0));
     vAtlasUv = (uv + atlasCell) * 0.25;
     vColor = mix(iStartColor, iEndColor, smoothstep(0.68, 0.94, progress));
-    float edgeFade = min(1.0, min(progress / 0.02, (1.0 - progress) / 0.012));
-    vAlpha = iStyle.z > 2.5 ? iStyle.y : iStyle.y * max(0.0, edgeFade);
+    vColor = mix(vColor, vec3(0.78, 0.93, 1.0), emitterParticle * 0.72 + emitterSourceBoost * 0.2);
+    float sourceFade = iStyle.z > 0.5 && iStyle.z < 1.5 ? 1.0 : min(1.0, progress / 0.02);
+    float edgeFade = min(sourceFade, (1.0 - progress) / 0.012);
+    vAlpha = iStyle.z > 2.5 ? iStyle.y : iStyle.y * emitterOpacity * max(0.0, edgeFade);
     vStream = iStyle.z;
   }
 `;

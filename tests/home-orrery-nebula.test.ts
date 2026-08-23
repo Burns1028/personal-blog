@@ -1,14 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import * as nebulaModule from "../src/lib/home-orrery-nebula.ts";
 import {
   createOrreryNebulaParticles,
+  nebulaFade,
   nebulaOpacity,
   nebulaSpread,
   nebulaStreamCounts,
   nebulaStreamWeights,
   nebulaVisualGain,
 } from "../src/lib/home-orrery-nebula.ts";
-import { createOrreryHubGeometry } from "../src/lib/home-orrery-geometry.ts";
+import {
+  createOrreryHubGeometry,
+  sampleCubic,
+} from "../src/lib/home-orrery-geometry.ts";
 
 const geometryFixtures = [
   createOrreryHubGeometry(
@@ -63,6 +68,102 @@ test("endpoint fade is brief but reaches zero exactly at each arm wrap", () => {
   assert.equal(nebulaOpacity("dust", 1), 0);
   assert.ok(nebulaOpacity("dust", 0.025) >= midpoint * 0.98);
   assert.ok(nebulaOpacity("dust", 0.985) >= midpoint * 0.98);
+});
+
+test("the Earth emitter is visible and pinched to the approved glint before it opens", () => {
+  assert.equal(nebulaSpread("earth", "dust", 0, 732), 0);
+  assert.ok(
+    nebulaSpread("earth", "dust", 0.01, 732) <
+      nebulaSpread("earth", "dust", 0.08, 732),
+  );
+  assert.equal(nebulaFade(0, "earth"), 1);
+  assert.equal(nebulaFade(0, "moon"), 0);
+  assert.equal(nebulaFade(1, "earth"), 0);
+});
+
+test("the short Earth arm keeps an evenly staggered emitter train at every frame", () => {
+  const geometry = geometryFixtures[0];
+  assert.ok(geometry);
+  const particles = createOrreryNebulaParticles(
+    720,
+    1028,
+    nebulaStreamWeights(geometry),
+  );
+  const earth = particles
+    .filter(
+      (particle) =>
+        particle.stream === "earth" &&
+        !(particle as typeof particle & { emitter?: boolean }).emitter,
+    )
+    .sort((first, second) => first.phase - second.phase);
+  const circularGaps = earth.map((particle, index) => {
+    const next = earth[(index + 1) % earth.length];
+    return index === earth.length - 1
+      ? next.phase + 1 - particle.phase
+      : next.phase - particle.phase;
+  });
+
+  assert.ok(Math.max(...circularGaps) <= 1.6 / earth.length);
+  assert.equal(new Set(earth.map((particle) => particle.speed)).size, 1);
+});
+
+test("a bounded static Earth emitter cohort permanently bridges the glint to the hub", () => {
+  const geometry = geometryFixtures[0];
+  assert.ok(geometry);
+  const particles = createOrreryNebulaParticles(
+    720,
+    1028,
+    nebulaStreamWeights(geometry),
+  );
+  const emitter = particles.filter(
+    (particle) =>
+      (particle as typeof particle & { emitter?: boolean }).emitter === true,
+  );
+
+  assert.ok(emitter.length >= 28 && emitter.length <= 96);
+  assert.ok(emitter.every((particle) => particle.stream === "earth"));
+  assert.ok(emitter.every((particle) => particle.speed === 0));
+  assert.ok(emitter.every((particle) => particle.phase >= 0 && particle.phase < 1));
+  const firstEmitter = emitter.toSorted(
+    (first, second) => first.phase - second.phase,
+  )[0];
+  assert.equal(firstEmitter.phase, 0);
+  assert.deepEqual(
+    sampleCubic(geometry.paths.earth, firstEmitter.phase),
+    geometry.paths.earth.start,
+  );
+  assert.ok(Math.max(...emitter.map((particle) => particle.phase)) > 0.98);
+  assert.ok(emitter.every((particle) => particle.alpha >= 0.68));
+  assert.ok(emitter.every((particle) => particle.size >= 2.6));
+  assert.ok(
+    particles
+      .filter((particle) => particle.stream !== "earth")
+      .every(
+        (particle) =>
+          (particle as typeof particle & { emitter?: boolean }).emitter !== true,
+      ),
+  );
+});
+
+test("only the dedicated Earth emitter stays lifted from the glint through the hub", () => {
+  assert.equal(
+    typeof (nebulaModule as Record<string, unknown>).nebulaEmitterGain,
+    "function",
+  );
+  const emitterGain = (
+    nebulaModule as unknown as {
+      nebulaEmitterGain: (
+        stream: "moon" | "earth" | "black-hole",
+        progress: number,
+      ) => { opacity: number; size: number };
+    }
+  ).nebulaEmitterGain;
+
+  const sourceGain = emitterGain("earth", 0);
+  assert.equal(sourceGain.opacity, 2.5);
+  assert.ok(Math.abs(sourceGain.size - 1.36) < 1e-9);
+  assert.deepEqual(emitterGain("earth", 1), { opacity: 1.7, size: 1.18 });
+  assert.deepEqual(emitterGain("moon", 0), { opacity: 1, size: 1 });
 });
 
 test("arm quotas follow measured curve mass instead of equal thirds", () => {
