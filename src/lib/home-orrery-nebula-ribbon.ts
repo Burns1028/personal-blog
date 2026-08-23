@@ -46,8 +46,10 @@ const widthAt = (
   shortEdge: number,
   progress: number,
 ) => {
+  const terminalCoverage = 0.18;
   const endpointTaper = Math.sin(Math.PI * progress) ** 0.62;
-  return shortEdge * 0.035 * streamWidthScale[stream] * endpointTaper;
+  const profile = terminalCoverage + (1 - terminalCoverage) * endpointTaper;
+  return shortEdge * 0.035 * streamWidthScale[stream] * profile;
 };
 
 export const createNebulaRibbon = (

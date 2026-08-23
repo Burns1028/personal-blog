@@ -23,7 +23,28 @@ const pairWidthAt = (positions: Float32Array, sample: number) => {
   return Math.hypot(second.x - first.x, second.y - first.y);
 };
 
-test("ribbon samples two vertices per path point with exact tapered endpoints", () => {
+const centerlineAt = (positions: Float32Array, sample: number) => {
+  const first = pointAt(positions, sample * 2);
+  const second = pointAt(positions, sample * 2 + 1);
+  return { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
+};
+
+const triangleArea = (
+  positions: Float32Array,
+  firstIndex: number,
+  secondIndex: number,
+  thirdIndex: number,
+) => {
+  const first = pointAt(positions, firstIndex);
+  const second = pointAt(positions, secondIndex);
+  const third = pointAt(positions, thirdIndex);
+  return Math.abs(
+    (second.x - first.x) * (third.y - first.y) -
+      (second.y - first.y) * (third.x - first.x),
+  ) / 2;
+};
+
+test("ribbon samples two vertices per path point with exact centerline endpoints and endpoint coverage", () => {
   const segments = 12;
   const ribbon = createNebulaRibbon(path, "earth", 366, segments);
 
@@ -33,10 +54,10 @@ test("ribbon samples two vertices per path point with exact tapered endpoints", 
   assert.equal(ribbon.positions.length, (segments + 1) * 2 * 3);
   assert.equal(ribbon.uvs.length, (segments + 1) * 2 * 2);
   assert.equal(ribbon.indices.length, segments * 6);
-  assert.deepEqual(pointAt(ribbon.positions, 0), { ...path.start, z: 0 });
-  assert.deepEqual(pointAt(ribbon.positions, 1), { ...path.start, z: 0 });
-  assert.deepEqual(pointAt(ribbon.positions, segments * 2), { ...path.end, z: 0 });
-  assert.deepEqual(pointAt(ribbon.positions, segments * 2 + 1), { ...path.end, z: 0 });
+  assert.deepEqual(centerlineAt(ribbon.positions, 0), path.start);
+  assert.deepEqual(centerlineAt(ribbon.positions, segments), path.end);
+  assert.ok(pairWidthAt(ribbon.positions, 0) > 0);
+  assert.ok(pairWidthAt(ribbon.positions, segments) > 0);
 });
 
 test("ribbon provides finite coordinates, progress UVs, and deterministic triangle order", () => {
@@ -60,10 +81,29 @@ test("ribbon narrows at its source and shared hub while remaining broad through 
   const middle = pairWidthAt(ribbon.positions, 8);
   const hub = pairWidthAt(ribbon.positions, 14);
 
-  assert.equal(pairWidthAt(ribbon.positions, 0), 0);
-  assert.equal(pairWidthAt(ribbon.positions, 16), 0);
+  assert.ok(pairWidthAt(ribbon.positions, 0) > 0);
+  assert.ok(pairWidthAt(ribbon.positions, 16) > 0);
   assert.ok(source < middle * 0.7);
   assert.ok(hub < middle * 0.7);
+});
+
+test("every generated triangle retains nonzero area at every permitted segment count", () => {
+  for (const stream of ["moon", "earth", "black-hole"] as const) {
+    for (const segments of [1, 2, 16]) {
+      const ribbon = createNebulaRibbon(path, stream, 366, segments);
+      for (let index = 0; index < ribbon.indices.length; index += 3) {
+        assert.ok(
+          triangleArea(
+            ribbon.positions,
+            ribbon.indices[index],
+            ribbon.indices[index + 1],
+            ribbon.indices[index + 2],
+          ) > 0,
+          `${stream} segment count ${segments}, triangle ${index / 3}`,
+        );
+      }
+    }
+  }
 });
 
 test("stream widths stay balanced and scale with the responsive short edge", () => {
