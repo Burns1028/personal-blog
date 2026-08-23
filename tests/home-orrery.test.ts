@@ -54,6 +54,7 @@ test("homepage renders one unified celestial system with three semantic destinat
   assert.match(component, /home-cosmos__sphere--moon/);
   assert.match(component, /home-cosmos__sphere--earth/);
   assert.match(component, /home-cosmos__black-hole-core/);
+  assert.match(component, /home-cosmos__earth-atmosphere-shell/);
   assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
   assert.doesNotMatch(component, /data-orrery-earth-stream-origin/);
   assert.match(component, /home-cosmos__satellite/);
@@ -63,12 +64,19 @@ test("homepage renders one unified celestial system with three semantic destinat
   );
 });
 
-test("Earth renders as one clean sphere without an external connection glow", () => {
+test("Earth keeps its atmospheric shell while clipping the external connection flare", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
   const css = readExisting("src/styles/home-orrery.css");
 
   assert.match(component, /home-cosmos__sphere--earth/);
+  assert.match(component, /home-cosmos__earth-atmosphere-shell/);
+  assert.match(component, /homeOrreryAssets\.projects\.earthGlow\.standard/);
+  assert.match(component, /homeOrreryAssets\.projects\.earthGlow\.retina/);
   assert.doesNotMatch(component, /earth-directional-glow|earth-stream-origin/);
+  assert.match(
+    css,
+    /\.home-cosmos__earth-atmosphere-shell\s*\{[\s\S]*?clip-path:\s*circle\(40% at 50% 50%\)/,
+  );
   assert.doesNotMatch(css, /earth-directional-glow|earth-stream-origin/);
 });
 
@@ -177,6 +185,7 @@ test("live composition keeps three clean celestial bodies without connection run
   assert.match(component, /data-home-moon-motion/);
   assert.match(component, /home-cosmos__earth-base/);
   assert.match(component, /data-home-earth-motion/);
+  assert.match(component, /home-cosmos__earth-atmosphere-shell/);
   assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
   assert.match(component, /home-cosmos__black-hole-field/);
   assert.match(component, /home-cosmos__black-hole-core/);
@@ -184,7 +193,7 @@ test("live composition keeps three clean celestial bodies without connection run
   assert.match(component, /home-cosmos__black-hole-dark-core/);
   assert.match(component, /homeOrreryAssets\.writing\.moon/);
   assert.match(component, /homeOrreryAssets\.projects\.earth/);
-  assert.doesNotMatch(component, /homeOrreryAssets\.projects\.earthGlow/);
+  assert.match(component, /homeOrreryAssets\.projects\.earthGlow/);
   assert.match(component, /homeOrreryAssets\.ideas\.core/);
   assert.match(component, /homeOrreryAssets\.ideas\.rotor/);
   assert.match(component, /homeOrreryAssets\.ideas\.field/);
@@ -629,6 +638,7 @@ test("directional light fields are fixed, asymmetric layers and the mother scene
 
   assert.doesNotMatch(component, /approvedScene|home-cosmos__approved-scene/);
   assert.match(component, /home-cosmos__moon-light/);
+  assert.match(component, /home-cosmos__earth-atmosphere-shell/);
   assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
   assert.match(component, /home-cosmos__black-hole-field/);
   assert.match(component, /home-cosmos__black-hole-dark-core/);

@@ -65,6 +65,20 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       data-artifact="repo"
     >
       <span class="home-celestial__motion home-celestial__motion--projects">
+        <picture class="home-cosmos__earth-atmosphere-shell" aria-hidden="true">
+          <source
+            media="(min-resolution: 1.5dppx)"
+            srcset={homeOrreryAssets.projects.earthGlow.retina}
+          />
+          <img
+            src={homeOrreryAssets.projects.earthGlow.standard}
+            alt=""
+            width="480"
+            height="480"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
         <span class="home-cosmos__sphere home-cosmos__sphere--earth" aria-hidden="true">
           <picture class="home-cosmos__earth-base">
             <source
