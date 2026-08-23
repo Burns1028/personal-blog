@@ -82,6 +82,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
             decoding="async"
           />
         </picture>
+        <span
+          class="home-cosmos__earth-stream-origin"
+          data-orrery-earth-stream-origin
+          aria-hidden="true"
+        ></span>
         <span class="home-cosmos__sphere home-cosmos__sphere--earth" aria-hidden="true">
           <picture class="home-cosmos__earth-base">
             <source
@@ -213,10 +218,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     const canvas = orrery.querySelector<HTMLCanvasElement>("[data-orrery-stream-canvas]");
     const moon = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--moon");
     const earth = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--earth");
+    const earthOrigin = orrery.querySelector<HTMLElement>("[data-orrery-earth-stream-origin]");
     const blackHole = orrery.querySelector<HTMLElement>(".home-cosmos__black-hole-core");
     const bodyElements =
-      moon && earth && blackHole
-        ? { moon, earth, blackHole }
+      moon && earth && earthOrigin && blackHole
+        ? { moon, earth, earthOrigin, blackHole }
         : null;
     const streams =
       canvas && bodyElements

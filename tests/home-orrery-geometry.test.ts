@@ -97,6 +97,51 @@ test("sampled responsive arms remain within the stage", () => {
   }
 });
 
+test("earth stream starts exactly at the visible upper-left glint and leaves along its down-left tangent", () => {
+  const radial = { x: -0.95, y: -0.3125 };
+  const radialLength = Math.hypot(radial.x, radial.y);
+  const earthOrigin = {
+    x: desktopBodies.earth.x +
+      desktopBodies.earth.rx * radial.x / radialLength,
+    y: desktopBodies.earth.y +
+      desktopBodies.earth.ry * radial.y / radialLength,
+  };
+  const geometry = createOrreryHubGeometry(
+    desktopBodies,
+    { width: 881, height: 732 },
+    { earth: earthOrigin },
+  );
+
+  assert.ok(geometry);
+  assert.deepEqual(geometry.paths.earth.start, earthOrigin);
+  const tangent = tangentCubic(geometry.paths.earth, 0);
+  const normal = {
+    x:
+      (earthOrigin.x - desktopBodies.earth.x) /
+      desktopBodies.earth.rx ** 2,
+    y:
+      (earthOrigin.y - desktopBodies.earth.y) /
+      desktopBodies.earth.ry ** 2,
+  };
+  const tangentNormalCosine =
+    (tangent.x * normal.x + tangent.y * normal.y) /
+    (Math.hypot(tangent.x, tangent.y) * Math.hypot(normal.x, normal.y));
+  assert.ok(Math.abs(tangentNormalCosine) <= 1e-6);
+  assert.ok(tangent.x < 0);
+  assert.ok(tangent.y > 0);
+});
+
+test("an explicit earth origin away from the visible ellipse fails closed", () => {
+  assert.equal(
+    createOrreryHubGeometry(
+      desktopBodies,
+      { width: 881, height: 732 },
+      { earth: { x: desktopBodies.earth.x, y: desktopBodies.earth.y } },
+    ),
+    null,
+  );
+});
+
 test("invalid or unusably collapsed layouts fail closed", () => {
   assert.equal(
     createOrreryHubGeometry(

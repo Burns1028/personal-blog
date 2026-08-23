@@ -246,6 +246,17 @@
   object-fit: contain;
 }
 
+.home-cosmos__earth-stream-origin {
+  position: absolute;
+  left: 17.36%;
+  top: 39.58%;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
 .home-cosmos__satellite-orbit {
   z-index: 6;
   inset: 7%;

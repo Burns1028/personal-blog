@@ -86,6 +86,7 @@ const installFacadeBrowser = () => {
       moon: body(81, 68, 68, 68),
       earth: body(282, 118, 132, 132),
       blackHole: body(70, 290, 64, 64),
+      earthOrigin: body(284.8, 162.9, 1, 1),
     },
     get lastReplacement() {
       return lastReplacement;
@@ -123,12 +124,14 @@ test("a render snapshot measures visible bodies instead of legacy center anchors
     },
     3,
     340,
+    { earth: { left: 284.8, top: 162.9, width: 1, height: 1 } },
   );
   assert.equal(snapshot.width, 440);
   assert.equal(snapshot.height, 366);
   assert.equal(snapshot.viewportWidth, 340);
   assert.equal(snapshot.dpr, 2);
   assert.ok(snapshot.geometry);
+  assert.deepEqual(snapshot.geometry.paths.earth.start, { x: 275.3, y: 143.4 });
   assert.deepEqual(snapshot.geometry.paths.moon.end, snapshot.geometry.hub);
   assert.deepEqual(snapshot.geometry.paths.earth.end, snapshot.geometry.hub);
   assert.deepEqual(snapshot.geometry.paths["black-hole"].end, snapshot.geometry.hub);

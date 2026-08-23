@@ -20,6 +20,10 @@ export type OrreryBodies = {
 
 export type OrreryStream = "moon" | "earth" | "black-hole";
 
+export type OrreryStreamOrigins = {
+  earth?: Point;
+};
+
 export type OrreryHubGeometry = {
   hub: Point;
   bodies: OrreryBodies;
@@ -155,6 +159,41 @@ const curvedPath = (
   };
 };
 
+const tangentEarthPath = (
+  earth: Ellipse,
+  start: Point,
+  hub: Point,
+): CubicPath => {
+  const normal = {
+    x: (start.x - earth.x) / earth.rx ** 2,
+    y: (start.y - earth.y) / earth.ry ** 2,
+  };
+  const tangentA = { x: -normal.y, y: normal.x };
+  const towardHub = { x: hub.x - start.x, y: hub.y - start.y };
+  const tangent =
+    tangentA.x * towardHub.x + tangentA.y * towardHub.y >= 0
+      ? tangentA
+      : { x: -tangentA.x, y: -tangentA.y };
+  const tangentLength = Math.hypot(tangent.x, tangent.y);
+  const chordLength = Math.hypot(towardHub.x, towardHub.y);
+  const direction = {
+    x: tangent.x / tangentLength,
+    y: tangent.y / tangentLength,
+  };
+  return {
+    start,
+    controlA: {
+      x: start.x + direction.x * chordLength * 0.38,
+      y: start.y + direction.y * chordLength * 0.38,
+    },
+    controlB: {
+      x: start.x + towardHub.x * 0.74,
+      y: start.y + towardHub.y * 0.74,
+    },
+    end: hub,
+  };
+};
+
 const blackHolePath = (start: Point, hub: Point): CubicPath => {
   const dx = hub.x - start.x;
   const dy = hub.y - start.y;
@@ -195,6 +234,7 @@ const pathWithinStage = (
 export const createOrreryHubGeometry = (
   bodies: OrreryBodies,
   stage: { width: number; height: number },
+  origins: OrreryStreamOrigins = {},
 ): OrreryHubGeometry | null => {
   if (
     !Number.isFinite(stage.width) ||
@@ -239,14 +279,19 @@ export const createOrreryHubGeometry = (
   if (bodyList.some((body) => pointInsideEllipse(body, hub))) return null;
 
   const moonStart = ellipseBoundaryToward(bodies.moon, hub);
-  const earthStart = ellipseBoundaryToward(bodies.earth, hub);
+  const earthStart = origins.earth ?? ellipseBoundaryToward(bodies.earth, hub);
   const blackHoleStart = ellipseTangentPointToward(bodies.blackHole, hub);
   if (![moonStart, earthStart, blackHoleStart].every(finitePoint)) return null;
+  if (origins.earth && Math.abs(ellipseEquation(bodies.earth, earthStart) - 1) > 0.04) {
+    return null;
+  }
   if (distance(earthStart, hub) < bodies.earth.rx * 0.25) return null;
 
   const paths: OrreryHubGeometry["paths"] = {
     moon: curvedPath(moonStart, hub, 0.075),
-    earth: curvedPath(earthStart, hub, -0.025),
+    earth: origins.earth
+      ? tangentEarthPath(bodies.earth, earthStart, hub)
+      : curvedPath(earthStart, hub, -0.025),
     "black-hole": blackHolePath(blackHoleStart, hub),
   };
 

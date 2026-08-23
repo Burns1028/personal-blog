@@ -25,6 +25,11 @@ export type OrreryBodyElements = {
   moon: HTMLElement;
   earth: HTMLElement;
   blackHole: HTMLElement;
+  earthOrigin: HTMLElement;
+};
+
+export type OrreryStreamOriginRects = {
+  earth: RectLike;
 };
 
 export type OrreryStreamFacade = {
@@ -55,6 +60,7 @@ export const createOrrerySnapshot = (
   bodyRects: OrreryBodyRects,
   devicePixelRatio: number,
   viewportWidth = stageRect.width,
+  originRects?: OrreryStreamOriginRects,
 ): OrreryRenderSnapshot => {
   const width = Math.max(0, Number.isFinite(stageRect.width) ? stageRect.width : 0);
   const height = Math.max(0, Number.isFinite(stageRect.height) ? stageRect.height : 0);
@@ -63,7 +69,11 @@ export const createOrrerySnapshot = (
     Number.isFinite(viewportWidth) ? viewportWidth : width,
   );
   const dpr = Math.min(2, Math.max(1, devicePixelRatio || 1));
-  if (!usableRect(stageRect) || !Object.values(bodyRects).every(usableRect)) {
+  if (
+    !usableRect(stageRect) ||
+    !Object.values(bodyRects).every(usableRect) ||
+    (originRects && !Object.values(originRects).every(usableRect))
+  ) {
     return { geometry: null, width, height, viewportWidth: measuredViewportWidth, dpr };
   }
   const bodies = {
@@ -72,7 +82,18 @@ export const createOrrerySnapshot = (
     blackHole: ellipseFromRect(bodyRects.blackHole, stageRect),
   };
   return {
-    geometry: createOrreryHubGeometry(bodies, { width, height }),
+    geometry: createOrreryHubGeometry(
+      bodies,
+      { width, height },
+      originRects
+        ? {
+            earth: {
+              x: originRects.earth.left + originRects.earth.width / 2 - stageRect.left,
+              y: originRects.earth.top + originRects.earth.height / 2 - stageRect.top,
+            },
+          }
+        : undefined,
+    ),
     width,
     height,
     viewportWidth: measuredViewportWidth,
@@ -136,6 +157,7 @@ export const createOrreryStreamController = (
       },
       window.devicePixelRatio || 1,
       viewportWidths.length > 0 ? Math.min(...viewportWidths) : stageRect.width,
+      { earth: bodyElements.earthOrigin.getBoundingClientRect() },
     );
     return snapshot;
   };

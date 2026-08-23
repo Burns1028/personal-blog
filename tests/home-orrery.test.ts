@@ -55,10 +55,22 @@ test("homepage renders one unified celestial system with three semantic destinat
   assert.match(component, /home-cosmos__sphere--earth/);
   assert.match(component, /home-cosmos__black-hole-core/);
   assert.match(component, /home-cosmos__earth-directional-glow/);
+  assert.match(component, /data-orrery-earth-stream-origin/);
   assert.match(component, /home-cosmos__satellite/);
   assert.doesNotMatch(
     component,
     /home-planet-(?:writing|projects|ideas)-v1/,
+  );
+});
+
+test("earth stream origin is pinned to the approved upper-left glow point", () => {
+  const component = readExisting("src/components/HomeOrrery.astro");
+  const css = readExisting("src/styles/home-orrery.css");
+
+  assert.match(component, /data-orrery-earth-stream-origin/);
+  assert.match(
+    css,
+    /\.home-cosmos__earth-stream-origin\s*{[\s\S]*?left:\s*17\.36%;[\s\S]*?top:\s*39\.58%;/,
   );
 });
 
