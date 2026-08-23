@@ -75,7 +75,7 @@ test("Earth keeps its atmospheric shell while clipping the external connection f
   assert.doesNotMatch(component, /earth-directional-glow|earth-stream-origin/);
   assert.match(
     css,
-    /\.home-cosmos__earth-atmosphere-shell\s*\{[\s\S]*?clip-path:\s*circle\(40% at 50% 50%\)/,
+    /\.home-cosmos__earth-atmosphere-shell\s*\{[\s\S]*?clip-path:\s*circle\(38% at 50% 50%\)/,
   );
   assert.doesNotMatch(css, /earth-directional-glow|earth-stream-origin/);
 });
