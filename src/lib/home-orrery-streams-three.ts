@@ -25,6 +25,8 @@ import {
 import {
   createOrreryNebulaParticles,
   nebulaSpread,
+  nebulaStreamWeights,
+  nebulaVisualGain,
   type OrreryNebulaParticle,
   type OrreryNebulaSource,
 } from "./home-orrery-nebula.ts";
@@ -44,17 +46,6 @@ export type OrreryEnvironment = {
   dpr: number;
   saveData: boolean;
   hardwareConcurrency: number;
-};
-
-export type OrreryParticleInstance = {
-  stream: OrreryStream;
-  phase: number;
-  speed: number;
-  normalOffsetRatio: number;
-  size: number;
-  rotation: number;
-  alpha: number;
-  atlasCell: number;
 };
 
 type RendererLike = {
@@ -106,14 +97,6 @@ export const selectOrreryQuality = (
   };
 };
 
-const seededRandom = (seed: number) => {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-};
-
 export const atlasCellForParticle = (
   stream: OrreryStream,
   progress: number,
@@ -126,29 +109,6 @@ export const atlasCellForParticle = (
   return localVariant;
 };
 
-export const createParticleInstances = (
-  count: number,
-  seed = 1028,
-): OrreryParticleInstance[] => {
-  const random = seededRandom(seed);
-  const streams: readonly OrreryStream[] = ["moon", "earth", "black-hole"];
-  return Array.from({ length: Math.max(0, Math.floor(count)) }, (_, index) => {
-    const stream = streams[index % streams.length];
-    const phase = random();
-    return {
-      stream,
-      phase,
-      speed: 0.018 + random() * (stream === "earth" ? 0.032 : 0.024),
-      normalOffsetRatio:
-        (random() - 0.5) * (stream === "black-hole" ? 0.027 : 0.016),
-      size: 0.75 + random() ** 2 * (stream === "black-hole" ? 2.7 : 2.1),
-      rotation: (random() - 0.5) * Math.PI * 0.42,
-      alpha: 0.24 + random() * 0.62,
-      atlasCell: atlasCellForParticle(stream, phase, index),
-    };
-  });
-};
-
 const streamIndex = (stream: OrreryStream) =>
   stream === "moon" ? 0 : stream === "earth" ? 1 : 2;
 
@@ -157,12 +117,12 @@ const streamPalette = (stream: OrreryNebulaSource) => {
     return { start: new Color(0xe0963d), end: new Color(0x94d9fa) };
   }
   if (stream === "moon") {
-    return { start: new Color(0xf0c77e), end: new Color(0xa3ddfa) };
+    return { start: new Color(0xf4cf83), end: new Color(0xb9d9ea) };
   }
   if (stream === "earth") {
-    return { start: new Color(0x5ab9f2), end: new Color(0xdaf5ff) };
+    return { start: new Color(0x4698d1), end: new Color(0xa8d8ee) };
   }
-  return { start: new Color(0xea8e32), end: new Color(0x8ed0f2) };
+  return { start: new Color(0xf09a3a), end: new Color(0xc5c2ad) };
 };
 
 const setInstancedAttribute = (
@@ -212,12 +172,23 @@ const createParticleGeometry = (
       : nebulaSpread(particle.stream, particle.layer, particle.phase, stageShortEdge) * particle.lateralSeed;
     const signedSpread = spread;
     const palette = streamPalette(particle.stream);
+    const gain = nebulaVisualGain(particle.stream);
     starts.push(start.x, start.y);
     controlAs.push(controlA.x, controlA.y);
     controlBs.push(controlB.x, controlB.y);
     ends.push(end.x, end.y);
-    motions.push(particle.phase, particle.speed, signedSpread, particle.size);
-    styles.push(particle.rotation, particle.alpha, sourceIndex, particle.atlasCell);
+    motions.push(
+      particle.phase,
+      particle.speed,
+      signedSpread,
+      particle.size * gain.size,
+    );
+    styles.push(
+      particle.rotation,
+      particle.alpha * gain.opacity,
+      sourceIndex,
+      particle.atlasCell,
+    );
     startColors.push(palette.start.r, palette.start.g, palette.start.b);
     endColors.push(palette.end.r, palette.end.g, palette.end.b);
   }
@@ -285,7 +256,7 @@ const particleVertexShader = `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(center + oriented, 0.0, 1.0);
     vec2 atlasCell = vec2(mod(iStyle.w, 4.0), floor(iStyle.w / 4.0));
     vAtlasUv = (uv + atlasCell) * 0.25;
-    vColor = mix(iStartColor, iEndColor, smoothstep(0.45, 0.9, progress));
+    vColor = mix(iStartColor, iEndColor, smoothstep(0.68, 0.94, progress));
     float edgeFade = min(1.0, min(progress / 0.02, (1.0 - progress) / 0.012));
     vAlpha = iStyle.z > 2.5 ? iStyle.y : iStyle.y * max(0.0, edgeFade);
     vStream = iStyle.z;
@@ -449,7 +420,11 @@ export const createOrreryThreeStreamController = (
 
     particleGeometry = createParticleGeometry(
       snapshot.geometry,
-      createOrreryNebulaParticles(quality.particleCount),
+      createOrreryNebulaParticles(
+        quality.particleCount,
+        1028,
+        nebulaStreamWeights(snapshot.geometry),
+      ),
       snapshot,
     );
     particleMaterial = new ShaderMaterial({

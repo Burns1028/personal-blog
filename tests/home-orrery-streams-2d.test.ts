@@ -9,7 +9,13 @@ import {
   type OrreryRenderSnapshot,
 } from "../src/lib/home-orrery-streams-2d.ts";
 import { createOrreryHubGeometry } from "../src/lib/home-orrery-geometry.ts";
-import { createOrreryNebulaParticles } from "../src/lib/home-orrery-nebula.ts";
+import {
+  createOrreryNebulaParticles,
+  nebulaStreamCounts,
+  nebulaStreamWeights,
+  nebulaVisualGain,
+  type OrreryNebulaStreamWeights,
+} from "../src/lib/home-orrery-nebula.ts";
 
 const geometry = createOrreryHubGeometry(
   {
@@ -88,8 +94,13 @@ test("the 2D fallback applies the shared endpoint fade only once", () => {
     resolve(import.meta.dirname, "../src/lib/home-orrery-streams-2d.ts"),
     "utf8",
   );
-  assert.match(source, /particle\.alpha \* nebulaFade\(progress\) \* emphasis/);
+  assert.match(
+    source,
+    /particle\.alpha \* gain\.opacity \* nebulaFade\(progress\) \* emphasis/,
+  );
   assert.doesNotMatch(source, /particle\.alpha \* nebulaOpacity/);
+  assert.match(source, /nebulaVisualGain\(stream\)/);
+  assert.match(source, /particle\.size \* gain\.size/);
 });
 
 test("the 2D fallback clears and draws nothing for missing geometry", () => {
@@ -111,7 +122,10 @@ test("constrained 2D quality lowers particles, frame rate, and backing DPR", asy
     getContext: () => context,
   } as unknown as HTMLCanvasElement;
   const queued: FrameRequestCallback[] = [];
-  const particleRequests: number[] = [];
+  const particleRequests: Array<{
+    count: number;
+    weights: OrreryNebulaStreamWeights | undefined;
+  }> = [];
   const controller = createOrrery2DStreamController(canvas, {
     requestFrame(callback) {
       queued.push(callback);
@@ -120,9 +134,9 @@ test("constrained 2D quality lowers particles, frame rate, and backing DPR", asy
     cancelFrame: () => undefined,
     now: () => 0,
     environment: { saveData: false, hardwareConcurrency: 8 },
-    particleFactory(count, seed) {
-      particleRequests.push(count);
-      return createOrreryNebulaParticles(count, seed);
+    particleFactory(count, seed, weights) {
+      particleRequests.push({ count, weights });
+      return createOrreryNebulaParticles(count, seed, weights);
     },
   });
   assert.ok(controller);
@@ -134,7 +148,11 @@ test("constrained 2D quality lowers particles, frame rate, and backing DPR", asy
     dpr: 2,
   });
 
-  assert.deepEqual(particleRequests, [540]);
+  const expectedWeights = nebulaStreamWeights(geometry);
+  assert.deepEqual(particleRequests, [{ count: 540, weights: expectedWeights }]);
+  const expectedCounts = nebulaStreamCounts(540, expectedWeights);
+  assert.ok(expectedCounts.earth < expectedCounts.moon);
+  assert.ok(expectedCounts.moon < expectedCounts["black-hole"]);
   assert.equal(canvas.width, 476);
   assert.equal(canvas.height, 458);
   assert.deepEqual(calls.filter((call) => call.name === "setTransform").at(-1)?.args, [
@@ -170,8 +188,37 @@ test("constrained 2D quality lowers particles, frame rate, and backing DPR", asy
     viewportWidth: 340,
     dpr: 1,
   });
-  assert.deepEqual(particleRequests, [540, 720]);
+  assert.deepEqual(particleRequests.map((request) => request.count), [540, 720]);
+
+  const alternateGeometry = createOrreryHubGeometry(
+    geometry.bodies,
+    { width: 440, height: 366 },
+    {
+      earth: {
+        x: geometry.bodies.earth.x - geometry.bodies.earth.rx * 0.95,
+        y:
+          geometry.bodies.earth.y -
+          geometry.bodies.earth.ry * Math.sqrt(1 - 0.95 ** 2),
+      },
+    },
+  );
+  assert.ok(alternateGeometry);
+  controller.setGeometry({
+    geometry: alternateGeometry,
+    width: 380.8,
+    height: 366,
+    viewportWidth: 340,
+    dpr: 1,
+  });
+  assert.deepEqual(particleRequests.map((request) => request.count), [540, 720, 540]);
   controller.destroy();
+});
+
+test("2D visual gains reduce Earth while retaining Moon and black-hole mass", () => {
+  assert.ok(nebulaVisualGain("earth").opacity < nebulaVisualGain("moon").opacity);
+  assert.ok(
+    nebulaVisualGain("black-hole").size >= nebulaVisualGain("moon").size,
+  );
 });
 
 test("the 2D controller stops animation and ignores late frames after destroy", async () => {

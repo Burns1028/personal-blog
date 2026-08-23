@@ -8,6 +8,9 @@ import {
   createOrreryNebulaParticles,
   nebulaFade,
   nebulaSpread,
+  nebulaStreamCounts,
+  nebulaStreamWeights,
+  nebulaVisualGain,
   type OrreryNebulaLayer,
   type OrreryNebulaParticle,
   type OrreryNebulaSource,
@@ -78,13 +81,26 @@ export const selectOrrery2DQuality = (
   };
 };
 
-const sharedParticleCache = new Map<number, OrreryNebulaParticle[]>();
+const particleCacheKey = (
+  count: number,
+  geometry: OrreryHubGeometry,
+) => {
+  const weights = nebulaStreamWeights(geometry);
+  const counts = nebulaStreamCounts(count, weights);
+  return {
+    key: `${count}:${counts.hub}:${counts.moon}:${counts.earth}:${counts["black-hole"]}`,
+    weights,
+  };
+};
 
-const sharedParticles = (count: number) => {
-  let particles = sharedParticleCache.get(count);
+const sharedParticleCache = new Map<string, OrreryNebulaParticle[]>();
+
+const sharedParticles = (count: number, geometry: OrreryHubGeometry) => {
+  const request = particleCacheKey(count, geometry);
+  let particles = sharedParticleCache.get(request.key);
   if (!particles) {
-    particles = createOrreryNebulaParticles(count, 1028);
-    sharedParticleCache.set(count, particles);
+    particles = createOrreryNebulaParticles(count, 1028, request.weights);
+    sharedParticleCache.set(request.key, particles);
   }
   return particles;
 };
@@ -96,19 +112,19 @@ const particleColors: Record<OrreryNebulaSource, Record<OrreryNebulaLayer, strin
     spark: "rgba(255, 227, 160, 1)",
   },
   moon: {
-    mist: "rgba(166, 209, 255, 0.62)",
-    dust: "rgba(246, 210, 139, 0.82)",
-    spark: "rgba(220, 242, 255, 1)",
+    mist: "rgba(185, 217, 234, 0.62)",
+    dust: "rgba(244, 207, 131, 0.82)",
+    spark: "rgba(226, 239, 245, 1)",
   },
   earth: {
-    mist: "rgba(85, 181, 244, 0.65)",
-    dust: "rgba(154, 218, 255, 0.86)",
-    spark: "rgba(232, 249, 255, 1)",
+    mist: "rgba(70, 152, 209, 0.65)",
+    dust: "rgba(112, 190, 226, 0.86)",
+    spark: "rgba(168, 216, 238, 1)",
   },
   "black-hole": {
-    mist: "rgba(239, 142, 43, 0.6)",
-    dust: "rgba(246, 181, 87, 0.84)",
-    spark: "rgba(193, 229, 255, 1)",
+    mist: "rgba(240, 154, 58, 0.6)",
+    dust: "rgba(225, 171, 91, 0.84)",
+    spark: "rgba(197, 194, 173, 1)",
   },
 };
 
@@ -132,6 +148,7 @@ const drawArm = (
 ) => {
   const path = geometry.paths[stream];
   const emphasis = emphasisFor(artifact, stream);
+  const gain = nebulaVisualGain(stream);
 
   for (const particle of particles) {
     if (particle.stream !== stream) continue;
@@ -147,10 +164,11 @@ const drawArm = (
     ) * particle.lateralSeed;
     const x = point.x + (-tangent.y / tangentLength) * spread;
     const y = point.y + (tangent.x / tangentLength) * spread;
-    context.globalAlpha = particle.alpha * nebulaFade(progress) * emphasis;
+    context.globalAlpha =
+      particle.alpha * gain.opacity * nebulaFade(progress) * emphasis;
     context.fillStyle = particleColors[stream][particle.layer];
     context.beginPath();
-    context.arc(x, y, particle.size * 0.52, 0, Math.PI * 2);
+    context.arc(x, y, particle.size * gain.size * 0.52, 0, Math.PI * 2);
     context.fill();
   }
 };
@@ -265,7 +283,9 @@ export const drawOrreryStreams2D = (
     snapshot,
     time,
     artifact,
-    sharedParticles(quality.particleCount),
+    snapshot.geometry
+      ? sharedParticles(quality.particleCount, snapshot.geometry)
+      : [],
   );
 };
 
@@ -302,7 +322,7 @@ export const createOrrery2DStreamController = (
   let artifact: OrreryArtifact = "none";
   let quality = selectOrrery2DQuality(1, 1, dependencies.environment);
   let particles: OrreryNebulaParticle[] = [];
-  const particleCache = new Map<number, OrreryNebulaParticle[]>();
+  const particleCache = new Map<string, OrreryNebulaParticle[]>();
   let running = false;
   let destroyed = false;
   let frame = 0;
@@ -351,12 +371,21 @@ export const createOrrery2DStreamController = (
         next.dpr,
         dependencies.environment,
       );
-      let nextParticles = particleCache.get(quality.particleCount);
-      if (!nextParticles) {
-        nextParticles = dependencies.particleFactory(quality.particleCount, 1028);
-        particleCache.set(quality.particleCount, nextParticles);
+      if (next.geometry) {
+        const request = particleCacheKey(quality.particleCount, next.geometry);
+        let nextParticles = particleCache.get(request.key);
+        if (!nextParticles) {
+          nextParticles = dependencies.particleFactory(
+            quality.particleCount,
+            1028,
+            request.weights,
+          );
+          particleCache.set(request.key, nextParticles);
+        }
+        particles = nextParticles;
+      } else {
+        particles = [];
       }
-      particles = nextParticles;
       const backingWidth = Math.max(1, Math.round(next.width * quality.dpr));
       const backingHeight = Math.max(1, Math.round(next.height * quality.dpr));
       if (canvas.width !== backingWidth) canvas.width = backingWidth;

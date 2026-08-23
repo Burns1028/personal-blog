@@ -7,11 +7,15 @@ import { InstancedBufferGeometry, Mesh, type Scene, Texture } from "three";
 import {
   atlasCellForParticle,
   createOrreryThreeStreamController,
-  createParticleInstances,
   selectOrreryQuality,
 } from "../src/lib/home-orrery-streams-three.ts";
 import { createOrreryHubGeometry } from "../src/lib/home-orrery-geometry.ts";
-import { createOrreryNebulaParticles } from "../src/lib/home-orrery-nebula.ts";
+import {
+  createOrreryNebulaParticles,
+  nebulaStreamCounts,
+  nebulaStreamWeights,
+  nebulaVisualGain,
+} from "../src/lib/home-orrery-nebula.ts";
 
 test("quality profiles cap density, frame rate, and DPR by environment", () => {
   assert.deepEqual(
@@ -43,17 +47,6 @@ test("quality profiles allocate enough particles for traceable static arms", () 
   );
 });
 
-test("particle instances are deterministic and populate all three arms", () => {
-  const first = createParticleInstances(900, 1028);
-  const second = createParticleInstances(900, 1028);
-  assert.deepEqual(first, second);
-  assert.equal(first.length, 900);
-  for (const stream of ["moon", "earth", "black-hole"] as const) {
-    assert.ok(first.filter((particle) => particle.stream === stream).length > 180);
-  }
-  assert.ok(first.every((particle) => particle.atlasCell >= 0 && particle.atlasCell < 16));
-});
-
 test("atlas roles move each arm toward blue-white at the shared hub", () => {
   assert.ok(atlasCellForParticle("moon", 0.1, 0) < 8);
   assert.ok(atlasCellForParticle("black-hole", 0.1, 0) < 8);
@@ -82,7 +75,12 @@ test("Three streams contain no continuous ribbon mesh", () => {
   );
   assert.doesNotMatch(source, /createRibbonGeometry|ribbonGeometry|ribbonMaterial/);
   assert.doesNotMatch(source, /new MeshBasicMaterial/);
+  assert.doesNotMatch(source, /index\s*%\s*streams\.length/);
   assert.match(source, /createOrreryNebulaParticles/);
+  assert.match(source, /smoothstep\(0\.68, 0\.94, progress\)/);
+  for (const color of ["0xf4cf83", "0xb9d9ea", "0x4698d1", "0xa8d8ee", "0xf09a3a", "0xc5c2ad"]) {
+    assert.match(source, new RegExp(color));
+  }
 });
 
 test("hub particles share the instanced draw without exceeding the WebGL attribute floor", () => {
@@ -213,6 +211,53 @@ test("Three controller selects constrained density from viewport rather than wid
   assert.equal(harness.calls.filter((call) => call === "render").length, rendersBeforeAnimation);
   queued[1]?.(42);
   assert.equal(harness.calls.filter((call) => call === "render").length, rendersBeforeAnimation + 1);
+  controller.destroy();
+});
+
+test("Three instances use geometry quotas and apply each stream gain exactly once", async () => {
+  const harness = makeHarness();
+  const controller = createOrreryThreeStreamController(
+    harness.canvas,
+    "/atlas.webp",
+    {
+      rendererFactory: () => harness.renderer,
+      textureLoader: async () => harness.texture,
+      requestFrame: () => 1,
+      cancelFrame: () => undefined,
+      now: () => 100,
+      environment: { dpr: 2, saveData: false, hardwareConcurrency: 8 },
+    },
+  );
+  controller.setGeometry({
+    geometry,
+    width: 440,
+    height: 366,
+    viewportWidth: 393,
+    dpr: 1.5,
+  });
+  assert.equal(await controller.prepare(), true);
+
+  const particleMesh = harness.scenes.at(-1)?.children.find(
+    (child) => child instanceof Mesh && child.geometry instanceof InstancedBufferGeometry,
+  ) as Mesh<InstancedBufferGeometry> | undefined;
+  assert.ok(particleMesh);
+  const style = particleMesh.geometry.getAttribute("iStyle");
+  const motion = particleMesh.geometry.getAttribute("iMotion");
+  const weights = nebulaStreamWeights(geometry);
+  const expectedCounts = nebulaStreamCounts(1500, weights);
+  const expectedParticles = createOrreryNebulaParticles(1500, 1028, weights);
+  const sourceCounts = { moon: 0, earth: 0, "black-hole": 0, hub: 0 };
+
+  for (let index = 0; index < expectedParticles.length; index += 1) {
+    const particle = expectedParticles[index];
+    sourceCounts[particle.stream] += 1;
+    const gain = nebulaVisualGain(particle.stream);
+    assert.ok(Math.abs(motion.getW(index) - particle.size * gain.size) < 1e-5);
+    assert.ok(Math.abs(style.getY(index) - particle.alpha * gain.opacity) < 1e-5);
+  }
+  assert.deepEqual(sourceCounts, expectedCounts);
+  assert.ok(sourceCounts.earth < sourceCounts.moon);
+  assert.ok(sourceCounts.moon < sourceCounts["black-hole"]);
   controller.destroy();
 });
 
