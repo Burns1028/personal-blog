@@ -26,6 +26,19 @@ const phoneBodies = {
 const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   Math.hypot(a.x - b.x, a.y - b.y);
 
+const distanceToChord = (
+  point: { x: number; y: number },
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+) => {
+  const chord = { x: end.x - start.x, y: end.y - start.y };
+  const chordLength = Math.hypot(chord.x, chord.y);
+  return Math.abs(
+    chord.x * (start.y - point.y) -
+      (start.x - point.x) * chord.y,
+  ) / chordLength;
+};
+
 for (const [name, bodies, stage] of [
   ["desktop", desktopBodies, { width: 881, height: 732 }],
   ["phone", phoneBodies, { width: 440, height: 366 }],
@@ -69,6 +82,21 @@ for (const [name, bodies, stage] of [
     assert.ok(blackHoleTangent.y < 0);
   });
 }
+
+test("hub uses the exact Earth-weighted body center", () => {
+  const geometry = createOrreryHubGeometry(desktopBodies, {
+    width: 881,
+    height: 732,
+  });
+
+  assert.ok(geometry);
+  assert.equal(
+    geometry.hub.x,
+    desktopBodies.moon.x * 0.25 +
+      desktopBodies.earth.x * 0.5 +
+      desktopBodies.blackHole.x * 0.25,
+  );
+});
 
 test("sampled responsive arms remain within the stage", () => {
   for (const width of [320, 360, 393, 430, 768, 1100, 1600]) {
@@ -129,6 +157,13 @@ test("earth stream starts exactly at the visible upper-left glint and leaves alo
   assert.ok(Math.abs(tangentNormalCosine) <= 1e-6);
   assert.ok(tangent.x < 0);
   assert.ok(tangent.y > 0);
+  assert.ok(
+    distanceToChord(
+      sampleCubic(geometry.paths.earth, 0.5),
+      geometry.paths.earth.start,
+      geometry.hub,
+    ) >= desktopBodies.earth.rx * 0.04,
+  );
 });
 
 test("an explicit earth origin away from the visible ellipse fails closed", () => {
