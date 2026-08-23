@@ -238,6 +238,14 @@ test("Ideas date filtering uses a custom archive index instead of the native sel
   assert.match(css, /\.ideas-journal__date-filter\s*>\s*summary/);
   assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*position:\s*absolute/);
   assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*background:\s*linear-gradient/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*max-height:\s*min\(/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*overflow-y:\s*auto/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*overscroll-behavior:\s*contain/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*scrollbar-gutter:\s*stable/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*scrollbar-width:\s*thin/);
+  assert.match(css, /\.ideas-journal__date-menu\s*\{[^}]*scrollbar-color:/);
+  assert.match(css, /\.ideas-journal__date-menu::-webkit-scrollbar-track/);
+  assert.match(css, /\.ideas-journal__date-menu::-webkit-scrollbar-thumb/);
   assert.match(
     css,
     /\.ideas-journal__date-filter\s*>\s*summary:focus-visible[\s\S]*?outline:\s*1px solid/,
