@@ -1,4 +1,8 @@
-import type { OrreryStream } from "./home-orrery-geometry.ts";
+import {
+  sampleCubic,
+  type OrreryHubGeometry,
+  type OrreryStream,
+} from "./home-orrery-geometry.ts";
 
 export type OrreryNebulaLayer = "mist" | "dust" | "spark";
 export type OrreryNebulaSource = OrreryStream | "hub";
@@ -14,6 +18,26 @@ export type OrreryNebulaParticle = {
   rotation: number;
   alpha: number;
   atlasCell: number;
+};
+
+export type OrreryNebulaStreamWeights = Record<OrreryStream, number>;
+export type OrreryNebulaStreamCounts = Record<OrreryNebulaSource, number>;
+
+const streamOrder = ["moon", "earth", "black-hole"] as const;
+const streamSpreadScale: Record<OrreryStream, number> = {
+  moon: 1,
+  earth: 0.78,
+  "black-hole": 1.32,
+};
+
+const visualGain: Record<
+  OrreryNebulaSource,
+  { opacity: number; size: number }
+> = {
+  moon: { opacity: 1.1, size: 1.05 },
+  earth: { opacity: 0.82, size: 0.92 },
+  "black-hole": { opacity: 1.16, size: 1.08 },
+  hub: { opacity: 1, size: 1 },
 };
 
 const seededRandom = (seed: number) => {
@@ -45,11 +69,67 @@ export const nebulaSpread = (
   progress: number,
   stageShortEdge: number,
 ) => {
-  const streamScale = stream === "black-hole" ? 1.32 : stream === "earth" ? 0.78 : 1;
+  const streamScale = streamSpreadScale[stream];
   const layerScale = layer === "mist" ? 1.7 : layer === "spark" ? 1.18 : 1;
   const convergence = 0.18 + Math.sin(Math.PI * progress) * 0.82;
   return stageShortEdge * 0.028 * streamScale * layerScale * convergence;
 };
+
+const cubicLength = (geometry: OrreryHubGeometry, stream: OrreryStream) => {
+  const path = geometry.paths[stream];
+  let length = 0;
+  let previous = sampleCubic(path, 0);
+  for (let step = 1; step <= 64; step += 1) {
+    const current = sampleCubic(path, step / 64);
+    length += Math.hypot(current.x - previous.x, current.y - previous.y);
+    previous = current;
+  }
+  return length;
+};
+
+export const nebulaStreamWeights = (
+  geometry: OrreryHubGeometry,
+): OrreryNebulaStreamWeights => ({
+  moon: cubicLength(geometry, "moon") * streamSpreadScale.moon,
+  earth: cubicLength(geometry, "earth") * streamSpreadScale.earth,
+  "black-hole":
+    cubicLength(geometry, "black-hole") * streamSpreadScale["black-hole"],
+});
+
+export const nebulaStreamCounts = (
+  count: number,
+  weights: OrreryNebulaStreamWeights,
+): OrreryNebulaStreamCounts => {
+  const total = Math.max(0, Math.floor(count));
+  const hub = Math.min(total, Math.round(total * 0.09));
+  const armBudget = total - hub;
+  const usableWeights = streamOrder.map((stream) =>
+    Number.isFinite(weights[stream]) && weights[stream] > 0
+      ? weights[stream]
+      : 0,
+  );
+  const weightTotal = usableWeights.reduce((sum, weight) => sum + weight, 0);
+  const normalized = weightTotal > 0 ? usableWeights : streamOrder.map(() => 1);
+  const normalizedTotal = normalized.reduce((sum, weight) => sum + weight, 0);
+  const exact = normalized.map((weight) => (armBudget * weight) / normalizedTotal);
+  const quotas = exact.map(Math.floor);
+  let remainder = armBudget - quotas.reduce((sum, quota) => sum + quota, 0);
+  const remainderOrder = streamOrder
+    .map((stream, index) => ({ stream, index, fraction: exact[index] - quotas[index] }))
+    .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+  for (let index = 0; index < remainder; index += 1) {
+    quotas[remainderOrder[index].index] += 1;
+  }
+  return {
+    hub,
+    moon: quotas[0],
+    earth: quotas[1],
+    "black-hole": quotas[2],
+  };
+};
+
+export const nebulaVisualGain = (stream: OrreryNebulaSource) =>
+  visualGain[stream];
 
 export const nebulaFade = (progress: number) => {
   const edgeFade = Math.min(1, progress / 0.02, (1 - progress) / 0.012);
@@ -61,13 +141,47 @@ export const nebulaOpacity = (layer: OrreryNebulaLayer, progress: number) => {
   return base * nebulaFade(progress);
 };
 
-export const createOrreryNebulaParticles = (count: number, seed = 1028) => {
+const interleavedStreams = (counts: OrreryNebulaStreamCounts) => {
+  const armBudget = counts.moon + counts.earth + counts["black-hole"];
+  if (armBudget <= 0) return [];
+  const remaining = streamOrder.map((stream) => counts[stream]);
+  const accumulators = streamOrder.map(() => 0);
+  const streams: OrreryStream[] = [];
+  for (let index = 0; index < armBudget; index += 1) {
+    for (let streamIndex = 0; streamIndex < streamOrder.length; streamIndex += 1) {
+      accumulators[streamIndex] += counts[streamOrder[streamIndex]];
+    }
+    let selected = -1;
+    for (let streamIndex = 0; streamIndex < streamOrder.length; streamIndex += 1) {
+      if (
+        remaining[streamIndex] > 0 &&
+        (selected < 0 || accumulators[streamIndex] > accumulators[selected])
+      ) {
+        selected = streamIndex;
+      }
+    }
+    streams.push(streamOrder[selected]);
+    remaining[selected] -= 1;
+    accumulators[selected] -= armBudget;
+  }
+  return streams;
+};
+
+export const createOrreryNebulaParticles = (
+  count: number,
+  seed = 1028,
+  weights: OrreryNebulaStreamWeights = {
+    moon: 1,
+    earth: 1,
+    "black-hole": 1,
+  },
+) => {
   const random = seededRandom(seed);
   const total = Math.max(0, Math.floor(count));
-  const hubCount = Math.round(total * 0.09);
-  const arms = ["moon", "earth", "black-hole"] as const;
+  const counts = nebulaStreamCounts(total, weights);
+  const armStreams = interleavedStreams(counts);
   return Array.from({ length: total }, (_, index): OrreryNebulaParticle => {
-    const stream = index < hubCount ? "hub" : arms[(index - hubCount) % 3];
+    const stream = index < counts.hub ? "hub" : armStreams[index - counts.hub];
     const layer = layerFor(random());
     const phase = random();
     const sizeRange = layer === "mist" ? [3.8, 7.4] : layer === "dust" ? [1.1, 4.1] : [1.6, 4.8];
