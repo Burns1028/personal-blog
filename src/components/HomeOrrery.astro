@@ -11,12 +11,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
   data-scene-state="preparing"
 >
   <div class="home-cosmos__stage">
-    <canvas
-      class="home-cosmos__stream-canvas"
-      data-orrery-stream-canvas
-      aria-hidden="true"
-    ></canvas>
-
     <a
       class="home-celestial home-celestial--writing"
       href="/writing"
@@ -71,22 +65,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       data-artifact="repo"
     >
       <span class="home-celestial__motion home-celestial__motion--projects">
-        <picture class="home-cosmos__earth-directional-glow" aria-hidden="true">
-          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.projects.earthGlow.retina} />
-          <img
-            src={homeOrreryAssets.projects.earthGlow.standard}
-            alt=""
-            width="480"
-            height="480"
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <span
-          class="home-cosmos__earth-stream-origin"
-          data-orrery-earth-stream-origin
-          aria-hidden="true"
-        ></span>
         <span class="home-cosmos__sphere home-cosmos__sphere--earth" aria-hidden="true">
           <picture class="home-cosmos__earth-base">
             <source
@@ -199,10 +177,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
 </section>
 
 <script>
-  import {
-    createOrreryStreamController,
-    type OrreryArtifact,
-  } from "../lib/home-orrery-streams";
   import { createCelestialSphereController } from "../lib/home-celestial-sphere";
   import { homeOrreryAssets } from "../data/home-orrery-assets";
 
@@ -215,29 +189,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       connection?: { saveData?: boolean };
     }).connection;
     const savesData = connection?.saveData === true;
-    const canvas = orrery.querySelector<HTMLCanvasElement>("[data-orrery-stream-canvas]");
-    const moon = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--moon");
-    const earth = orrery.querySelector<HTMLElement>(".home-cosmos__sphere--earth");
-    const earthOrigin = orrery.querySelector<HTMLElement>("[data-orrery-earth-stream-origin]");
-    const blackHole = orrery.querySelector<HTMLElement>(".home-cosmos__black-hole-core");
-    const bodyElements =
-      moon && earth && earthOrigin && blackHole
-        ? { moon, earth, earthOrigin, blackHole }
-        : null;
-    const streams =
-      canvas && bodyElements
-        ? createOrreryStreamController(
-            canvas,
-            bodyElements,
-            homeOrreryAssets.connectionParticleAtlas,
-          )
-        : null;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
     let earthMotion: ReturnType<typeof createCelestialSphereController> = null;
     let sceneMode: "preparing" | "animated" | "static" = "preparing";
     let scenePreparation: Promise<void> | null = null;
     let staticPreparation: Promise<void> | null = null;
-    let streamPreparation: Promise<boolean> | null = null;
     let pageActive = true;
     let visible = true;
     let navigationPaused = false;
@@ -282,19 +238,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       } else {
         delete orrery.dataset.motionRunning;
       }
-      streams?.setRunning(running);
       moonMotion?.setRunning(running);
       earthMotion?.setRunning(running);
-    };
-
-    const updateActiveArtifact = () => {
-      const artifact = (orrery.dataset.activeArtifact ?? "none") as OrreryArtifact;
-      streams?.setActiveArtifact(artifact);
-    };
-
-    const prepareStreams = () => {
-      streamPreparation ??= streams?.prepare() ?? Promise.resolve(false);
-      return streamPreparation;
     };
 
     const activateStaticScene = () => {
@@ -323,8 +268,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         await Promise.all(
           fallbackImages.map((image) => image.decode().catch(() => undefined)),
         );
-        await prepareStreams();
-
         if (!pageActive) return;
         sceneMode = "static";
         orrery.dataset.sceneState = "static";
@@ -354,8 +297,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
           return;
         }
 
-        await prepareStreams();
-        updateActiveArtifact();
         await nextPaint();
         if (!pageActive) return;
 
@@ -370,7 +311,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       visible = entry?.isIntersecting ?? true;
       updateMotionState();
     });
-    const activeObserver = new MutationObserver(updateActiveArtifact);
 
     const pauseForNavigation = () => {
       navigationPaused = true;
@@ -382,7 +322,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     };
 
     const handleVisibilityChange = () => {
-      if (!document.hidden) streams?.resize();
       updateMotionState();
     };
 
@@ -402,8 +341,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       if (!event.persisted) return;
       navigationPaused = false;
       listenForNavigation();
-      streams?.resize();
-      updateActiveArtifact();
       updateMotionState();
       if (
         sceneMode === "preparing" &&
@@ -417,8 +354,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     const destroyControllers = () => {
       pageActive = false;
       observer.disconnect();
-      activeObserver.disconnect();
-      streams?.destroy();
       moonMotion?.destroy();
       earthMotion?.destroy();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -445,10 +380,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     };
 
     observer.observe(orrery);
-    activeObserver.observe(orrery, {
-      attributes: true,
-      attributeFilter: ["data-active-artifact"],
-    });
     document.addEventListener("visibilitychange", handleVisibilityChange);
     listenForNavigation();
     reducedMotion.addEventListener("change", updateMotionState);
@@ -456,7 +387,6 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       "burns:celestial-surface-failed",
       handleSurfaceFailure,
     );
-    updateActiveArtifact();
     updateMotionState();
 
     if (reducedMotion.matches || savesData) {

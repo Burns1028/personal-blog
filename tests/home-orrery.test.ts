@@ -49,13 +49,13 @@ test("homepage renders one unified celestial system with three semantic destinat
   );
   assert.match(component, /data-home-orrery/);
   assert.match(component, /data-artifact-stage/);
-  assert.match(component, /home-cosmos__stream-canvas/);
+  assert.doesNotMatch(component, /home-cosmos__stream-canvas/);
   assert.doesNotMatch(component, /home-cosmos__approved-scene/);
   assert.match(component, /home-cosmos__sphere--moon/);
   assert.match(component, /home-cosmos__sphere--earth/);
   assert.match(component, /home-cosmos__black-hole-core/);
-  assert.match(component, /home-cosmos__earth-directional-glow/);
-  assert.match(component, /data-orrery-earth-stream-origin/);
+  assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
+  assert.doesNotMatch(component, /data-orrery-earth-stream-origin/);
   assert.match(component, /home-cosmos__satellite/);
   assert.doesNotMatch(
     component,
@@ -63,15 +63,13 @@ test("homepage renders one unified celestial system with three semantic destinat
   );
 });
 
-test("earth stream origin is pinned to the approved upper-left glow point", () => {
+test("Earth renders as one clean sphere without an external connection glow", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
   const css = readExisting("src/styles/home-orrery.css");
 
-  assert.match(component, /data-orrery-earth-stream-origin/);
-  assert.match(
-    css,
-    /\.home-cosmos__earth-stream-origin\s*{[\s\S]*?left:\s*17\.36%;[\s\S]*?top:\s*39\.58%;/,
-  );
+  assert.match(component, /home-cosmos__sphere--earth/);
+  assert.doesNotMatch(component, /earth-directional-glow|earth-stream-origin/);
+  assert.doesNotMatch(css, /earth-directional-glow|earth-stream-origin/);
 });
 
 test("home orrery manifest exposes the mother-matched v4 independent layers", () => {
@@ -164,30 +162,29 @@ test("homepage uses a generated star field without the former Saturn ring layer"
   assert.doesNotMatch(field, /home-rings-composed/);
 });
 
-test("live composition keeps celestial geometry and replaces the mother band with one responsive stream canvas", () => {
+test("live composition keeps three clean celestial bodies without connection runtime", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
   const css = readExisting("src/styles/home-orrery.css");
-  const facade = readExisting("src/lib/home-orrery-streams.ts");
 
-  assert.match(component, /data-orrery-stream-canvas/);
-  assert.equal((component.match(/<canvas/g) ?? []).length, 3);
+  assert.doesNotMatch(component, /data-orrery-stream-canvas/);
+  assert.equal((component.match(/<canvas/g) ?? []).length, 2);
   assert.doesNotMatch(component, /connection-base|data-stream-anchor/);
-  assert.match(component, /homeOrreryAssets\.connectionParticleAtlas/);
-  assert.match(component, /\.home-cosmos__sphere--moon/);
-  assert.match(component, /\.home-cosmos__sphere--earth/);
-  assert.match(component, /\.home-cosmos__black-hole-core/);
+  assert.doesNotMatch(component, /connectionParticleAtlas/);
+  assert.match(component, /home-cosmos__sphere--moon/);
+  assert.match(component, /home-cosmos__sphere--earth/);
+  assert.match(component, /home-cosmos__black-hole-core/);
   assert.match(component, /home-cosmos__moon-base/);
   assert.match(component, /data-home-moon-motion/);
   assert.match(component, /home-cosmos__earth-base/);
   assert.match(component, /data-home-earth-motion/);
-  assert.match(component, /home-cosmos__earth-directional-glow/);
+  assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
   assert.match(component, /home-cosmos__black-hole-field/);
   assert.match(component, /home-cosmos__black-hole-core/);
   assert.match(component, /home-cosmos__black-hole-rotor/);
   assert.match(component, /home-cosmos__black-hole-dark-core/);
   assert.match(component, /homeOrreryAssets\.writing\.moon/);
   assert.match(component, /homeOrreryAssets\.projects\.earth/);
-  assert.match(component, /homeOrreryAssets\.projects\.earthGlow/);
+  assert.doesNotMatch(component, /homeOrreryAssets\.projects\.earthGlow/);
   assert.match(component, /homeOrreryAssets\.ideas\.core/);
   assert.match(component, /homeOrreryAssets\.ideas\.rotor/);
   assert.match(component, /homeOrreryAssets\.ideas\.field/);
@@ -201,14 +198,11 @@ test("live composition keeps celestial geometry and replaces the mother band wit
   assert.match(component, /data-fallback-srcset=/);
   assert.match(component, /moonMotion\.prepare\(\)/);
   assert.match(component, /earthMotion\.prepare\(\)/);
-  assert.match(component, /createOrreryStreamController/);
-  assert.match(component, /streams\?\.prepare\(\)/);
-  assert.match(facade, /import\("\.\/home-orrery-streams-three"\)/);
-  assert.match(facade, /createOrrery2DStreamController/);
+  assert.doesNotMatch(component, /createOrreryStreamController|\bstreams\?\./);
   assert.match(component, /orrery\.dataset\.sceneState = "ready"/);
   assert.match(component, /burns:page-settled/);
   assert.match(css, /data-scene-state="ready"[\s\S]*?opacity:\s*1/);
-  assert.match(css, /\.home-cosmos__stream-canvas\s*\{/);
+  assert.doesNotMatch(css, /\.home-cosmos__stream-canvas\s*\{/);
   assert.doesNotMatch(css, /home-cosmos__stream-anchor|home-cosmos__connection-base/);
   assert.doesNotMatch(component, /<noscript>[\s\S]*?connection-base/);
   assert.doesNotMatch(component, /createCelestialFrameController|data-frame-prefix|data-frame-count/);
@@ -234,47 +228,11 @@ test("legacy stretched connection runtime is absent from shipped source", () => 
   }
 });
 
-test("homepage nebula streams do not ship a continuous connection line", () => {
-  const three = readExisting("src/lib/home-orrery-streams-three.ts");
-  const fallback = readExisting("src/lib/home-orrery-streams-2d.ts");
-  const stripComments = (source: string) => source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "");
-  const activeThree = stripComments(three);
-  const activeFallback = stripComments(fallback);
-  assert.doesNotMatch(
-    activeThree,
-    /createRibbonGeometry|ribbonGeometry|ribbonMaterial|LineBasicMaterial|LineSegments|TubeGeometry/,
-  );
-  assert.doesNotMatch(activeThree, /new\s+(?:Line|LineLoop|LineSegments)\s*\(/);
-  assert.doesNotMatch(
-    activeFallback,
-    /stroke\s*\(|bezierCurveTo|lineTo|Path2D/,
-  );
-  assert.match(activeThree, /createOrreryNebulaParticles\s*\(/);
-  assert.match(activeFallback, /createOrreryNebulaParticles\s*\(/);
-  assert.doesNotMatch(stripComments("// createOrreryNebulaParticles(960)"), /createOrreryNebulaParticles\s*\(/);
-});
-
-test("orrery connections recover from visibility changes and the back-forward cache", () => {
+test("homepage ships no connection canvas, hub, or stream controller", () => {
   const component = readExisting("src/components/HomeOrrery.astro");
 
-  assert.match(
-    component,
-    /const handleVisibilityChange = \(\) => \{[\s\S]*?if \(!document\.hidden\) streams\?\.resize\(\);[\s\S]*?updateMotionState\(\);[\s\S]*?\};/,
-  );
-  assert.match(
-    component,
-    /const handlePageHide = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(event\.persisted\) \{[\s\S]*?updateMotionState\(\);[\s\S]*?return;[\s\S]*?destroyControllers\(\);/,
-  );
-  assert.match(
-    component,
-    /const destroyControllers = \(\) => \{[\s\S]*?streams\?\.destroy\(\);[\s\S]*?window\.removeEventListener\("pageshow", handlePageShow\);/,
-  );
-  assert.match(
-    component,
-    /const handlePageShow = \(event: PageTransitionEvent\) => \{[\s\S]*?if \(!event\.persisted\) return;[\s\S]*?navigationPaused = false;[\s\S]*?streams\?\.resize\(\);[\s\S]*?updateMotionState\(\);/,
-  );
+  assert.doesNotMatch(component, /stream-canvas|stream-origin|earth-directional-glow/);
+  assert.doesNotMatch(component, /createOrreryStreamController|prepareStreams|streamPreparation/);
   assert.match(component, /window\.addEventListener\("pagehide", handlePageHide\)/);
   assert.match(component, /window\.addEventListener\("pageshow", handlePageShow\)/);
 });
@@ -504,17 +462,12 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   assert.match(css, /data-motion-running="true"/);
   assert.match(css, /html\[data-artifact-navigating\][\s\S]*animation-play-state:\s*paused/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
-  assert.doesNotMatch(
-    css,
-    /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.home-cosmos__stream-canvas\s*{[\s\S]*?display:\s*none/,
-  );
+  assert.doesNotMatch(css, /\.home-cosmos__stream-canvas\s*\{/);
   assert.match(component, /connection\?: \{ saveData\?: boolean \}/);
   assert.match(component, /!savesData/);
-  assert.match(component, /createOrreryStreamController/);
-  assert.match(component, /streams\?\.setRunning\(running\)/);
+  assert.doesNotMatch(component, /createOrreryStreamController|\bstreams\?\./);
   assert.match(component, /moonMotion\?\.setRunning\(running\)/);
   assert.match(component, /earthMotion\?\.setRunning\(running\)/);
-  assert.match(component, /streams\?\.destroy\(\)/);
   assert.match(component, /activateStaticScene/);
   assert.match(component, /sceneMode === "animated"/);
   assert.match(layout, /rel="preload"[\s\S]*?homeOrreryAssets\.writing\.motion\.texture/);
@@ -676,13 +629,12 @@ test("directional light fields are fixed, asymmetric layers and the mother scene
 
   assert.doesNotMatch(component, /approvedScene|home-cosmos__approved-scene/);
   assert.match(component, /home-cosmos__moon-light/);
-  assert.match(component, /home-cosmos__earth-directional-glow/);
+  assert.doesNotMatch(component, /home-cosmos__earth-directional-glow/);
   assert.match(component, /home-cosmos__black-hole-field/);
   assert.match(component, /home-cosmos__black-hole-dark-core/);
 
   const animationRules = css.slice(0, css.indexOf("html[data-artifact-navigating]"));
   assert.doesNotMatch(animationRules, /home-cosmos__moon-light[^}]*animation:/s);
-  assert.doesNotMatch(animationRules, /home-cosmos__earth-directional-glow[^}]*animation:/s);
   assert.doesNotMatch(animationRules, /home-cosmos__black-hole-field[^}]*animation:/s);
 });
 

@@ -141,7 +141,7 @@ test("the Home orrery fits every destination into a finite phone stage", () => {
     /\.home-celestial--ideas\s*\{[^}]*top:\s*62%[^}]*left:\s*8%[^}]*width:\s*27%/,
   );
   assert.doesNotMatch(mobile, /home-cosmos__(?:__particle-canvas|__stream-canvas)[\s\S]*?opacity:\s*0\.52/);
-  assert.match(css, /\.home-cosmos__stream-canvas\s*\{[^}]*opacity:\s*1/);
+  assert.doesNotMatch(css, /\.home-cosmos__stream-canvas\s*\{/);
   assert.doesNotMatch(css, /@media\s*\(max-width:\s*(?:760|430)px\)/);
 });
 
