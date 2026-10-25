@@ -17,6 +17,37 @@ const entries = [
   article("new", "一篇新随笔", []),
 ];
 
+test("hover topics group related articles and filter only within their parent type", () => {
+  assert.equal(typeof archive.writingTopicFor, "function");
+  const facets = archive.listWritingTypes(entries);
+  const agents = facets.find(({ id }) => id === "agents")!;
+  assert.deepEqual(agents.topics.map(({ id, count }) => [id, count]), [["agent-research", 1], ["rsi", 1]]);
+  assert.deepEqual(archive.filterWriting(entries, "agents", "", "rsi").map(({ id }) => id), ["rsi"]);
+  assert.equal(archive.normalizeWritingTopic("rsi", "agents", facets), "rsi");
+  assert.equal(archive.normalizeWritingTopic("rsi", "reading", facets), "");
+  assert.equal(archive.normalizeWritingTopic("missing", "agents", facets), "");
+  assert.equal(archive.writingTopicFor(entries[0]), "deepinfer");
+});
+
+test("time sorting changes direction without changing the source catalog", () => {
+  assert.equal(typeof archive.sortWriting, "function");
+  const dated = entries.slice(0, 3).map((entry, index) => ({ ...entry, data: { ...entry.data, publishedAt: new Date(`2026-10-${21 - index}`) } }));
+  assert.deepEqual(archive.sortWriting(dated, "asc").map(({ id }) => id), ["rsi", "agent", "deepinfer"]);
+  assert.deepEqual(archive.sortWriting(dated, "desc").map(({ id }) => id), ["deepinfer", "agent", "rsi"]);
+  assert.equal(dated[0].id, "deepinfer");
+  assert.equal(archive.normalizeWritingSort("asc"), "asc");
+  assert.equal(archive.normalizeWritingSort("unknown"), "desc");
+});
+
+test("topic and time order survive search and sort links without crossing parent types", () => {
+  const href = archive.writingArchiveHref({ type: "agents", topic: "rsi", query: "模型", sort: "asc" });
+  const url = new URL(href, "https://burnsgao.me");
+  assert.equal(url.searchParams.get("topic"), "rsi");
+  assert.equal(url.searchParams.get("sort"), "asc");
+  assert.equal(url.searchParams.get("q"), "模型");
+  assert.equal(new URL(archive.writingArchiveHref({ type: "reading", topic: "rsi" }), url).searchParams.has("topic"), false);
+});
+
 test("existing article tags produce useful types without changing stored content", () => {
   assert.equal(typeof archive.writingTypeFor, "function");
   assert.deepEqual(entries.map(archive.writingTypeFor), [

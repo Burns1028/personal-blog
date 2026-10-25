@@ -1,7 +1,8 @@
 ---
 import {
   writingArchiveHref,
-  type WritingArchiveEntry,
+  type WritingSort,
+  type WritingTopicId,
   type WritingTypeFacet,
   type WritingTypeId,
 } from "../../lib/writing-archive";
@@ -12,53 +13,113 @@ interface Props {
   activeType: WritingTypeId | "";
   query: string;
   total: number;
-  directory: WritingArchiveEntry[];
+  activeTopic: WritingTopicId | "";
+  sort: WritingSort;
 }
 
-const { types, activeType, query, total, directory } = Astro.props;
-const selected = types.find(({ id }) => id === activeType);
+const { types, activeType, activeTopic, query, total, sort } = Astro.props;
 ---
 
-<div class="writing-types">
+<div class="writing-types" data-writing-types>
   <nav class="writing-types__nav" aria-label="按文章主题筛选">
     <span class="writing-types__label" aria-hidden="true">按主题</span>
-    <a
-      href={writingArchiveHref({ query })}
-      aria-current={!activeType ? "true" : undefined}
-    >
-      全部 <span class="writing-types__count">{total}<span class="sr-only"> 篇</span></span>
-    </a>
-    {types.map(({ id, label, count }) => (
-      <a
-        href={writingArchiveHref({ type: id, query })}
-        aria-current={activeType === id ? "true" : undefined}
-      >
-        {label} <span class="writing-types__count">{count}<span class="sr-only"> 篇</span></span>
-      </a>
-    ))}
-  </nav>
-
-  {selected && (
-    <details class="writing-types__directory">
-      <summary>
-        <span class="writing-types__path">{selected.label}<span aria-hidden="true"> / </span></span>
-        <span>快捷目录 <span class="writing-types__directory-count">{directory.length} 篇</span></span>
-        <span class="writing-types__toggle" aria-hidden="true"></span>
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
-      </summary>
-      <nav aria-label={`${selected.label} 文章目录`}>
-        <ol>
-          {directory.map((entry, index) => (
-            <li>
-              <a href={`/writing/${entry.id}`}>
-                <span class="writing-types__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                <span>{entry.data.title}</span>
-                <span class="writing-types__arrow" aria-hidden="true">→</span>
+    <ul class="writing-types__list">
+      <li>
+        <a class="writing-types__primary" href={writingArchiveHref({ query, sort })} aria-current={!activeType ? "true" : undefined}>
+          全部 <span class="writing-types__count">{total}<span class="sr-only"> 篇</span></span>
+        </a>
+      </li>
+      {types.map(({ id, label, count, topics }) => (
+        <li class="writing-types__item">
+          <a
+            class="writing-types__primary"
+            href={writingArchiveHref({ type: id, query, sort })}
+            aria-current={activeType === id ? "true" : undefined}
+          >
+            {label} <span class="writing-types__count">{count}<span class="sr-only"> 篇</span></span>
+          </a>
+          <button
+            class="writing-types__expand"
+            type="button"
+            aria-label={`展开 ${label} 二级分类`}
+            aria-expanded="false"
+            aria-controls={`writing-topics-${id}`}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3" /></svg>
+          </button>
+          <div class="writing-types__submenu" id={`writing-topics-${id}`}>
+            <nav aria-label={`${label} 二级分类`}>
+              <a href={writingArchiveHref({ type: id, query, sort })} aria-current={activeType === id && !activeTopic ? "true" : undefined}>
+                <span>全部 {label}</span><span class="writing-types__count">{count} 篇</span>
               </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </details>
-  )}
+              {topics.map((topic) => (
+                <a
+                  href={writingArchiveHref({ type: id, topic: topic.id, query, sort })}
+                  aria-current={activeType === id && activeTopic === topic.id ? "true" : undefined}
+                >
+                  <span>{topic.label}</span><span class="writing-types__count">{topic.count} 篇</span>
+                </a>
+              ))}
+            </nav>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </nav>
 </div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-writing-types]").forEach((root) => {
+    const groups = root.querySelectorAll<HTMLElement>(".writing-types__item");
+    let active: HTMLElement | null = null;
+    root.dataset.enhanced = "true";
+
+    const open = (group: HTMLElement | null) => {
+      groups.forEach((item) => {
+        item.toggleAttribute("data-open", item === group);
+        item.querySelector("button")?.setAttribute("aria-expanded", String(item === group));
+      });
+      active = group;
+      if (!group) return;
+      const panel = group.querySelector<HTMLElement>(".writing-types__submenu")!;
+      const bounds = group.getBoundingClientRect();
+      const left = Math.max(16, Math.min(bounds.left, window.innerWidth - panel.offsetWidth - 16));
+      panel.style.setProperty("--submenu-offset", `${left - bounds.left}px`);
+    };
+
+    groups.forEach((group) => {
+      const primary = group.querySelector<HTMLAnchorElement>(".writing-types__primary")!;
+      const button = group.querySelector<HTMLButtonElement>("button")!;
+      group.addEventListener("pointerenter", (event) => {
+        if (event.pointerType !== "touch") open(group);
+      });
+      group.addEventListener("pointerleave", () => {
+        if (!group.contains(document.activeElement) && active === group) open(null);
+      });
+      group.addEventListener("focusin", (event) => {
+        if (event.target !== button) open(group);
+      });
+      group.addEventListener("focusout", (event) => {
+        if (!(event.relatedTarget instanceof Node) || !group.contains(event.relatedTarget)) {
+          if (active === group) open(null);
+        }
+      });
+      button.addEventListener("click", () => open(active === group ? null : group));
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          primary.focus();
+          open(null);
+        } else if (event.key === "ArrowDown" && event.target === primary) {
+          event.preventDefault();
+          open(group);
+          group.querySelector<HTMLAnchorElement>(".writing-types__submenu a")?.focus();
+        }
+      });
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (event.target instanceof Node && !root.contains(event.target)) open(null);
+    });
+    window.addEventListener("resize", () => open(null));
+  });
+</script>

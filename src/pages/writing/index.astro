@@ -10,6 +10,9 @@ import {
   filterWriting,
   listWritingTypes,
   normalizeWritingType,
+  normalizeWritingTopic,
+  normalizeWritingSort,
+  sortWriting,
   writingArchiveHref,
 } from "../../lib/writing-archive";
 import "../../styles/writing-archive-v2.css";
@@ -20,9 +23,12 @@ const query = normalizeSearch(Astro.url.searchParams.get("q"));
 const catalog = await getWritingCatalog();
 const types = listWritingTypes(catalog);
 const activeType = normalizeWritingType(Astro.url.searchParams.get("type"), types);
-const activeLabel = types.find(({ id }) => id === activeType)?.label ?? "全部文章";
-const directory = activeType ? filterWriting(catalog, activeType, "") : [];
-const entries = filterWriting(catalog, activeType, query);
+const activeTopic = normalizeWritingTopic(Astro.url.searchParams.get("topic"), activeType, types);
+const sort = normalizeWritingSort(Astro.url.searchParams.get("sort"));
+const selectedType = types.find(({ id }) => id === activeType);
+const selectedTopic = selectedType?.topics.find(({ id }) => id === activeTopic);
+const activeLabel = selectedTopic ? `${selectedType!.label} / ${selectedTopic.label}` : selectedType?.label ?? "全部文章";
+const entries = sortWriting(filterWriting(catalog, activeType, query, activeTopic), sort);
 const currentPhase = getLunarPhase(new Date());
 const phaseCenters = [3.83, 12.92, 23.92, 35.17, 48, 60.71, 72.04, 83.38];
 const currentPhasePosition = phaseCenters[currentPhase.index];
@@ -92,6 +98,8 @@ const formatDate = (date: Date) =>
         role="search"
       >
         {activeType && <input type="hidden" name="type" value={activeType} />}
+        {activeTopic && <input type="hidden" name="topic" value={activeTopic} />}
+        {sort === "asc" && <input type="hidden" name="sort" value={sort} />}
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="10.8" cy="10.8" r="6.4"></circle>
           <path d="m15.5 15.5 4.2 4.2"></path>
@@ -113,7 +121,8 @@ const formatDate = (date: Date) =>
         activeType={activeType}
         query={query}
         total={catalog.length}
-        directory={directory}
+        activeTopic={activeTopic}
+        sort={sort}
       />
 
       <div class="writing-v2__results-heading">
@@ -121,7 +130,13 @@ const formatDate = (date: Date) =>
           <strong>{activeLabel}</strong>
           <span>{query ? `搜索“${query}” · ` : ""}共 {entries.length} 篇</span>
         </p>
-        <span class="writing-v2__sort">由近及远</span>
+        <a
+          class="writing-v2__sort"
+          href={writingArchiveHref({ type: activeType, topic: activeTopic, query, sort: sort === "desc" ? "asc" : "desc" })}
+          aria-label={sort === "desc" ? "时间顺序：新到旧，点击切换为旧到新" : "时间顺序：旧到新，点击切换为新到旧"}
+        >
+          时间顺序 <span aria-hidden="true">{sort === "desc" ? "↓" : "↑"}</span>
+        </a>
       </div>
 
       {
@@ -155,7 +170,7 @@ const formatDate = (date: Date) =>
         ) : (
           <div class="archive-empty">
             <p>没有找到{activeType ? "这个主题下" : ""}与搜索匹配的文章。</p>
-            <a href={writingArchiveHref({ type: activeType })}>清空搜索</a>
+            <a href={writingArchiveHref({ type: activeType, topic: activeTopic, sort })}>清空搜索</a>
           </div>
         )
       }
