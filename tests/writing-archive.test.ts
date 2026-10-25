@@ -44,7 +44,7 @@ test("type counts cover the whole archive and ignore empty types", () => {
   assert.equal(archive.normalizeWritingType("reading", archive.listWritingTypes([entries[0]])), "");
 });
 
-test("type and search intersect before pagination and retain article order", () => {
+test("type and search return all matching articles in their original order", () => {
   assert.equal(typeof archive.filterWriting, "function");
   assert.deepEqual(archive.filterWriting(entries, "agents", "").map(({ id }) => id), ["agent", "rsi"]);
   assert.deepEqual(archive.filterWriting(entries, "agents", "模型").map(({ id }) => id), ["rsi"]);
@@ -53,14 +53,15 @@ test("type and search intersect before pagination and retain article order", () 
   assert.deepEqual(archive.filterWriting(entries, "", ""), entries);
 });
 
-test("archive URLs preserve type and search while category changes reset pagination", () => {
+test("archive URLs preserve type and search and drop legacy pagination", () => {
   assert.equal(typeof archive.writingArchiveHref, "function");
   assert.equal(archive.writingArchiveHref({}), "/writing");
-  const href = archive.writingArchiveHref({ type: "agents", query: " 模型   权重 ", page: 2 });
+  const legacyFilters = { type: "agents", query: " 模型   权重 ", page: 2 };
+  const href = archive.writingArchiveHref(legacyFilters);
   const url = new URL(href, "https://burnsgao.me");
   assert.equal(url.searchParams.get("type"), "agents");
   assert.equal(url.searchParams.get("q"), "模型 权重");
-  assert.equal(url.searchParams.get("page"), "2");
+  assert.equal(url.searchParams.has("page"), false);
   assert.equal(new URL(archive.writingArchiveHref({ type: "reading", query: "书" }), url).searchParams.has("page"), false);
-  assert.equal(archive.writingArchiveHref({ type: "unknown", page: NaN }), "/writing");
+  assert.equal(archive.writingArchiveHref({ type: "unknown" }), "/writing");
 });

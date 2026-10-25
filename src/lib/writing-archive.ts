@@ -79,18 +79,15 @@ export function filterWriting<T extends WritingArchiveEntry>(
 export function writingArchiveHref({
   type,
   query,
-  page,
 }: {
   type?: string;
   query?: string;
-  page?: number;
 }): string {
   const params = new URLSearchParams();
   const normalizedQuery = normalizeSearch(query);
   const validType = writingTypes.find(({ id }) => id === type)?.id;
   if (validType) params.set("type", validType);
   if (normalizedQuery) params.set("q", normalizedQuery);
-  if (page && Number.isFinite(page) && page > 1) params.set("page", String(Math.trunc(page)));
   const suffix = params.toString();
   return suffix ? `/writing?${suffix}` : "/writing";
 }

@@ -7,7 +7,7 @@ import { contacts, site } from "../src/data/site.ts";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 
-test("Writing archive keeps search, pagination, and lunar phases on one centered axis", () => {
+test("Writing archive keeps search and lunar phases on a wider centered axis without pagination", () => {
   const page = readFileSync(
     resolve(projectRoot, "src/pages/writing/index.astro"),
     "utf8",
@@ -17,14 +17,14 @@ test("Writing archive keeps search, pagination, and lunar phases on one centered
   const css = readFileSync(cssPath, "utf8");
   assert.match(page, /name="q"/);
   assert.match(page, /export const prerender = false/);
-  assert.match(page, /ArchivePagination/);
+  assert.doesNotMatch(page, /ArchivePagination/);
   assert.match(page, /<LunarPhase/);
   assert.match(page, /archiveAssets\.writing\.phaseStrip\.desktop/);
   assert.match(page, /archiveAssets\.writing\.phaseStrip\.mobile/);
   assert.doesNotMatch(page, /archiveAssets\.writing\.phases\.map/);
-  assert.match(css, /--writing-column:\s*min\(780px/);
+  assert.match(css, /--writing-column:\s*min\(1120px/);
   assert.match(css, /margin-inline:\s*auto/);
-  assert.match(css, /font-size:\s*clamp\(21px,\s*1\.45vw,\s*23px\)/);
+  assert.match(css, /font-size:\s*clamp\(22px,\s*1\.8vw,\s*27px\)/);
   assert.match(css, /width:\s*min\(100%,\s*480px\)/);
   assert.match(
     css,

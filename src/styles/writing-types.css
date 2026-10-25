@@ -1,5 +1,5 @@
 .writing-types {
-  margin: 8px 0 16px;
+  margin: 16px 0 28px;
   font-family: var(--sans);
 }
 
@@ -7,10 +7,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 20px;
+  gap: 8px;
 }
 
 .writing-types__label {
+  margin-right: 12px;
   color: #81796c;
   font-size: 12px;
 }
@@ -19,32 +20,35 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
   color: #6d665b;
   font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 
-.writing-types__nav a[aria-current="true"],
 .writing-types a:hover {
   color: #8a5e1e;
 }
 
-.writing-types__nav a[aria-current="true"]::after {
-  position: absolute;
-  right: 0;
-  bottom: 3px;
-  left: 0;
-  height: 1px;
-  content: "";
-  background: #a66f1f;
+.writing-types__nav a:hover {
+  background: rgba(145, 99, 29, 0.04);
+}
+
+.writing-types__nav a[aria-current="true"] {
+  border-color: rgba(145, 99, 29, 0.26);
+  color: #79501b;
+  background: rgba(145, 99, 29, 0.08);
 }
 
 .writing-types__count {
   color: #81796c;
-  font: 10px/1 var(--mono);
+  font: 11px/1 var(--mono);
 }
 
 .writing-types a:focus-visible,
@@ -54,19 +58,18 @@
 }
 
 .writing-types__directory {
-  margin-top: 10px;
-  border: 1px solid rgba(79, 67, 50, 0.16);
-  background: rgba(248, 243, 234, 0.42);
+  margin-top: 18px;
+  border-block: 1px solid rgba(79, 67, 50, 0.14);
 }
 
 .writing-types__directory summary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 14px;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 4px;
   color: #756e63;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   list-style: none;
   cursor: pointer;
@@ -80,6 +83,26 @@
   color: #8a5e1e;
 }
 
+.writing-types__directory-count {
+  margin-left: 8px;
+  color: #8b8171;
+  font-size: 11px;
+}
+
+.writing-types__toggle {
+  margin-left: auto;
+  color: #8b8171;
+  font-size: 11px;
+}
+
+.writing-types__toggle::before {
+  content: "展开";
+}
+
+.writing-types__directory[open] .writing-types__toggle::before {
+  content: "收起";
+}
+
 .writing-types__path > span {
   margin-left: 6px;
   color: #a59a87;
@@ -89,7 +112,6 @@
   flex: 0 0 16px;
   width: 16px;
   height: 16px;
-  margin-left: auto;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.2;
@@ -101,28 +123,27 @@
 }
 
 .writing-types__directory ol {
-  max-height: 224px;
-  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
   margin: 0;
-  padding: 0 14px 10px;
+  padding: 0 4px 16px;
   list-style: none;
-  scrollbar-width: thin;
-  scrollbar-color: #bcb09b transparent;
 }
 
-.writing-types__directory li + li {
+.writing-types__directory li {
   border-top: 1px solid rgba(79, 67, 50, 0.09);
 }
 
 .writing-types__directory a {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) 14px;
-  align-items: baseline;
-  gap: 10px;
-  min-height: 44px;
-  padding: 10px 2px;
+  align-items: start;
+  gap: 12px;
+  min-height: 48px;
+  padding: 14px 2px;
   color: #443b2e;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   overflow-wrap: anywhere;
   text-decoration: none;
@@ -137,15 +158,48 @@
   color: #9a8c75;
 }
 
+.writing-v2__results-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 30px 0 18px;
+}
+
 .writing-v2__result-count {
-  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  min-width: 0;
+  margin: 0;
   color: #81796c;
+  font: 12px/1.6 var(--sans);
+}
+
+.writing-v2__result-count strong {
+  color: #443b2e;
+  font: 600 22px/1.4 var(--serif);
+}
+
+.writing-v2__result-count > span {
+  overflow-wrap: anywhere;
+}
+
+.writing-v2__sort {
+  flex-shrink: 0;
+  color: #8b8171;
   font: 12px/1.6 var(--sans);
 }
 
 @media (max-width: 767px) {
   .writing-types__nav {
-    column-gap: 18px;
+    gap: 6px;
+  }
+
+  .writing-types__nav a {
+    padding-inline: 12px;
+    font-size: 12px;
   }
 
   .writing-types__label {
@@ -155,10 +209,29 @@
   .writing-types__directory summary {
     flex-wrap: wrap;
     gap: 6px;
-    padding-inline: 12px;
+    padding-inline: 2px;
   }
 
   .writing-types__directory ol {
-    padding-inline: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 2px;
+  }
+
+  .writing-v2__results-heading {
+    margin-top: 24px;
+  }
+
+  .writing-v2__result-count strong {
+    font-size: 20px;
+  }
+
+  .writing-v2__sort {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .writing-types__nav a {
+    transition: none;
   }
 }

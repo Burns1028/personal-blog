@@ -2,6 +2,18 @@
 
 日期：2026-10-25（Asia/Shanghai）。基于 GitHub main 的 cb89299 开发；原本地 personal-blog 的多个源码文件为 iCloud dataless，且 iCloud 已退出登录，因此使用独立开发副本，保留原目录。
 
+## 当前实现：加宽与连续阅读
+
+根据用户对首版的反馈，文章区从 780px 扩至 1120px，保留手机自适应边距。移除 Writing 的分页与每页 4 篇限制，全部文章一次显示 13 篇，Agent / RSI 显示完整 6 篇；旧链接中的 page 参数不再截断结果。
+
+主题采用浅色选中底与细边框，重排列表标题、摘要、日期及月相。快捷目录默认收起，展开后桌面两列、手机单列，随页面自然延伸，没有内部滚动条。
+
+再次验证：204 项测试通过；Astro 检查 124 文件、0 errors / warnings / hints，构建成功。Chrome 验证全部文章数量、旧分页链接、分类内搜索、清空搜索、文章直达、键盘展开收起、关闭 JavaScript 浏览，以及 320 / 375 / 768 / 844px 无横向溢出。桌面实测列宽 1120px，分类点击区域不小于 44px。
+
+新版截图：工作区 `output/writing-types-20261025/wide-desktop-agents.png`、`wide-desktop-all.png`、`wide-directory-open.png`、`wide-mobile-agents.png`、`wide-mobile-directory.png`。
+
+以下是首版 a51e522 的验证记录，其中分页与目录默认展开行为已由上述调整替代。当前仍仅为本地预览，未部署生产。
+
 ## 自动检查
 
 - `npm run test:content`：204 项通过，0 失败。

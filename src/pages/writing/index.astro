@@ -1,10 +1,9 @@
 ---
-import ArchivePagination from "../../components/archive/ArchivePagination.astro";
 import LunarPhase from "../../components/writing/LunarPhase.astro";
 import WritingTypeFilter from "../../components/writing/WritingTypeFilter.astro";
 import { archiveAssets } from "../../data/archive-assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { normalizeSearch, paginate } from "../../lib/archive-query";
+import { normalizeSearch } from "../../lib/archive-query";
 import { getLunarPhase } from "../../lib/lunar-phase";
 import { getWritingCatalog } from "../../lib/server/writing-catalog";
 import {
@@ -18,14 +17,12 @@ import "../../styles/writing-archive-v2.css";
 export const prerender = false;
 
 const query = normalizeSearch(Astro.url.searchParams.get("q"));
-const requestedPage = Number(Astro.url.searchParams.get("page") ?? 1);
 const catalog = await getWritingCatalog();
 const types = listWritingTypes(catalog);
 const activeType = normalizeWritingType(Astro.url.searchParams.get("type"), types);
+const activeLabel = types.find(({ id }) => id === activeType)?.label ?? "全部文章";
 const directory = activeType ? filterWriting(catalog, activeType, "") : [];
 const entries = filterWriting(catalog, activeType, query);
-const result = paginate(entries, requestedPage, 4);
-const hrefFor = (page: number) => writingArchiveHref({ type: activeType, query, page });
 const currentPhase = getLunarPhase(new Date());
 const phaseCenters = [3.83, 12.92, 23.92, 35.17, 48, 60.71, 72.04, 83.38];
 const currentPhasePosition = phaseCenters[currentPhase.index];
@@ -119,17 +116,21 @@ const formatDate = (date: Date) =>
         directory={directory}
       />
 
-      <p class="writing-v2__result-count" role="status">
-        {query ? `搜索“${query}” · ` : ""}共 {result.total} 篇文章
-      </p>
+      <div class="writing-v2__results-heading">
+        <p class="writing-v2__result-count" role="status">
+          <strong>{activeLabel}</strong>
+          <span>{query ? `搜索“${query}” · ` : ""}共 {entries.length} 篇</span>
+        </p>
+        <span class="writing-v2__sort">由近及远</span>
+      </div>
 
       {
-        result.items.length > 0 ? (
+        entries.length > 0 ? (
           <ol class="writing-v2__list" data-archive-results>
-            {result.items.map((entry, index) => {
+            {entries.map((entry, index) => {
               const phase = getLunarPhase(entry.data.publishedAt);
               return (
-                <li style={`--entry-index:${index}`}>
+                <li style={`--entry-index:${Math.min(index, 7)}`}>
                   <a href={`/writing/${entry.id}`}>
                     <div class="writing-v2__entry-copy">
                       <h2>{entry.data.title}</h2>
@@ -159,12 +160,6 @@ const formatDate = (date: Date) =>
         )
       }
 
-      <ArchivePagination
-        page={result.page}
-        pageCount={result.pageCount}
-        hrefFor={hrefFor}
-        label="文章分页"
-      />
     </div>
   </section>
 

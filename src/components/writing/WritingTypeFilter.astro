@@ -21,7 +21,7 @@ const selected = types.find(({ id }) => id === activeType);
 
 <div class="writing-types">
   <nav class="writing-types__nav" aria-label="按文章主题筛选">
-    <span class="writing-types__label" aria-hidden="true">主题</span>
+    <span class="writing-types__label" aria-hidden="true">按主题</span>
     <a
       href={writingArchiveHref({ query })}
       aria-current={!activeType ? "true" : undefined}
@@ -39,10 +39,11 @@ const selected = types.find(({ id }) => id === activeType);
   </nav>
 
   {selected && (
-    <details class="writing-types__directory" open>
+    <details class="writing-types__directory">
       <summary>
         <span class="writing-types__path">{selected.label}<span aria-hidden="true"> / </span></span>
-        <span>文章目录 · {directory.length} 篇</span>
+        <span>快捷目录 <span class="writing-types__directory-count">{directory.length} 篇</span></span>
+        <span class="writing-types__toggle" aria-hidden="true"></span>
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
       </summary>
       <nav aria-label={`${selected.label} 文章目录`}>
@@ -52,7 +53,7 @@ const selected = types.find(({ id }) => id === activeType);
               <a href={`/writing/${entry.id}`}>
                 <span class="writing-types__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <span>{entry.data.title}</span>
-                <span class="writing-types__arrow" aria-hidden="true">↗</span>
+                <span class="writing-types__arrow" aria-hidden="true">→</span>
               </a>
             </li>
           ))}
