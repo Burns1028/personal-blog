@@ -1,30 +1,31 @@
 ---
 import ArchivePagination from "../../components/archive/ArchivePagination.astro";
 import LunarPhase from "../../components/writing/LunarPhase.astro";
+import WritingTypeFilter from "../../components/writing/WritingTypeFilter.astro";
 import { archiveAssets } from "../../data/archive-assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { matchesSearch, pageHref, paginate } from "../../lib/archive-query";
+import { normalizeSearch, paginate } from "../../lib/archive-query";
 import { getLunarPhase } from "../../lib/lunar-phase";
 import { getWritingCatalog } from "../../lib/server/writing-catalog";
+import {
+  filterWriting,
+  listWritingTypes,
+  normalizeWritingType,
+  writingArchiveHref,
+} from "../../lib/writing-archive";
 import "../../styles/writing-archive-v2.css";
 
 export const prerender = false;
 
-const query = Astro.url.searchParams.get("q")?.trim() ?? "";
+const query = normalizeSearch(Astro.url.searchParams.get("q"));
 const requestedPage = Number(Astro.url.searchParams.get("page") ?? 1);
-const entries = (await getWritingCatalog()).filter((entry) =>
-  matchesSearch(
-    [
-      entry.data.title,
-      entry.data.summary,
-      entry.data.deck,
-      ...entry.data.tags,
-    ],
-    query,
-  ),
-);
+const catalog = await getWritingCatalog();
+const types = listWritingTypes(catalog);
+const activeType = normalizeWritingType(Astro.url.searchParams.get("type"), types);
+const directory = activeType ? filterWriting(catalog, activeType, "") : [];
+const entries = filterWriting(catalog, activeType, query);
 const result = paginate(entries, requestedPage, 4);
-const hrefFor = (page: number) => pageHref("/writing", page, query);
+const hrefFor = (page: number) => writingArchiveHref({ type: activeType, query, page });
 const currentPhase = getLunarPhase(new Date());
 const phaseCenters = [3.83, 12.92, 23.92, 35.17, 48, 60.71, 72.04, 83.38];
 const currentPhasePosition = phaseCenters[currentPhase.index];
@@ -93,6 +94,7 @@ const formatDate = (date: Date) =>
         action="/writing"
         role="search"
       >
+        {activeType && <input type="hidden" name="type" value={activeType} />}
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="10.8" cy="10.8" r="6.4"></circle>
           <path d="m15.5 15.5 4.2 4.2"></path>
@@ -102,11 +104,24 @@ const formatDate = (date: Date) =>
           type="search"
           name="q"
           value={query}
+          aria-label="搜索文章、主题或关键词"
           placeholder="搜索文章、主题或关键词"
           autocomplete="off"
         />
         <kbd>⌘ K</kbd>
       </form>
+
+      <WritingTypeFilter
+        types={types}
+        activeType={activeType}
+        query={query}
+        total={catalog.length}
+        directory={directory}
+      />
+
+      <p class="writing-v2__result-count" role="status">
+        {query ? `搜索“${query}” · ` : ""}共 {result.total} 篇文章
+      </p>
 
       {
         result.items.length > 0 ? (
@@ -138,8 +153,8 @@ const formatDate = (date: Date) =>
           </ol>
         ) : (
           <div class="archive-empty">
-            <p>这一片星图里暂时没有对应的记录。</p>
-            <a href="/writing">清空搜索</a>
+            <p>没有找到{activeType ? "这个主题下" : ""}与搜索匹配的文章。</p>
+            <a href={writingArchiveHref({ type: activeType })}>清空搜索</a>
           </div>
         )
       }

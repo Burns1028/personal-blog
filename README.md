@@ -84,6 +84,16 @@ npm start
 
 `src/content/docs/` 仍用于站内文档；Writing、Ideas 和 Projects 不再使用 Astro content collection。
 
+### Writing 主题分类
+
+Writing 搜索框下方支持按主题筛选；选中主题后展开二级文章目录，目录中的标题可直接打开正文。分类与关键词搜索取交集，分页保留当前分类和关键词；切换分类或提交搜索回到第一页。
+
+分类自动读取文章现有标签，不需要迁移数据库。默认主题为 AI Infra、Agent / RSI、读书笔记、产品与设计、工作与生活；没有文章的主题不显示。未明确指定主题时，读书笔记优先归入阅读主题，未匹配的文章归入工作与生活。
+
+发布文章时，也可以在 Markdown 的 `tags` 中加入与主题同名的标签来明确指定分类，例如 `AI Infra` 或 `产品与设计`（每篇只使用一个主题标签）。这些标签会照常展示在文章中。
+
+自动分类规则统一维护在 `src/lib/writing-archive.ts`。
+
 ## 部署
 
 这是使用本地 SQLite 的 Node SSR 应用。生产环境必须使用单实例与持久磁盘，并把 `BLOG_DB_PATH` 指向持久目录。GitHub Pages、无状态 serverless/edge 和多副本部署不能直接共享该本地数据库；这些部署形态需要远程 SQLite/LibSQL 或 PostgreSQL。

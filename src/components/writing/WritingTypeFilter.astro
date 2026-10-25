@@ -1,0 +1,63 @@
+---
+import {
+  writingArchiveHref,
+  type WritingArchiveEntry,
+  type WritingTypeFacet,
+  type WritingTypeId,
+} from "../../lib/writing-archive";
+import "../../styles/writing-types.css";
+
+interface Props {
+  types: WritingTypeFacet[];
+  activeType: WritingTypeId | "";
+  query: string;
+  total: number;
+  directory: WritingArchiveEntry[];
+}
+
+const { types, activeType, query, total, directory } = Astro.props;
+const selected = types.find(({ id }) => id === activeType);
+---
+
+<div class="writing-types">
+  <nav class="writing-types__nav" aria-label="按文章主题筛选">
+    <span class="writing-types__label" aria-hidden="true">主题</span>
+    <a
+      href={writingArchiveHref({ query })}
+      aria-current={!activeType ? "true" : undefined}
+    >
+      全部 <span class="writing-types__count">{total}<span class="sr-only"> 篇</span></span>
+    </a>
+    {types.map(({ id, label, count }) => (
+      <a
+        href={writingArchiveHref({ type: id, query })}
+        aria-current={activeType === id ? "true" : undefined}
+      >
+        {label} <span class="writing-types__count">{count}<span class="sr-only"> 篇</span></span>
+      </a>
+    ))}
+  </nav>
+
+  {selected && (
+    <details class="writing-types__directory" open>
+      <summary>
+        <span class="writing-types__path">{selected.label}<span aria-hidden="true"> / </span></span>
+        <span>文章目录 · {directory.length} 篇</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+      </summary>
+      <nav aria-label={`${selected.label} 文章目录`}>
+        <ol>
+          {directory.map((entry, index) => (
+            <li>
+              <a href={`/writing/${entry.id}`}>
+                <span class="writing-types__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span>{entry.data.title}</span>
+                <span class="writing-types__arrow" aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </details>
+  )}
+</div>
