@@ -2,3 +2,17 @@
 @import "./site-base.css";
 @import "./site-navigation.css";
 @import "./site-mobile.css";
+
+/* Participate in navigation handoff without delaying the archive with a fade. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0s;
+}
+
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation: none;
+}

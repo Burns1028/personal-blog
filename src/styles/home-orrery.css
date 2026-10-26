@@ -1,4 +1,4 @@
-/* Homepage thought system: three independent celestial destinations. */
+/* Homepage thought system: three mutually attracting celestial destinations. */
 
 .home-orrery {
   position: relative;
@@ -62,6 +62,10 @@
   transition:
     opacity 280ms ease,
     filter 260ms ease;
+}
+
+.home-orrery[data-three-body-running="true"] .home-celestial {
+  will-change: transform;
 }
 
 .home-celestial--writing {

@@ -167,6 +167,8 @@ export const createCelestialSphereController = (
   let animationFrame = 0;
   let elapsedMs = 0;
   let previousTime: number | null = null;
+  let needsResize = true;
+  let lastDevicePixelRatio = 0;
   const initialRotation = options.initialRotation ?? 0;
 
   const removeReadyState = () => {
@@ -186,11 +188,13 @@ export const createCelestialSphereController = (
       canvas.height = height;
     }
     gl.viewport(0, 0, canvas.width, canvas.height);
+    lastDevicePixelRatio = window.devicePixelRatio || 1;
+    needsResize = false;
   };
 
   const render = () => {
     if (!textureReady || destroyed || contextLost) return;
-    resize();
+    if (needsResize || lastDevicePixelRatio !== (window.devicePixelRatio || 1)) resize();
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(program);
     gl.uniform1f(
@@ -289,6 +293,7 @@ export const createCelestialSphereController = (
   };
 
   const resizeObserver = new ResizeObserver(() => {
+    needsResize = true;
     if (textureReady) render();
   });
   resizeObserver.observe(canvas);

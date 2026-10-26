@@ -193,6 +193,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
 
 <script>
   import { createCelestialSphereController } from "../lib/home-celestial-sphere";
+  import { createThreeBodyController } from "../lib/home-three-body";
   import { homeOrreryAssets } from "../data/home-orrery-assets";
 
   const orrery = document.querySelector<HTMLElement>("[data-home-orrery]");
@@ -206,12 +207,15 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     const savesData = connection?.saveData === true;
     let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
     let earthMotion: ReturnType<typeof createCelestialSphereController> = null;
+    let bodyMotion: ReturnType<typeof createThreeBodyController> | null = null;
     let sceneMode: "preparing" | "animated" | "static" = "preparing";
     let scenePreparation: Promise<void> | null = null;
     let staticPreparation: Promise<void> | null = null;
     let pageActive = true;
     let visible = true;
     let navigationPaused = false;
+    let pointerInside = false;
+    let focusInside = false;
 
     const createSurfaceMotion = (
       selector: string,
@@ -245,6 +249,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         visible &&
         !document.hidden &&
         !navigationPaused &&
+        !pointerInside &&
+        !focusInside &&
         !reducedMotion.matches &&
         !savesData;
 
@@ -255,6 +261,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       }
       moonMotion?.setRunning(running);
       earthMotion?.setRunning(running);
+      bodyMotion?.setRunning(running);
     };
 
     const activateStaticScene = () => {
@@ -262,6 +269,8 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       staticPreparation = (async () => {
         sceneMode = "preparing";
         orrery.dataset.sceneState = "preparing";
+        bodyMotion?.destroy();
+        bodyMotion = null;
         updateMotionState();
 
         for (const source of orrery.querySelectorAll<HTMLSourceElement>(
@@ -315,6 +324,7 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
         await nextPaint();
         if (!pageActive) return;
 
+        bodyMotion ??= createThreeBodyController(orrery);
         sceneMode = "animated";
         orrery.dataset.sceneState = "ready";
         updateMotionState();
@@ -337,6 +347,20 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
     };
 
     const handleVisibilityChange = () => {
+      updateMotionState();
+    };
+
+    const handlePointerEnter = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      pointerInside = true;
+      updateMotionState();
+    };
+    const handlePointerLeave = () => {
+      pointerInside = false;
+      updateMotionState();
+    };
+    const handleFocus = () => {
+      focusInside = orrery.contains(document.activeElement);
       updateMotionState();
     };
 
@@ -371,6 +395,11 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       observer.disconnect();
       moonMotion?.destroy();
       earthMotion?.destroy();
+      bodyMotion?.destroy();
+      orrery.removeEventListener("pointerenter", handlePointerEnter);
+      orrery.removeEventListener("pointerleave", handlePointerLeave);
+      orrery.removeEventListener("focusin", handleFocus);
+      orrery.removeEventListener("focusout", handleFocusOut);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener(
         "burns:artifact-navigation-start",
@@ -394,7 +423,16 @@ import { homeOrreryAssets } from "../data/home-orrery-assets";
       destroyControllers();
     };
 
+    const handleFocusOut = (event: FocusEvent) => {
+      focusInside = event.relatedTarget instanceof Node && orrery.contains(event.relatedTarget);
+      updateMotionState();
+    };
+
     observer.observe(orrery);
+    orrery.addEventListener("pointerenter", handlePointerEnter);
+    orrery.addEventListener("pointerleave", handlePointerLeave);
+    orrery.addEventListener("focusin", handleFocus);
+    orrery.addEventListener("focusout", handleFocusOut);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     listenForNavigation();
     reducedMotion.addEventListener("change", updateMotionState);

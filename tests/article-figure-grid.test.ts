@@ -1,6 +1,5 @@
 import { readStyles } from "./helpers/read-styles.ts";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { renderArticleMarkdown } from "../src/lib/server/markdown.ts";
