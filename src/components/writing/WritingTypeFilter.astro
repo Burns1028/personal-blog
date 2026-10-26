@@ -49,9 +49,6 @@ const { types, activeType, activeTopic, query, total, sort } = Astro.props;
           </button>
           <div class="writing-types__submenu" id={`writing-topics-${id}`}>
             <nav aria-label={`${label} 二级分类`}>
-              <a href={writingArchiveHref({ type: id, query, sort })} aria-current={activeType === id && !activeTopic ? "true" : undefined}>
-                <span>全部 {label}</span><span class="writing-types__count">{count} 篇</span>
-              </a>
               {topics.map((topic) => (
                 <a
                   href={writingArchiveHref({ type: id, topic: topic.id, query, sort })}
