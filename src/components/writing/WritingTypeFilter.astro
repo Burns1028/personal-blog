@@ -22,7 +22,6 @@ const { types, activeType, activeTopic, query, total, sort } = Astro.props;
 
 <div class="writing-types" data-writing-types>
   <nav class="writing-types__nav" aria-label="按文章主题筛选">
-    <span class="writing-types__label" aria-hidden="true">按主题</span>
     <ul class="writing-types__list">
       <li>
         <a class="writing-types__primary" href={writingArchiveHref({ query, sort })} aria-current={!activeType ? "true" : undefined}>

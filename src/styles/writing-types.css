@@ -13,11 +13,6 @@
   gap: 0 26px;
 }
 
-.writing-types__label {
-  color: #81796c;
-  font-size: 12px;
-}
-
 .writing-types__list {
   margin: 0;
   padding: 0;
@@ -192,10 +187,6 @@
 
   .writing-types__primary {
     font-size: 12px;
-  }
-
-  .writing-types__label {
-    display: none;
   }
 
   .writing-types__expand {
