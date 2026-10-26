@@ -94,18 +94,40 @@ test("hub particles share the instanced draw without exceeding the WebGL attribu
   );
 });
 
-test("arm particles fade at fract endpoints while hub particles stay visible", () => {
+test("the Earth arm stays visible and converges at its glint while other arms keep source fades", () => {
   const source = readFileSync(
     resolve(import.meta.dirname, "../src/lib/home-orrery-streams-three.ts"),
     "utf8",
   );
   assert.match(
     source,
-    /float edgeFade = min\(1\.0, min\(progress \/ 0\.02, \(1\.0 - progress\) \/ 0\.012\)\);/,
+    /float sourceFade = iStyle\.z > 0\.5 && iStyle\.z < 1\.5 \? 1\.0 : min\(1\.0, progress \/ 0\.02\);/,
   );
   assert.match(
     source,
-    /vAlpha = iStyle\.z > 2\.5 \? iStyle\.y : iStyle\.y \* max\(0\.0, edgeFade\);/,
+    /float sourceTaper = iStyle\.z > 0\.5 && iStyle\.z < 1\.5 \? smoothstep\(0\.0, 0\.08, progress\) : 1\.0;/,
+  );
+  assert.match(
+    source,
+    /center \+= normal \* iMotion\.z \* convergence \* sourceTaper;/,
+  );
+  assert.match(
+    source,
+    /float emitterParticle = step\(iMotion\.y, -0\.5\);/,
+  );
+  assert.match(
+    source,
+    /float progress = emitterParticle > 0\.5 \? iMotion\.x : fract\(iMotion\.x \+ uTime \* iMotion\.y\);/,
+  );
+  assert.match(
+    source,
+    /float emitterSourceBoost = emitterParticle \* \(1\.0 - smoothstep\(0\.0, 0\.56, progress\)\);/,
+  );
+  assert.match(source, /float emitterOpacity = 1\.0 \+ emitterParticle \* 0\.7 \+ emitterSourceBoost \* 0\.8;/);
+  assert.match(source, /float emitterSize = 1\.0 \+ emitterParticle \* 0\.18 \+ emitterSourceBoost \* 0\.18;/);
+  assert.match(
+    source,
+    /vColor = mix\(vColor, vec3\(0\.78, 0\.93, 1\.0\), emitterParticle \* 0\.72 \+ emitterSourceBoost \* 0\.2\);/,
   );
 });
 
@@ -255,6 +277,8 @@ test("Three instances use geometry quotas and apply each stream gain exactly onc
     sourceCounts[particle.stream] += 1;
     const gain = nebulaVisualGain(particle.stream);
     assert.ok(Math.abs(motion.getW(index) - particle.size * gain.size) < 1e-5);
+    const emitter = (particle as typeof particle & { emitter?: boolean }).emitter === true;
+    assert.ok(Math.abs(motion.getY(index) - (emitter ? -1 : particle.speed)) < 1e-5);
     assert.ok(Math.abs(style.getY(index) - particle.alpha * gain.opacity) < 1e-5);
   }
   assert.deepEqual(sourceCounts, expectedCounts);

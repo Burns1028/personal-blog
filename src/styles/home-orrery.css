@@ -1,4 +1,4 @@
-/* Homepage thought system: three celestial arms meeting at one live central hub. */
+/* Homepage thought system: three independent celestial destinations. */
 
 .home-orrery {
   position: relative;
@@ -38,19 +38,6 @@
     radial-gradient(ellipse at 87% 31%, rgba(46, 129, 190, 0.1), transparent 23%),
     radial-gradient(ellipse at 21% 82%, rgba(203, 145, 51, 0.065), transparent 25%);
   pointer-events: none;
-}
-
-.home-cosmos__stream-canvas {
-  position: absolute;
-  display: block;
-  inset: 0;
-  pointer-events: none;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  opacity: 1;
-  mix-blend-mode: screen;
-  transition: opacity 180ms ease;
 }
 
 .home-celestial {
@@ -108,8 +95,8 @@
 .home-cosmos__earth-base,
 .home-cosmos__earth-base img,
 .home-cosmos__earth-motion-canvas,
-.home-cosmos__earth-directional-glow,
-.home-cosmos__earth-directional-glow img,
+.home-cosmos__earth-atmosphere-shell,
+.home-cosmos__earth-atmosphere-shell img,
 .home-cosmos__satellite-orbit,
 .home-cosmos__satellite,
 .home-cosmos__satellite img,
@@ -183,7 +170,7 @@
   background: radial-gradient(circle at 78% 74%, rgba(255, 225, 163, 0.1), transparent 36%);
 }
 
-/* Earth: exact fallback and fixed glow wrapped around a turning surface. */
+/* Earth: turning surface plus its clipped atmospheric shell, without the former connection flare. */
 .home-cosmos__sphere--earth {
   overflow: hidden;
   width: 71.43%;
@@ -230,31 +217,22 @@
   opacity: 1;
 }
 
-.home-cosmos__earth-directional-glow {
+.home-cosmos__earth-atmosphere-shell {
   z-index: 3;
   width: 92.86%;
   height: 92.86%;
   top: 2.86%;
   left: 4.05%;
+  overflow: hidden;
+  clip-path: circle(38% at 50% 50%);
   mix-blend-mode: screen;
 }
 
-.home-cosmos__earth-directional-glow img {
+.home-cosmos__earth-atmosphere-shell img {
   width: 100%;
   height: 100%;
   inset: 0;
   object-fit: contain;
-}
-
-.home-cosmos__earth-stream-origin {
-  position: absolute;
-  left: 17.36%;
-  top: 39.58%;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
 .home-cosmos__satellite-orbit {

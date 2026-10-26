@@ -96,11 +96,18 @@ test("the 2D fallback applies the shared endpoint fade only once", () => {
   );
   assert.match(
     source,
-    /particle\.alpha \* gain\.opacity \* nebulaFade\(progress\) \* emphasis/,
+    /particle\.alpha \* gain\.opacity \* emitterGain\.opacity \* nebulaFade\(progress, stream\) \* emphasis/,
   );
   assert.doesNotMatch(source, /particle\.alpha \* nebulaOpacity/);
   assert.match(source, /nebulaVisualGain\(stream\)/);
+  assert.match(source, /nebulaEmitterGain\(stream, progress\)/);
+  assert.match(source, /context\.globalAlpha = Math\.min\(\s*1,/);
+  assert.match(
+    source,
+    /particle\.emitter\s*\?\s*particle\.phase\s*:\s*\(particle\.phase \+ time \* particle\.speed \* 0\.001\) % 1/,
+  );
   assert.match(source, /particle\.size \* gain\.size/);
+  assert.match(source, /earthEmitterColors\[particle\.layer\]/);
 });
 
 test("the 2D fallback clears and draws nothing for missing geometry", () => {

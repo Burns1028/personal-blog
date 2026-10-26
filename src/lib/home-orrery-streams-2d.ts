@@ -6,6 +6,7 @@ import {
 } from "./home-orrery-geometry.ts";
 import {
   createOrreryNebulaParticles,
+  nebulaEmitterGain,
   nebulaFade,
   nebulaSpread,
   nebulaStreamCounts,
@@ -128,6 +129,12 @@ const particleColors: Record<OrreryNebulaSource, Record<OrreryNebulaLayer, strin
   },
 };
 
+const earthEmitterColors: Record<OrreryNebulaLayer, string> = {
+  mist: "rgba(174, 226, 248, 0.82)",
+  dust: "rgba(204, 240, 255, 0.94)",
+  spark: "rgba(244, 252, 255, 1)",
+};
+
 const artifactStream: Partial<Record<OrreryArtifact, OrreryStream>> = {
   document: "moon",
   repo: "earth",
@@ -152,7 +159,9 @@ const drawArm = (
 
   for (const particle of particles) {
     if (particle.stream !== stream) continue;
-    const progress = (particle.phase + time * particle.speed * 0.001) % 1;
+    const progress = particle.emitter
+      ? particle.phase
+      : (particle.phase + time * particle.speed * 0.001) % 1;
     const point = sampleCubic(path, progress);
     const tangent = tangentCubic(path, progress);
     const tangentLength = Math.hypot(tangent.x, tangent.y) || 1;
@@ -164,11 +173,24 @@ const drawArm = (
     ) * particle.lateralSeed;
     const x = point.x + (-tangent.y / tangentLength) * spread;
     const y = point.y + (tangent.x / tangentLength) * spread;
-    context.globalAlpha =
-      particle.alpha * gain.opacity * nebulaFade(progress) * emphasis;
-    context.fillStyle = particleColors[stream][particle.layer];
+    const emitterGain = particle.emitter
+      ? nebulaEmitterGain(stream, progress)
+      : { opacity: 1, size: 1 };
+    context.globalAlpha = Math.min(
+      1,
+      particle.alpha * gain.opacity * emitterGain.opacity * nebulaFade(progress, stream) * emphasis,
+    );
+    context.fillStyle = particle.emitter
+      ? earthEmitterColors[particle.layer]
+      : particleColors[stream][particle.layer];
     context.beginPath();
-    context.arc(x, y, particle.size * gain.size * 0.52, 0, Math.PI * 2);
+    context.arc(
+      x,
+      y,
+      particle.size * gain.size * emitterGain.size * 0.52,
+      0,
+      Math.PI * 2,
+    );
     context.fill();
   }
 };

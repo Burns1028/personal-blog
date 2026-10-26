@@ -9,6 +9,7 @@ export type OrreryNebulaSource = OrreryStream | "hub";
 
 export type OrreryNebulaParticle = {
   stream: OrreryNebulaSource;
+  emitter: boolean;
   layer: OrreryNebulaLayer;
   phase: number;
   speed: number;
@@ -72,7 +73,18 @@ export const nebulaSpread = (
   const streamScale = streamSpreadScale[stream];
   const layerScale = layer === "mist" ? 1.7 : layer === "spark" ? 1.18 : 1;
   const convergence = 0.18 + Math.sin(Math.PI * progress) * 0.82;
-  return stageShortEdge * 0.028 * streamScale * layerScale * convergence;
+  const sourceProgress = Math.min(1, Math.max(0, progress / 0.08));
+  const earthSourceTaper =
+    sourceProgress * sourceProgress * (3 - 2 * sourceProgress);
+  const sourceTaper = stream === "earth" ? earthSourceTaper : 1;
+  return (
+    stageShortEdge *
+    0.028 *
+    streamScale *
+    layerScale *
+    convergence *
+    sourceTaper
+  );
 };
 
 const cubicLength = (geometry: OrreryHubGeometry, stream: OrreryStream) => {
@@ -131,14 +143,33 @@ export const nebulaStreamCounts = (
 export const nebulaVisualGain = (stream: OrreryNebulaSource) =>
   visualGain[stream];
 
-export const nebulaFade = (progress: number) => {
-  const edgeFade = Math.min(1, progress / 0.02, (1 - progress) / 0.012);
+export const nebulaEmitterGain = (
+  stream: OrreryStream,
+  progress: number,
+) => {
+  if (stream !== "earth") return { opacity: 1, size: 1 };
+  const normalized = Math.min(1, Math.max(0, progress / 0.56));
+  const eased = normalized * normalized * (3 - 2 * normalized);
+  const strength = 1 - eased;
+  return {
+    opacity: 1.7 + strength * 0.8,
+    size: 1.18 + strength * 0.18,
+  };
+};
+
+export const nebulaFade = (progress: number, stream?: OrreryStream) => {
+  const sourceFade = stream === "earth" ? 1 : Math.min(1, progress / 0.02);
+  const edgeFade = Math.min(sourceFade, (1 - progress) / 0.012);
   return Math.max(0, edgeFade);
 };
 
-export const nebulaOpacity = (layer: OrreryNebulaLayer, progress: number) => {
+export const nebulaOpacity = (
+  layer: OrreryNebulaLayer,
+  progress: number,
+  stream?: OrreryStream,
+) => {
   const base = layer === "mist" ? 0.22 : layer === "dust" ? 0.55 : 0.82;
-  return base * nebulaFade(progress);
+  return base * nebulaFade(progress, stream);
 };
 
 const interleavedStreams = (counts: OrreryNebulaStreamCounts) => {
@@ -180,22 +211,49 @@ export const createOrreryNebulaParticles = (
   const total = Math.max(0, Math.floor(count));
   const counts = nebulaStreamCounts(total, weights);
   const armStreams = interleavedStreams(counts);
+  const earthEmitterCount = Math.min(
+    counts.earth,
+    96,
+    Math.max(28, Math.round(counts.earth * 0.32)),
+  );
+  const movingEarthCount = counts.earth - earthEmitterCount;
+  const streamOrdinals: Record<OrreryStream, number> = {
+    moon: 0,
+    earth: 0,
+    "black-hole": 0,
+  };
   return Array.from({ length: total }, (_, index): OrreryNebulaParticle => {
     const stream = index < counts.hub ? "hub" : armStreams[index - counts.hub];
     const layer = layerFor(random());
-    const phase = random();
+    const randomPhase = random();
+    const randomSpeed = random();
+    const streamOrdinal = stream === "hub" ? 0 : streamOrdinals[stream]++;
+    const emitter = stream === "earth" && streamOrdinal < earthEmitterCount;
+    const movingEarthOrdinal = streamOrdinal - earthEmitterCount;
+    const phase =
+      emitter
+        ? streamOrdinal / Math.max(1, earthEmitterCount - 0.5)
+        : stream === "earth" && movingEarthCount > 0
+          ? (movingEarthOrdinal + 0.25 + randomPhase * 0.5) / movingEarthCount
+        : randomPhase;
     const sizeRange = layer === "mist" ? [3.8, 7.4] : layer === "dust" ? [1.1, 4.1] : [1.6, 4.8];
     const alphaRange = layer === "mist" ? [0.14, 0.3] : layer === "dust" ? [0.36, 0.72] : [0.62, 0.96];
+    const lateralSeed = random() * 2 - 1;
+    const clusterSeed = random();
+    const size = sizeRange[0] + random() * (sizeRange[1] - sizeRange[0]);
+    const rotation = (random() - 0.5) * Math.PI;
+    const alpha = alphaRange[0] + random() * (alphaRange[1] - alphaRange[0]);
     return {
       stream,
+      emitter,
       layer,
       phase,
-      speed: 0.012 + random() * 0.031,
-      lateralSeed: random() * 2 - 1,
-      clusterSeed: random(),
-      size: sizeRange[0] + random() * (sizeRange[1] - sizeRange[0]),
-      rotation: (random() - 0.5) * Math.PI,
-      alpha: alphaRange[0] + random() * (alphaRange[1] - alphaRange[0]),
+      speed: emitter ? 0 : stream === "earth" ? 0.024 : 0.012 + randomSpeed * 0.031,
+      lateralSeed,
+      clusterSeed,
+      size: emitter ? Math.max(2.6, size) : size,
+      rotation,
+      alpha: emitter ? Math.max(0.68, alpha) : alpha,
       atlasCell: atlasCellFor(stream, phase, index),
     };
   });

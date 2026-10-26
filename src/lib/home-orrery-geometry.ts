@@ -183,8 +183,8 @@ const tangentEarthPath = (
   return {
     start,
     controlA: {
-      x: start.x + direction.x * chordLength * 0.38,
-      y: start.y + direction.y * chordLength * 0.38,
+      x: start.x + direction.x * chordLength * 0.24,
+      y: start.y + direction.y * chordLength * 0.24,
     },
     controlB: {
       x: start.x + towardHub.x * 0.74,
@@ -197,7 +197,6 @@ const tangentEarthPath = (
 const blackHolePath = (start: Point, hub: Point): CubicPath => {
   const dx = hub.x - start.x;
   const dy = hub.y - start.y;
-  const length = Math.hypot(dx, dy);
   return {
     start,
     controlA: {
@@ -205,8 +204,8 @@ const blackHolePath = (start: Point, hub: Point): CubicPath => {
       y: start.y + dy * 0.24,
     },
     controlB: {
-      x: hub.x - dx * 0.24,
-      y: hub.y + length * 0.05,
+      x: hub.x - dx * 0.18,
+      y: hub.y - dy * 0.18,
     },
     end: hub,
   };
@@ -258,19 +257,19 @@ export const createOrreryHubGeometry = (
     }
   }
 
-  const narrowFactor = clamp((900 - stage.width) / 580, 0, 1);
-  const earthOffset = 1.35 + narrowFactor * 0.2;
   const margin = Math.max(4, Math.min(stage.width, stage.height) * 0.01);
   const hub: Point = {
     x: clamp(
-      bodies.earth.x - bodies.earth.rx * earthOffset,
+      bodies.moon.x * 0.25 +
+        bodies.earth.x * 0.5 +
+        bodies.blackHole.x * 0.25,
       margin,
       stage.width - margin,
     ),
     y: clamp(
-      bodies.moon.y * 0.3 +
-        bodies.earth.y * 0.36 +
-        bodies.blackHole.y * 0.34,
+      bodies.moon.y * 0.25 +
+        bodies.earth.y * 0.5 +
+        bodies.blackHole.y * 0.25,
       margin,
       stage.height - margin,
     ),

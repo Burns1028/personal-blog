@@ -251,6 +251,14 @@ body[data-route="/ideas"] .site-footer {
   top: calc(100% + 9px);
   right: -7px;
   width: 190px;
+  max-height: min(
+    420px,
+    calc(
+      100svh - var(--ideas-search-top) - var(--ideas-search-height) - 16px
+    )
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px 11px;
   border: 1px solid rgba(92, 58, 23, 0.52);
   border-radius: 2px;
@@ -262,6 +270,24 @@ body[data-route="/ideas"] .site-footer {
   box-shadow:
     0 16px 28px rgba(76, 45, 15, 0.16),
     inset 0 0 0 1px rgba(250, 229, 194, 0.42);
+  scrollbar-color: rgba(98, 60, 23, 0.68) rgba(111, 69, 27, 0.1);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.ideas-journal__date-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ideas-journal__date-menu::-webkit-scrollbar-track {
+  background: rgba(111, 69, 27, 0.1);
+}
+
+.ideas-journal__date-menu::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(98, 60, 23, 0.68);
+  background-clip: padding-box;
 }
 
 .ideas-journal__date-option {
