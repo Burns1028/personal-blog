@@ -1,0 +1,262 @@
+/* Shared four-item navigation — identical geometry on every route. */
+
+body[data-route] .site-header {
+  display: flex;
+  width: min(1848px, 90.234375vw);
+  min-height: clamp(92px, 11.8056vh, 136px);
+  margin-right: auto;
+  margin-left: auto;
+  border: 0;
+  grid-template-columns: none;
+  align-items: center;
+}
+
+body[data-route] .wordmark {
+  height: clamp(92px, 11.8056vh, 136px);
+  margin-right: clamp(30px, 2.2vw, 44px);
+  padding: 0;
+  color: #a8a5a0;
+}
+
+body[data-route] .wordmark__text {
+  display: inline-block;
+  color: #b98531;
+  font-family:
+    "Snell Roundhand",
+    "Apple Chancery",
+    "Segoe Script",
+    "Brush Script MT",
+    cursive;
+  font-size: clamp(24px, 1.45vw, 30px);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: 0.005em;
+  text-shadow: 0 0 14px rgba(185, 133, 48, 0.1);
+  transform: translateY(1px) rotate(-2deg);
+  transform-origin: left center;
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease;
+}
+
+body[data-route] .wordmark:hover .wordmark__text,
+body[data-route] .wordmark:focus-visible .wordmark__text {
+  color: #d2a04b;
+  text-shadow: 0 0 18px rgba(201, 146, 55, 0.18);
+}
+
+body[data-route] .site-nav {
+  --site-nav-celestial-size: 22px;
+  --site-nav-celestial-gap: 8px;
+
+  height: clamp(92px, 11.8056vh, 136px);
+  gap: clamp(28px, 2.3vw, 44px);
+}
+
+body[data-route] .site-nav a {
+  display: inline-flex;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--site-nav-celestial-gap);
+  color: #989692;
+  font-size: clamp(15px, 0.88vw, 18px);
+  letter-spacing: -0.01em;
+}
+
+body[data-route] .site-nav a::before {
+  right: 0;
+  bottom: clamp(24px, 3.3vh, 38px);
+  left: 0;
+  background: #a77b27;
+}
+
+body[data-route] .site-nav__celestial {
+  --site-nav-celestial-brightness: 1.08;
+  --site-nav-celestial-active-brightness: 1.18;
+  --site-nav-celestial-saturation: 1;
+  --site-nav-celestial-contrast: 0.98;
+  --site-nav-celestial-glow: drop-shadow(0 0 3px rgba(187, 153, 91, 0.14));
+
+  display: inline-grid;
+  width: var(--site-nav-celestial-size);
+  height: var(--site-nav-celestial-size);
+  flex: 0 0 auto;
+  place-items: center;
+  opacity: 0.96;
+  filter: brightness(var(--site-nav-celestial-brightness))
+    saturate(var(--site-nav-celestial-saturation))
+    contrast(var(--site-nav-celestial-contrast))
+    var(--site-nav-celestial-glow);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease;
+}
+
+body[data-route] .site-nav__celestial--moon {
+  --site-nav-celestial-brightness: 1.12;
+  --site-nav-celestial-active-brightness: 1.2;
+  --site-nav-celestial-saturation: 1.02;
+  --site-nav-celestial-contrast: 0.98;
+  --site-nav-celestial-glow: drop-shadow(0 0 4px rgba(211, 169, 91, 0.2));
+}
+
+body[data-route] .site-nav__celestial--earth {
+  --site-nav-celestial-brightness: 1.3;
+  --site-nav-celestial-active-brightness: 1.38;
+  --site-nav-celestial-saturation: 1.08;
+  --site-nav-celestial-contrast: 0.9;
+  --site-nav-celestial-glow: drop-shadow(0 0 4px rgba(82, 165, 214, 0.25));
+}
+
+body[data-route] .site-nav__celestial--black-hole {
+  --site-nav-celestial-brightness: 1.18;
+  --site-nav-celestial-active-brightness: 1.27;
+  --site-nav-celestial-saturation: 1.04;
+  --site-nav-celestial-contrast: 0.96;
+  --site-nav-celestial-glow: drop-shadow(0 0 4px rgba(221, 166, 70, 0.24));
+
+  width: 27px;
+}
+
+body[data-route] .site-nav__celestial img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+body[data-route] .site-nav a:hover .site-nav__celestial,
+body[data-route] .site-nav a[aria-current="page"] .site-nav__celestial {
+  opacity: 1;
+  filter: brightness(var(--site-nav-celestial-active-brightness))
+    saturate(var(--site-nav-celestial-saturation))
+    contrast(var(--site-nav-celestial-contrast))
+    var(--site-nav-celestial-glow);
+}
+
+body[data-route] .site-nav a:hover,
+body[data-route] .site-nav a[aria-current="page"] {
+  color: #e4e2de;
+}
+
+body[data-route] .wordmark:focus-visible,
+body[data-route] .site-nav a:focus-visible {
+  outline: 1px solid #a77b27;
+  outline-offset: -5px;
+}
+
+body[data-route].is-paper .wordmark {
+  color: #514d45;
+}
+
+body[data-route].is-paper .site-nav a {
+  color: #716b61;
+}
+
+body[data-route].is-paper .site-nav__celestial {
+  filter: brightness(var(--site-nav-celestial-brightness))
+    saturate(var(--site-nav-celestial-saturation))
+    contrast(var(--site-nav-celestial-contrast))
+    var(--site-nav-celestial-glow);
+}
+
+body[data-route].is-paper .site-nav a:hover .site-nav__celestial,
+body[data-route].is-paper
+  .site-nav
+  a[aria-current="page"]
+  .site-nav__celestial {
+  filter: brightness(var(--site-nav-celestial-active-brightness))
+    saturate(var(--site-nav-celestial-saturation))
+    contrast(var(--site-nav-celestial-contrast))
+    var(--site-nav-celestial-glow);
+}
+
+body[data-route].is-paper .site-nav a:hover,
+body[data-route].is-paper .site-nav a[aria-current="page"] {
+  color: #242119;
+}
+
+@media (max-width: 1100px) {
+  body[data-route] .site-header {
+    width: calc(100vw - 56px);
+  }
+
+  body[data-route] .wordmark {
+    margin-right: 24px;
+  }
+
+  body[data-route] .site-nav {
+    gap: 24px;
+  }
+
+  body[data-route] .site-nav a {
+    padding-right: 0;
+    padding-left: 0;
+    font-size: 13px;
+  }
+
+  body[data-route] .site-nav a::before {
+    right: 0;
+    left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-route] .site-header {
+    display: grid;
+    width: calc(100vw - 32px);
+    min-height: 102px;
+    grid-template-columns: 1fr auto;
+    align-content: start;
+  }
+
+  body[data-route] .wordmark {
+    height: 54px;
+    margin: 0;
+  }
+
+  body[data-route] .wordmark__text {
+    font-size: 23px;
+  }
+
+  body[data-route] .site-nav {
+    --site-nav-celestial-size: 18px;
+    --site-nav-celestial-gap: 6px;
+
+    display: flex;
+    width: 100%;
+    height: 44px;
+    gap: clamp(12px, 4.2vw, 20px);
+    grid-column: 1 / -1;
+  }
+
+  body[data-route] .site-nav a {
+    height: 44px;
+    padding: 0;
+    flex: 0 0 auto;
+    font-size: 12px;
+  }
+
+  body[data-route] .site-nav__celestial--black-hole {
+    width: 22px;
+  }
+
+  body[data-route] .site-nav a:first-child {
+    padding-left: 0;
+  }
+
+  body[data-route] .site-nav a::before {
+    right: 0;
+    bottom: 1px;
+    left: 0;
+  }
+
+  body[data-route] .site-nav a:first-child::before {
+    left: 0;
+  }
+}
+

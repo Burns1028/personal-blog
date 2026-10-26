@@ -32,12 +32,11 @@ const entries = sortWriting(filterWriting(catalog, activeType, query, activeTopi
 const currentPhase = getLunarPhase(new Date());
 const phaseCenters = [3.83, 12.92, 23.92, 35.17, 48, 60.71, 72.04, 83.38];
 const currentPhasePosition = phaseCenters[currentPhase.index];
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 ---
 
 <BaseLayout
@@ -59,7 +58,7 @@ const formatDate = (date: Date) =>
         alt=""
         width="1600"
         height="900"
-        fetchpriority="high"
+        fetchpriority="low"
         decoding="async"
       />
     </picture>
@@ -82,11 +81,13 @@ const formatDate = (date: Date) =>
           />
           <img
             class="writing-v2__phase-strip-image"
-            src={archiveAssets.writing.phaseStrip.desktop}
+            src={archiveAssets.writing.phaseStrip.mobile}
+            srcset={`${archiveAssets.writing.phaseStrip.mobile} 1x, ${archiveAssets.writing.phaseStrip.desktop} 2x`}
             alt=""
             width="1200"
             height="203"
             decoding="async"
+            fetchpriority="high"
           />
         </picture>
       </div>
@@ -142,10 +143,10 @@ const formatDate = (date: Date) =>
       {
         entries.length > 0 ? (
           <ol class="writing-v2__list" data-archive-results>
-            {entries.map((entry, index) => {
+            {entries.map((entry) => {
               const phase = getLunarPhase(entry.data.publishedAt);
               return (
-                <li style={`--entry-index:${Math.min(index, 7)}`}>
+                <li>
                   <a href={`/writing/${entry.id}`}>
                     <div class="writing-v2__entry-copy">
                       <h2>{entry.data.title}</h2>
@@ -156,7 +157,7 @@ const formatDate = (date: Date) =>
                         <time
                           datetime={entry.data.publishedAt.toISOString()}
                         >
-                          {formatDate(entry.data.publishedAt)}
+                          {dateFormatter.format(entry.data.publishedAt)}
                         </time>
                         <small>{entry.data.readingTime}阅读</small>
                       </span>

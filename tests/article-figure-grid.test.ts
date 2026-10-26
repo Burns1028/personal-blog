@@ -1,3 +1,4 @@
+import { readStyles } from "./helpers/read-styles.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -42,10 +43,7 @@ test("single images remain as article-figure", async () => {
 });
 
 test("image-row uses a flex image rail on desktop and stacks it on narrow screens", () => {
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
 
   assert.match(
     css,

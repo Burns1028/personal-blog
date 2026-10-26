@@ -463,7 +463,8 @@ test("orrery ambient motion is layered, pausable, and reduced-motion safe", () =
   const component = readExisting("src/components/HomeOrrery.astro");
   const layout = readExisting("src/layouts/BaseLayout.astro");
 
-  assert.match(layout, /import "\.\.\/styles\/home-orrery\.css"/);
+  assert.match(component, /import "\.\.\/styles\/home-orrery\.css"/);
+  assert.doesNotMatch(layout, /import "\.\.\/styles\/home-orrery\.css"/);
   assert.match(component, /data-home-moon-motion/);
   assert.match(component, /data-home-earth-motion/);
   assert.match(css, /home-black-hole-rotor-turn 46s/);

@@ -1,9 +1,8 @@
 ---
 import { nav, site } from "../data/site";
 import { homeOrreryAssets } from "../data/home-orrery-assets";
-import "../styles/global.css";
-import "../styles/home-orrery.css";
-import "katex/dist/katex.min.css";
+import globalStyles from "../styles/global.css?url";
+import writingShellStyles from "../styles/writing-shell.css?url";
 
 interface Props {
   title?: string;
@@ -51,6 +50,7 @@ const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <meta name="theme-color" content={themeColor} />
+    <link rel="stylesheet" href={path === "/writing" ? writingShellStyles : globalStyles} />
     <link
       rel="icon"
       type="image/webp"

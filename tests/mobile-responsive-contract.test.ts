@@ -1,3 +1,4 @@
+import { readStyles } from "./helpers/read-styles.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -5,7 +6,7 @@ import test from "node:test";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const read = (path: string) =>
-  readFileSync(resolve(projectRoot, path), "utf8");
+  path.endsWith(".css") ? readStyles(resolve(projectRoot, path)) : readFileSync(resolve(projectRoot, path), "utf8");
 
 function balancedBlock(css: string, openingBrace: number, label: string) {
   let depth = 0;

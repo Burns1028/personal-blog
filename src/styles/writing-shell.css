@@ -1,0 +1,4 @@
+/* The archive needs only the shared shell, not the other scene styles. */
+@import "./site-base.css";
+@import "./site-navigation.css";
+@import "./site-mobile.css";

@@ -1,3 +1,4 @@
+import { readStyles } from "./helpers/read-styles.ts";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -114,10 +115,7 @@ test("the homepage transition captures every artifact entrypoint", () => {
 });
 
 test("homepage artifacts use distinct expansive opening transitions", () => {
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
 
   assert.match(
     css,
@@ -157,10 +155,7 @@ test("artifact navigation starts on the next frame without an artificial delay",
 });
 
 test("artifact view transitions only animate compositor-friendly properties", () => {
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
   const transitionKeyframes = css.slice(
     css.indexOf("@keyframes artifact-open-repo"),
     css.indexOf("/* Six lunar chapter markers"),
@@ -180,10 +175,7 @@ test("homepage continuous motion pauses as soon as artifact navigation starts", 
     resolve(projectRoot, "src/pages/index.astro"),
     "utf8",
   );
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
 
   assert.match(cosmicSource, /burns:artifact-navigation-start/);
   assert.match(cosmicSource, /cancelAnimationFrame\(animationFrame\)/);
@@ -272,10 +264,7 @@ test("secondary star fields use the lower continuous-rendering budget", () => {
 });
 
 test("Projects does not pin a full-viewport bitmap during scrolling", () => {
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
 
   assert.doesNotMatch(
     css,
@@ -610,10 +599,7 @@ test("writing articles end without an editorial slogan", () => {
     resolve(projectRoot, "src/layouts/ArticleLayout.astro"),
     "utf8",
   );
-  const css = readFileSync(
-    resolve(projectRoot, "src/styles/global.css"),
-    "utf8",
-  );
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
 
   assert.doesNotMatch(layout, /记录不是终点/);
   assert.doesNotMatch(css, /\.writing-end\s*>\s*p\s*\{/);

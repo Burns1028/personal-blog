@@ -1,3 +1,4 @@
+import { readStyles } from "./helpers/read-styles.ts";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
@@ -93,7 +94,7 @@ test("shared navigation renders decorative responsive celestial images", () => {
 });
 
 test("celestial navigation stays bright, responsive, and never moves the icons", () => {
-  const css = readFileSync(resolve(projectRoot, "src/styles/global.css"), "utf8");
+  const css = readStyles(resolve(projectRoot, "src/styles/global.css"));
   const celestialRuleBodies = [
     ...css.matchAll(/\.site-nav__celestial[^{}]*\{([^}]*)\}/g),
   ].map((match) => match[1]).join("\n");
