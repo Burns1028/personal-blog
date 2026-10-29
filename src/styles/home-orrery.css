@@ -1,496 +1,79 @@
-/* Homepage thought system: three mutually attracting celestial destinations. */
-
+/* One keyed video, three stationary navigation targets. */
 .home-orrery {
   position: relative;
   z-index: 5;
   min-width: 0;
   min-height: 100svh;
-  overflow: visible;
-  perspective: 1800px;
   isolation: isolate;
 }
 
 .home-cosmos__stage {
   position: absolute;
-  top: 0;
+  top: clamp(105px, 12vh, 150px);
   left: 0;
   width: 100%;
-  aspect-ratio: 881 / 732;
-  overflow: visible;
-  opacity: 0;
-  visibility: hidden;
-  isolation: isolate;
-  transition: opacity 220ms ease;
+  aspect-ratio: 1610 / 1290;
 }
 
-.home-orrery[data-scene-state="ready"] .home-cosmos__stage,
-.home-orrery[data-scene-state="static"] .home-cosmos__stage {
-  opacity: 1;
-  visibility: visible;
-}
-
-.home-orrery::before {
+.home-cosmos__poster,
+.home-cosmos__poster img,
+.home-cosmos__video-canvas {
   position: absolute;
-  z-index: -2;
-  content: "";
-  inset: 5% -5% 2% -7%;
-  background:
-    radial-gradient(ellipse at 87% 31%, rgba(46, 129, 190, 0.1), transparent 23%),
-    radial-gradient(ellipse at 21% 82%, rgba(203, 145, 51, 0.065), transparent 25%);
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.home-cosmos__poster img { object-fit: contain; }
+.home-cosmos__video-canvas { opacity: 0; }
+.home-orrery[data-video-ready] .home-cosmos__video-canvas { opacity: 1; }
+.home-orrery[data-video-ready] .home-cosmos__poster { opacity: 0; }
+
+.home-cosmos__video-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
   pointer-events: none;
 }
 
 .home-celestial {
   position: absolute;
-  z-index: 5;
+  z-index: 2;
   display: block;
-  aspect-ratio: 1;
   border-radius: 50%;
-  color: inherit;
   cursor: pointer;
-  outline: none;
-  transition: opacity 280ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.home-celestial__motion {
-  position: absolute;
-  display: block;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  transition:
-    opacity 280ms ease,
-    filter 260ms ease;
+.home-celestial--projects { left: 13%; top: 9%; width: 29%; height: 36.2%; }
+.home-celestial--ideas { left: 49%; top: 11%; width: 43%; height: 29%; }
+.home-celestial--writing { left: 55%; top: 56%; width: 25%; height: 31.2%; }
+
+.home-celestial:focus-visible {
+  outline: 1px solid #cda158;
+  outline-offset: 7px;
 }
 
-.home-orrery[data-three-body-running="true"] .home-celestial {
-  will-change: transform;
-}
-
-.home-celestial--writing {
-  top: 6.284%;
-  left: 17.707%;
-  width: 23.61%;
-  view-transition-name: artifact-document;
-}
-
-.home-celestial--projects {
-  z-index: 7;
-  top: 13.661%;
-  left: 60.159%;
-  width: 47.673%;
-  view-transition-name: artifact-repo;
-}
-
-.home-celestial--ideas {
-  z-index: 8;
-  top: 63.525%;
-  left: 7.946%;
-  width: 29.058%;
-  view-transition-name: artifact-idea;
-}
-
-.home-cosmos__sphere,
-.home-cosmos__moon-base,
-.home-cosmos__moon-base img,
-.home-cosmos__moon-motion-canvas,
-.home-cosmos__moon-light,
-.home-cosmos__earth-base,
-.home-cosmos__earth-base img,
-.home-cosmos__earth-motion-canvas,
-.home-cosmos__earth-atmosphere-shell,
-.home-cosmos__earth-atmosphere-shell img,
-.home-cosmos__satellite-orbit,
-.home-cosmos__satellite,
-.home-cosmos__satellite img,
-.home-cosmos__black-hole-field,
-.home-cosmos__black-hole-field img,
-.home-cosmos__black-hole-core,
-.home-cosmos__black-hole-core img,
-.home-cosmos__black-hole-rotor,
-.home-cosmos__black-hole-rotor img,
-.home-cosmos__black-hole-dark-core {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-}
-
-.home-cosmos__sphere {
-  border-radius: 50%;
-  transform: translateZ(0);
-  transition: filter 260ms ease;
-}
-
-/* Moon: exact mother-image fallback, then a real surface-turn sequence. */
-.home-cosmos__sphere--moon {
-  overflow: visible;
-  width: 61.54%;
-  height: 61.54%;
-  top: 20.67%;
-  left: 16.35%;
-}
-
-.home-cosmos__moon-base,
-.home-cosmos__moon-base img,
-.home-cosmos__moon-motion-canvas,
-.home-cosmos__moon-light {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  border-radius: 50%;
-}
-
-.home-cosmos__moon-base {
-  z-index: 1;
-  opacity: 0;
-}
-
-.home-cosmos__moon-base img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.home-cosmos__moon-motion-canvas {
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  border-radius: 50%;
-  opacity: 0;
-}
-
-.home-cosmos__sphere--moon.is-motion-ready .home-cosmos__moon-motion-canvas {
-  opacity: 1;
-}
-
-.home-orrery[data-scene-state="static"] .home-cosmos__moon-base {
-  opacity: 1;
-}
-
-.home-cosmos__moon-light {
-  z-index: 3;
-  background: radial-gradient(circle at 78% 74%, rgba(255, 225, 163, 0.1), transparent 36%);
-}
-
-/* Earth: turning surface plus its clipped atmospheric shell, without the former connection flare. */
-.home-cosmos__sphere--earth {
-  overflow: hidden;
-  width: 71.43%;
-  height: 71.43%;
-  top: 15%;
-  left: 15.48%;
-}
-
-.home-cosmos__earth-base,
-.home-cosmos__earth-base img,
-.home-cosmos__earth-motion-canvas {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  border-radius: 50%;
-}
-
-.home-cosmos__earth-base {
-  z-index: 1;
-  opacity: 0;
-}
-
-.home-cosmos__earth-base img {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: contain;
-}
-
-.home-cosmos__earth-motion-canvas {
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  border-radius: 50%;
-  opacity: 0;
-}
-
-.home-cosmos__sphere--earth.is-motion-ready .home-cosmos__earth-motion-canvas {
-  opacity: 1;
-}
-
-.home-orrery[data-scene-state="static"] .home-cosmos__earth-base {
-  opacity: 1;
-}
-
-.home-cosmos__earth-atmosphere-shell {
-  z-index: 3;
-  width: 92.86%;
-  height: 92.86%;
-  top: 2.86%;
-  left: 4.05%;
-  overflow: hidden;
-  clip-path: circle(38% at 50% 50%);
-  mix-blend-mode: screen;
-}
-
-.home-cosmos__earth-atmosphere-shell img {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: contain;
-}
-
-.home-cosmos__satellite-orbit {
-  z-index: 6;
-  inset: 7%;
-  transform-origin: center;
-  will-change: transform;
-}
-
-.home-cosmos__satellite {
-  width: 18%;
-  height: 18%;
-  bottom: 2%;
-  left: -1%;
-  transform: rotate(-14deg);
-}
-
-.home-cosmos__satellite img {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: contain;
-}
-
-/* Black hole: exact asymmetric field is fixed; only the independent inner ring rotates. */
-.home-cosmos__black-hole-field {
-  z-index: 1;
-  width: 187.5%;
-  height: 105.47%;
-  top: -24.61%;
-  left: -27.35%;
-  mix-blend-mode: screen;
-}
-
-.home-cosmos__black-hole-field img {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: fill;
-}
-
-.home-cosmos__black-hole-core {
-  z-index: 2;
-  width: 53.13%;
-  height: 53.13%;
-  top: 24.61%;
-  left: 22.27%;
-}
-
-.home-cosmos__black-hole-core img,
-.home-cosmos__black-hole-rotor img {
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: contain;
-}
-
-.home-cosmos__black-hole-rotor {
-  z-index: 3;
-  width: 53.13%;
-  height: 53.13%;
-  top: 24.61%;
-  left: 22.27%;
-  opacity: 0.26;
-  mix-blend-mode: screen;
-  transform-origin: center;
-  will-change: transform;
-}
-
-.home-cosmos__black-hole-dark-core {
-  z-index: 4;
-  width: 22%;
-  height: 22%;
-  top: 39.9%;
-  left: 37.8%;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 0.16);
-}
-
-.home-orrery[data-active-artifact="document"] .home-celestial--writing,
-.home-orrery[data-active-artifact="repo"] .home-celestial--projects,
-.home-orrery[data-active-artifact="idea"] .home-celestial--ideas {
-  z-index: 15;
-  opacity: 1;
-}
-
-.home-orrery[data-active-artifact="document"] .home-celestial:not(.home-celestial--writing),
-.home-orrery[data-active-artifact="repo"] .home-celestial:not(.home-celestial--projects),
-.home-orrery[data-active-artifact="idea"] .home-celestial:not(.home-celestial--ideas) {
-  opacity: 0.82;
-}
-
-.home-celestial:hover .home-celestial__motion,
-.home-celestial:focus-visible .home-celestial__motion {
-  filter: brightness(1.12);
-}
-
-body[data-route="/"]:has(.home-orrery[data-active-artifact="repo"])
-  .hero-actions a[data-artifact="repo"],
-body[data-route="/"]:has(.home-orrery[data-active-artifact="document"])
-  .hero-actions a[data-artifact="document"],
-body[data-route="/"]:has(.home-orrery[data-active-artifact="idea"])
-  .hero-actions a[data-artifact="idea"] {
+body[data-route="/"]:has(.home-orrery[data-active-artifact="repo"]) .hero-actions a[data-artifact="repo"],
+body[data-route="/"]:has(.home-orrery[data-active-artifact="document"]) .hero-actions a[data-artifact="document"],
+body[data-route="/"]:has(.home-orrery[data-active-artifact="idea"]) .hero-actions a[data-artifact="idea"] {
   color: #d6a64e;
   background: rgba(195, 145, 58, 0.055);
-}
-
-.home-orrery[data-motion-running="true"] .home-cosmos__black-hole-rotor {
-  animation: home-black-hole-rotor-turn 46s linear infinite;
-}
-
-.home-orrery[data-motion-running="true"] .home-cosmos__satellite-orbit {
-  animation: home-satellite-drift 21s ease-in-out infinite;
-}
-
-html[data-artifact-navigating] .home-orrery *,
-.home-orrery:not([data-motion-running="true"]) * {
-  animation-play-state: paused !important;
-}
-
-html[data-artifact-intent="repo"]
-  :is(.home-celestial--writing, .home-celestial--ideas),
-html[data-artifact-intent="document"]
-  :is(.home-celestial--projects, .home-celestial--ideas),
-html[data-artifact-intent="idea"]
-  :is(.home-celestial--writing, .home-celestial--projects) {
-  view-transition-name: none;
-}
-
-::view-transition-group(artifact-repo),
-::view-transition-group(artifact-document),
-::view-transition-group(artifact-idea) {
-  z-index: 170;
-  animation-duration: 880ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-::view-transition-old(artifact-document) {
-  transform-origin: center;
-  animation: planet-open-writing 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-::view-transition-old(artifact-repo) {
-  transform-origin: center;
-  animation: planet-open-projects 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-::view-transition-old(artifact-idea) {
-  transform-origin: center;
-  animation: planet-open-ideas 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-html[data-artifact-arrival]::view-transition-old(root) {
-  animation: planet-scene-release 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-html[data-artifact-arrival]::view-transition-new(root) {
-  animation: planet-destination-reveal 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@media (max-width: 1100px) {
-  .home-cosmos__stage {
-    left: -8%;
-    width: 122%;
-  }
 }
 
 @media (max-width: 767px) {
   /* Mobile responsive contract: Home orrery */
   .home-orrery {
     width: 100%;
-    height: clamp(420px, 118vw, 480px);
     min-height: 0;
-    overflow: clip;
+    padding: 16px 0 36px;
   }
-
   .home-cosmos__stage {
-    left: 50%;
-    width: min(112%, 480px);
-    transform: translateX(-50%);
+    position: relative;
+    top: auto;
+    width: 100%;
   }
-
-  .home-celestial--writing {
-    top: 7%;
-    left: 12%;
-    width: 24%;
-  }
-
-  .home-celestial--projects {
-    top: 17%;
-    left: 55%;
-    width: 42%;
-  }
-
-  .home-celestial--ideas {
-    top: 62%;
-    left: 8%;
-    width: 27%;
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-orrery *,
-  .home-orrery *::before,
-  .home-orrery *::after {
-    animation: none !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  ::view-transition-old(artifact-repo),
-  ::view-transition-old(artifact-document),
-  ::view-transition-old(artifact-idea) {
-    animation: none;
-    opacity: 0;
-  }
-}
-
-@keyframes home-black-hole-rotor-turn {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes home-satellite-drift {
-  0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(7deg); }
-}
-
-@keyframes planet-open-writing {
-  0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  14% { opacity: 1; transform: translate3d(0, 0, 0) scale(0.96); }
-  56% { opacity: 1; transform: translate3d(5vw, 4vh, 0) scale(2.5); }
-  100% { opacity: 0; transform: translate3d(11vw, 11vh, 0) scale(8.4); }
-}
-
-@keyframes planet-open-projects {
-  0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  14% { opacity: 1; transform: translate3d(0, 0, 0) scale(0.97); }
-  56% { opacity: 1; transform: translate3d(-12vw, 7vh, 0) scale(2.25); }
-  100% { opacity: 0; transform: translate3d(-39vw, 22vh, 0) scale(6.9); }
-}
-
-@keyframes planet-open-ideas {
-  0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  15% { opacity: 1; transform: translate3d(0, 0, 0) scale(0.86); }
-  50% { opacity: 1; transform: translate3d(8vw, -2vh, 0) scale(2.18); }
-  100% { opacity: 0; transform: translate3d(31vw, -5vh, 0) scale(8.8); }
-}
-
-@keyframes planet-scene-release {
-  0%, 28% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.985); }
-}
-
-@keyframes planet-destination-reveal {
-  0%, 18% { opacity: 0; transform: scale(1.018); }
-  100% { opacity: 1; transform: scale(1); }
 }

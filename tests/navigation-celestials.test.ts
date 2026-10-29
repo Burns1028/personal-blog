@@ -9,17 +9,17 @@ import { nav } from "../src/data/site.ts";
 const projectRoot = resolve(import.meta.dirname, "..");
 const publicRoot = resolve(
   projectRoot,
-  "public/assets/navigation-celestials",
+  "public/assets/home-celestials-v6",
 );
 
 test("navigation celestial assets are responsive transparent cutouts", async () => {
   const assets = [
-    ["nav-writing-moon-v1-64.webp", 64, 64, 18_000],
-    ["nav-writing-moon-v1-128.webp", 128, 128, 32_000],
-    ["nav-projects-earth-v1-64.webp", 64, 64, 18_000],
-    ["nav-projects-earth-v1-128.webp", 128, 128, 32_000],
-    ["nav-ideas-black-hole-v2-80.webp", 80, 64, 18_000],
-    ["nav-ideas-black-hole-v2-160.webp", 160, 128, 32_000],
+    ["nav-moon-64.webp", 64, 64, 18_000],
+    ["nav-moon-128.webp", 128, 128, 32_000],
+    ["nav-earth-64.webp", 64, 64, 18_000],
+    ["nav-earth-128.webp", 128, 128, 32_000],
+    ["nav-black-hole-80.webp", 80, 64, 18_000],
+    ["nav-black-hole-160.webp", 160, 128, 32_000],
   ] as const;
 
   for (const [filename, width, height, maxBytes] of assets) {
@@ -43,12 +43,12 @@ test("navigation celestial assets have a deterministic build command", () => {
   );
 
   assert.equal(
-    packageJson.scripts["assets:navigation"],
-    "node scripts/build-navigation-celestial-assets.mjs",
+    packageJson.scripts["assets:home:video"],
+    "node scripts/build-home-celestials-video.mjs",
   );
   assert.ok(
     existsSync(
-      resolve(projectRoot, "scripts/build-navigation-celestial-assets.mjs"),
+      resolve(projectRoot, "scripts/build-home-celestials-video.mjs"),
     ),
   );
 });
@@ -72,7 +72,7 @@ test("shared navigation maps each destination to its celestial mark", () => {
     assert.ok(item.celestial, `${item.href} must define a celestial mark`);
     assert.match(
       item.celestial.src,
-      /navigation-celestials\/.+-v(?:1|2)-(64|80)\.webp$/,
+      /home-celestials-v6\/nav-.+-(64|80)\.webp$/,
     );
     assert.match(item.celestial.srcset, / 1x, .+ 2x$/);
   }

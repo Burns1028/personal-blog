@@ -1,460 +1,61 @@
 ---
 import "../styles/home-orrery.css";
 import { homeOrreryAssets } from "../data/home-orrery-assets";
+const { scene } = homeOrreryAssets;
 ---
 
-<section
-  class="home-orrery"
-  aria-label="Writing、Projects 与 Ideas 思想星系"
-  data-home-orrery
-  data-artifact-stage
-  data-active-artifact="none"
-  data-scene-state="preparing"
->
+<section class="home-orrery" aria-label="Writing、Projects 与 Ideas 思想星系" data-home-orrery data-artifact-stage data-active-artifact="none">
   <div class="home-cosmos__stage">
-    <a
-      class="home-celestial home-celestial--writing"
-      href="/writing"
-      aria-label="进入 Writing"
-      data-artifact="document"
-    >
-      <span class="home-celestial__motion home-celestial__motion--writing">
-        <span class="home-cosmos__sphere home-cosmos__sphere--moon" aria-hidden="true">
-          <picture class="home-cosmos__moon-base">
-            <source
-              media="(min-resolution: 1.5dppx)"
-              data-fallback-srcset={homeOrreryAssets.writing.moon.retina}
-            />
-            <img
-              data-fallback-src={homeOrreryAssets.writing.moon.standard}
-              alt=""
-              width="480"
-              height="480"
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
-          <noscript>
-            <picture class="home-cosmos__moon-base">
-              <source
-                media="(min-resolution: 1.5dppx)"
-                srcset={homeOrreryAssets.writing.moon.retina}
-              />
-              <img
-                src={homeOrreryAssets.writing.moon.standard}
-                alt=""
-                width="480"
-                height="480"
-              />
-            </picture>
-          </noscript>
-          <canvas
-            class="home-cosmos__moon-motion-canvas"
-            data-home-moon-motion
-            data-texture-url={homeOrreryAssets.writing.motion.texture}
-          ></canvas>
-          <span class="home-cosmos__moon-light"></span>
-        </span>
-      </span>
-      <span class="sr-only">Writing</span>
-    </a>
-
-    <a
-      class="home-celestial home-celestial--projects"
-      href="/projects"
-      aria-label="进入 Projects"
-      data-artifact="repo"
-    >
-      <span class="home-celestial__motion home-celestial__motion--projects">
-        <picture class="home-cosmos__earth-atmosphere-shell" aria-hidden="true">
-          <source
-            media="(min-resolution: 1.5dppx)"
-            srcset={homeOrreryAssets.projects.earthGlow.retina}
-          />
-          <img
-            src={homeOrreryAssets.projects.earthGlow.standard}
-            alt=""
-            width="480"
-            height="480"
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <span class="home-cosmos__sphere home-cosmos__sphere--earth" aria-hidden="true">
-          <picture class="home-cosmos__earth-base">
-            <source
-              media="(min-resolution: 1.5dppx)"
-              data-fallback-srcset={homeOrreryAssets.projects.earth.retina}
-            />
-            <img
-              data-fallback-src={homeOrreryAssets.projects.earth.standard}
-              alt=""
-              width="480"
-              height="480"
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
-          <noscript>
-            <picture class="home-cosmos__earth-base">
-              <source
-                media="(min-resolution: 1.5dppx)"
-                srcset={homeOrreryAssets.projects.earth.retina}
-              />
-              <img
-                src={homeOrreryAssets.projects.earth.standard}
-                alt=""
-                width="480"
-                height="480"
-              />
-            </picture>
-          </noscript>
-          <canvas
-            class="home-cosmos__earth-motion-canvas"
-            data-home-earth-motion
-            data-texture-url={homeOrreryAssets.projects.motion.texture}
-          ></canvas>
-        </span>
-        <span class="home-cosmos__satellite-orbit" aria-hidden="true">
-          <picture class="home-cosmos__satellite">
-            <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.projects.satellite.retina} />
-            <img
-              src={homeOrreryAssets.projects.satellite.standard}
-              alt=""
-              width="320"
-              height="320"
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
-        </span>
-      </span>
-      <span class="sr-only">Projects</span>
-    </a>
-
-    <a
-      class="home-celestial home-celestial--ideas"
-      href="/ideas"
-      aria-label="进入 Ideas"
-      data-artifact="idea"
-    >
-      <span class="home-celestial__motion home-celestial__motion--ideas">
-        <picture class="home-cosmos__black-hole-field" aria-hidden="true">
-          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.field.retina} />
-          <img
-            src={homeOrreryAssets.ideas.field.standard}
-            alt=""
-            width="960"
-            height="540"
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <picture class="home-cosmos__black-hole-core" aria-hidden="true">
-          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.core.retina} />
-          <img
-            src={homeOrreryAssets.ideas.core.standard}
-            alt=""
-            width="480"
-            height="480"
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <picture class="home-cosmos__black-hole-rotor" aria-hidden="true">
-          <source media="(min-resolution: 1.5dppx)" srcset={homeOrreryAssets.ideas.rotor.retina} />
-          <img
-            src={homeOrreryAssets.ideas.rotor.standard}
-            alt=""
-            width="480"
-            height="480"
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <span class="home-cosmos__black-hole-dark-core" aria-hidden="true"></span>
-      </span>
-      <span class="sr-only">Ideas</span>
-    </a>
+    <picture class="home-cosmos__poster" aria-hidden="true">
+      <img src={scene.poster.standard} srcset={`${scene.poster.standard} 1200w, ${scene.poster.retina} 1600w`} sizes={scene.sizes} alt="" width="1610" height="1290" loading="eager" decoding="async" fetchpriority="high" />
+    </picture>
+    <canvas class="home-cosmos__video-canvas" data-celestial-canvas aria-hidden="true"></canvas>
+    <video class="home-cosmos__video-source" data-celestial-video data-src={scene.video} muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+    <a class="home-celestial home-celestial--writing" href="/writing" aria-label="进入 Writing" data-artifact="document"><span class="sr-only">Writing</span></a>
+    <a class="home-celestial home-celestial--projects" href="/projects" aria-label="进入 Projects" data-artifact="repo"><span class="sr-only">Projects</span></a>
+    <a class="home-celestial home-celestial--ideas" href="/ideas" aria-label="进入 Ideas" data-artifact="idea"><span class="sr-only">Ideas</span></a>
   </div>
-  <noscript>
-    <style>
-      .home-cosmos__stage {
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      .home-cosmos__moon-base,
-      .home-cosmos__earth-base {
-        opacity: 1 !important;
-      }
-    </style>
-  </noscript>
 </section>
 
 <script>
-  import { createCelestialSphereController } from "../lib/home-celestial-sphere";
-  import { createThreeBodyController } from "../lib/home-three-body";
-  import { homeOrreryAssets } from "../data/home-orrery-assets";
-
-  const orrery = document.querySelector<HTMLElement>("[data-home-orrery]");
-
-  if (orrery && orrery.dataset.bound !== "true") {
-    orrery.dataset.bound = "true";
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & {
-      connection?: { saveData?: boolean };
-    }).connection;
-    const savesData = connection?.saveData === true;
-    let moonMotion: ReturnType<typeof createCelestialSphereController> = null;
-    let earthMotion: ReturnType<typeof createCelestialSphereController> = null;
-    let bodyMotion: ReturnType<typeof createThreeBodyController> | null = null;
-    let sceneMode: "preparing" | "animated" | "static" = "preparing";
-    let scenePreparation: Promise<void> | null = null;
-    let staticPreparation: Promise<void> | null = null;
-    let pageActive = true;
-    let visible = true;
-    let navigationPaused = false;
-    let pointerInside = false;
-    let focusInside = false;
-
-    const createSurfaceMotion = (
-      selector: string,
-      options: {
-        durationMs: number;
-        initialRotation: number;
-        ambientLight: number;
-        diffuseLight: number;
-      },
-    ) => {
-      const surface = orrery.querySelector<HTMLCanvasElement>(selector);
-      const textureUrl = surface?.dataset.textureUrl;
-      if (!surface || !textureUrl) return null;
-      return createCelestialSphereController(surface, {
-        textureUrl,
-        durationMs: options.durationMs,
-        initialRotation: options.initialRotation,
-        ambientLight: options.ambientLight,
-        diffuseLight: options.diffuseLight,
-      });
-    };
-
-    const nextPaint = () =>
-      new Promise<void>((resolve) => {
-        window.requestAnimationFrame(() => resolve());
-      });
-
-    const updateMotionState = () => {
-      const running =
-        sceneMode === "animated" &&
-        visible &&
-        !document.hidden &&
-        !navigationPaused &&
-        !pointerInside &&
-        !focusInside &&
-        !reducedMotion.matches &&
-        !savesData;
-
-      if (running) {
-        orrery.dataset.motionRunning = "true";
-      } else {
-        delete orrery.dataset.motionRunning;
-      }
-      moonMotion?.setRunning(running);
-      earthMotion?.setRunning(running);
-      bodyMotion?.setRunning(running);
-    };
-
-    const activateStaticScene = () => {
-      if (staticPreparation) return staticPreparation;
-      staticPreparation = (async () => {
-        sceneMode = "preparing";
-        orrery.dataset.sceneState = "preparing";
-        bodyMotion?.destroy();
-        bodyMotion = null;
-        updateMotionState();
-
-        for (const source of orrery.querySelectorAll<HTMLSourceElement>(
-          "source[data-fallback-srcset]",
-        )) {
-          const srcset = source.dataset.fallbackSrcset;
-          if (srcset) source.srcset = srcset;
-        }
-
-        const fallbackImages = [
-          ...orrery.querySelectorAll<HTMLImageElement>(
-            "img[data-fallback-src]",
-          ),
-        ];
-        for (const image of fallbackImages) {
-          const src = image.dataset.fallbackSrc;
-          if (src) image.src = src;
-        }
-        await Promise.all(
-          fallbackImages.map((image) => image.decode().catch(() => undefined)),
-        );
-        if (!pageActive) return;
-        sceneMode = "static";
-        orrery.dataset.sceneState = "static";
-      })();
-      return staticPreparation;
-    };
-
-    const prepareAnimatedScene = () => {
-      if (scenePreparation) return scenePreparation;
-      scenePreparation = (async () => {
-        moonMotion = createSurfaceMotion(
-          "[data-home-moon-motion]",
-          homeOrreryAssets.writing.motion,
-        );
-        if (!moonMotion || !(await moonMotion.prepare()) || !pageActive) {
-          await activateStaticScene();
-          return;
-        }
-
-        await nextPaint();
-        earthMotion = createSurfaceMotion(
-          "[data-home-earth-motion]",
-          homeOrreryAssets.projects.motion,
-        );
-        if (!earthMotion || !(await earthMotion.prepare()) || !pageActive) {
-          await activateStaticScene();
-          return;
-        }
-
-        await nextPaint();
-        if (!pageActive) return;
-
-        bodyMotion ??= createThreeBodyController(orrery);
-        sceneMode = "animated";
-        orrery.dataset.sceneState = "ready";
-        updateMotionState();
-      })();
-      return scenePreparation;
-    };
-
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry?.isIntersecting ?? true;
-      updateMotionState();
+  import { createCelestialVideoController } from "../lib/home-celestial-video";
+  const root = document.querySelector<HTMLElement>("[data-home-orrery]");
+  if (root && root.dataset.bound !== "true") {
+    root.dataset.bound = "true";
+    const canvas = root.querySelector<HTMLCanvasElement>("[data-celestial-canvas]")!;
+    const video = root.querySelector<HTMLVideoElement>("[data-celestial-video]")!;
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const savesData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+    let visible = false;
+    let settled = document.documentElement.dataset.pageSettled === "true";
+    let navigating = false;
+    const player = createCelestialVideoController(video, canvas, (ready) => {
+      root.toggleAttribute("data-video-ready", ready);
     });
-
-    const pauseForNavigation = () => {
-      navigationPaused = true;
-      updateMotionState();
-    };
-
-    const handleSurfaceFailure = () => {
-      void activateStaticScene();
-    };
-
-    const handleVisibilityChange = () => {
-      updateMotionState();
-    };
-
-    const handlePointerEnter = (event: PointerEvent) => {
-      if (event.pointerType === "touch") return;
-      pointerInside = true;
-      updateMotionState();
-    };
-    const handlePointerLeave = () => {
-      pointerInside = false;
-      updateMotionState();
-    };
-    const handleFocus = () => {
-      focusInside = orrery.contains(document.activeElement);
-      updateMotionState();
-    };
-
-    const listenForNavigation = () => {
-      document.removeEventListener(
-        "burns:artifact-navigation-start",
-        pauseForNavigation,
-      );
-      document.addEventListener(
-        "burns:artifact-navigation-start",
-        pauseForNavigation,
-        { once: true },
-      );
-    };
-
-    const handlePageShow = (event: PageTransitionEvent) => {
-      if (!event.persisted) return;
-      navigationPaused = false;
-      listenForNavigation();
-      updateMotionState();
-      if (
-        sceneMode === "preparing" &&
-        !reducedMotion.matches &&
-        !savesData
-      ) {
-        void prepareAnimatedScene();
-      }
-    };
-
-    const destroyControllers = () => {
-      pageActive = false;
+    const update = () => player?.setRunning(visible && settled && !navigating && !document.hidden && !reducedMotion.matches && !savesData);
+    const onSettled = () => { settled = true; update(); };
+    const onNavigation = () => { navigating = true; update(); };
+    const onPageShow = () => { navigating = false; update(); };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry?.isIntersecting ?? false; update(); });
+    const onPageHide = (event: PageTransitionEvent) => {
+      navigating = true;
+      update();
+      if (event.persisted) return;
       observer.disconnect();
-      moonMotion?.destroy();
-      earthMotion?.destroy();
-      bodyMotion?.destroy();
-      orrery.removeEventListener("pointerenter", handlePointerEnter);
-      orrery.removeEventListener("pointerleave", handlePointerLeave);
-      orrery.removeEventListener("focusin", handleFocus);
-      orrery.removeEventListener("focusout", handleFocusOut);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener(
-        "burns:artifact-navigation-start",
-        pauseForNavigation,
-      );
-      reducedMotion.removeEventListener("change", updateMotionState);
-      orrery.removeEventListener(
-        "burns:celestial-surface-failed",
-        handleSurfaceFailure,
-      );
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("pageshow", handlePageShow);
+      player?.destroy();
+      document.removeEventListener("visibilitychange", update);
+      document.removeEventListener("burns:page-settled", onSettled);
+      document.removeEventListener("burns:artifact-navigation-start", onNavigation);
+      reducedMotion.removeEventListener("change", update);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("pagehide", onPageHide);
     };
-
-    const handlePageHide = (event: PageTransitionEvent) => {
-      if (event.persisted) {
-        navigationPaused = true;
-        updateMotionState();
-        return;
-      }
-      destroyControllers();
-    };
-
-    const handleFocusOut = (event: FocusEvent) => {
-      focusInside = event.relatedTarget instanceof Node && orrery.contains(event.relatedTarget);
-      updateMotionState();
-    };
-
-    observer.observe(orrery);
-    orrery.addEventListener("pointerenter", handlePointerEnter);
-    orrery.addEventListener("pointerleave", handlePointerLeave);
-    orrery.addEventListener("focusin", handleFocus);
-    orrery.addEventListener("focusout", handleFocusOut);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    listenForNavigation();
-    reducedMotion.addEventListener("change", updateMotionState);
-    orrery.addEventListener(
-      "burns:celestial-surface-failed",
-      handleSurfaceFailure,
-    );
-    updateMotionState();
-
-    if (reducedMotion.matches || savesData) {
-      void activateStaticScene();
-    } else if (document.documentElement.dataset.pageSettled === "true") {
-      void prepareAnimatedScene();
-    } else {
-      document.addEventListener(
-        "burns:page-settled",
-        () => void prepareAnimatedScene(),
-        { once: true },
-      );
-    }
-
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("pageshow", handlePageShow);
+    observer.observe(root);
+    document.addEventListener("visibilitychange", update);
+    document.addEventListener("burns:page-settled", onSettled, { once: true });
+    document.addEventListener("burns:artifact-navigation-start", onNavigation);
+    reducedMotion.addEventListener("change", update);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("pageshow", onPageShow);
   }
 </script>

@@ -33,9 +33,9 @@ export const nav = [
     label: "Writing",
     celestial: {
       kind: "moon",
-      src: "/assets/navigation-celestials/nav-writing-moon-v1-64.webp",
+      src: "/assets/home-celestials-v6/nav-moon-64.webp",
       srcset:
-        "/assets/navigation-celestials/nav-writing-moon-v1-64.webp 1x, /assets/navigation-celestials/nav-writing-moon-v1-128.webp 2x",
+        "/assets/home-celestials-v6/nav-moon-64.webp 1x, /assets/home-celestials-v6/nav-moon-128.webp 2x",
       width: 64,
       height: 64,
     },
@@ -45,9 +45,9 @@ export const nav = [
     label: "Projects",
     celestial: {
       kind: "earth",
-      src: "/assets/navigation-celestials/nav-projects-earth-v1-64.webp",
+      src: "/assets/home-celestials-v6/nav-earth-64.webp",
       srcset:
-        "/assets/navigation-celestials/nav-projects-earth-v1-64.webp 1x, /assets/navigation-celestials/nav-projects-earth-v1-128.webp 2x",
+        "/assets/home-celestials-v6/nav-earth-64.webp 1x, /assets/home-celestials-v6/nav-earth-128.webp 2x",
       width: 64,
       height: 64,
     },
@@ -57,9 +57,9 @@ export const nav = [
     label: "Ideas",
     celestial: {
       kind: "black-hole",
-      src: "/assets/navigation-celestials/nav-ideas-black-hole-v2-80.webp",
+      src: "/assets/home-celestials-v6/nav-black-hole-80.webp",
       srcset:
-        "/assets/navigation-celestials/nav-ideas-black-hole-v2-80.webp 1x, /assets/navigation-celestials/nav-ideas-black-hole-v2-160.webp 2x",
+        "/assets/home-celestials-v6/nav-black-hole-80.webp 1x, /assets/home-celestials-v6/nav-black-hole-160.webp 2x",
       width: 80,
       height: 64,
     },

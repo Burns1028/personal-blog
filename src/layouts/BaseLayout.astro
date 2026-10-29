@@ -67,14 +67,9 @@ const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
             rel="preload"
             as="image"
             type="image/webp"
-            href={homeOrreryAssets.writing.motion.texture}
-            fetchpriority="high"
-          />
-          <link
-            rel="preload"
-            as="image"
-            type="image/webp"
-            href={homeOrreryAssets.projects.motion.texture}
+            href={homeOrreryAssets.scene.poster.standard}
+            imagesrcset={`${homeOrreryAssets.scene.poster.standard} 1200w, ${homeOrreryAssets.scene.poster.retina} 1600w`}
+            imagesizes={homeOrreryAssets.scene.sizes}
             fetchpriority="high"
           />
         </>

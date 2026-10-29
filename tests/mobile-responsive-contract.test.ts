@@ -114,36 +114,13 @@ test("the Home institution mark and graduate note stay on one phone row", () => 
   );
 });
 
-test("the Home orrery fits every destination into a finite phone stage", () => {
+test("the Home video remains one responsive scene with stationary touch targets", () => {
   const css = read("src/styles/home-orrery.css");
-  const mobile = mobileBlockContaining(
-    css,
-    "Mobile responsive contract: Home orrery",
-  );
-
-  assert.match(
-    mobile,
-    /\.home-orrery\s*\{[^}]*width:\s*100%[^}]*height:\s*clamp\(420px,\s*118vw,\s*480px\)[^}]*min-height:\s*0[^}]*overflow:\s*clip/,
-  );
-  assert.match(
-    mobile,
-    /\.home-cosmos__stage\s*\{[^}]*left:\s*50%[^}]*width:\s*min\(112%,\s*480px\)[^}]*transform:\s*translateX\(-50%\)/,
-  );
-  assert.match(
-    mobile,
-    /\.home-celestial--writing\s*\{[^}]*top:\s*7%[^}]*left:\s*12%[^}]*width:\s*24%/,
-  );
-  assert.match(
-    mobile,
-    /\.home-celestial--projects\s*\{[^}]*top:\s*17%[^}]*left:\s*55%[^}]*width:\s*42%/,
-  );
-  assert.match(
-    mobile,
-    /\.home-celestial--ideas\s*\{[^}]*top:\s*62%[^}]*left:\s*8%[^}]*width:\s*27%/,
-  );
-  assert.doesNotMatch(mobile, /home-cosmos__(?:__particle-canvas|__stream-canvas)[\s\S]*?opacity:\s*0\.52/);
-  assert.doesNotMatch(css, /\.home-cosmos__stream-canvas\s*\{/);
-  assert.doesNotMatch(css, /@media\s*\(max-width:\s*(?:760|430)px\)/);
+  const mobile = mobileBlockContaining(css, "Mobile responsive contract: Home orrery");
+  assert.match(mobile, /\.home-orrery\s*\{[^}]*width:\s*100%[^}]*min-height:\s*0/);
+  assert.match(mobile, /\.home-cosmos__stage\s*\{[^}]*position:\s*relative[^}]*top:\s*auto[^}]*width:\s*100%/);
+  assert.match(css, /aspect-ratio:\s*1610 \/ 1290/);
+  assert.doesNotMatch(css, /@keyframes|data-three-body|translate3d/);
 });
 
 test("Projects becomes one continuous, touchable phone document", () => {
