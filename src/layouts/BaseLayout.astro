@@ -63,15 +63,15 @@ const artifactForRoute: Record<string, "document" | "repo" | "idea"> = {
     {
       path === "/" ? (
         <>
-          <link
+          {Object.values(homeOrreryAssets.scene.subjects).map((subject) => <link
             rel="preload"
             as="image"
             type="image/webp"
-            href={homeOrreryAssets.scene.poster.standard}
-            imagesrcset={`${homeOrreryAssets.scene.poster.standard} 1200w, ${homeOrreryAssets.scene.poster.retina} 1600w`}
-            imagesizes={homeOrreryAssets.scene.sizes}
+            href={subject.poster.standard}
+            imagesrcset={`${subject.poster.standard} ${subject.standardWidth}w, ${subject.poster.retina} ${subject.width}w`}
+            imagesizes={subject.sizes}
             fetchpriority="high"
-          />
+          />)}
         </>
       ) : null
     }

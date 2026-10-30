@@ -1,7 +1,8 @@
-/** Decode one H.264 video and composite its RGB/alpha halves on the GPU. */
+/** Decode one native-resolution atlas and draw its three subjects independently. */
 export function createCelestialVideoController(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
+  targets: { element: HTMLElement; region: readonly number[] }[],
   onReady: (ready: boolean) => void,
 ) {
   const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false });
@@ -19,12 +20,16 @@ export function createCelestialVideoController(
     void main() { uv = position * 0.5 + 0.5; gl_Position = vec4(position, 0.0, 1.0); }
   `);
   const fragment = compile(gl.FRAGMENT_SHADER, `
-    precision mediump float;
+    precision highp float;
     uniform sampler2D frame;
+    uniform vec2 atlasSize;
+    uniform vec4 sourceRect;
     varying vec2 uv;
     void main() {
-      vec3 color = texture2D(frame, vec2(uv.x, 0.5 + uv.y * 0.5)).rgb;
-      float alpha = smoothstep(0.02, 0.98, texture2D(frame, vec2(uv.x, uv.y * 0.5)).r);
+      vec2 pixel = sourceRect.xy + clamp(vec2(uv.x, 1.0 - uv.y) * sourceRect.zw, vec2(0.5), sourceRect.zw - vec2(0.5));
+      vec2 source = pixel / atlasSize;
+      vec3 color = texture2D(frame, vec2(source.x, 1.0 - source.y * 0.5)).rgb;
+      float alpha = smoothstep(0.02, 0.98, texture2D(frame, vec2(source.x, 0.5 - source.y * 0.5)).r);
       gl_FragColor = vec4(color * alpha, alpha);
     }
   `);
@@ -56,6 +61,11 @@ export function createCelestialVideoController(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.uniform1i(gl.getUniformLocation(program, "frame"), 0);
+  const sourceRect = gl.getUniformLocation(program, "sourceRect");
+  const atlasSize = gl.getUniformLocation(program, "atlasSize");
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  const subjects = targets.map(({ element, region }) => ({ element, region: new Float32Array(region), viewport: [0, 0, 0, 0] }));
   let running = false;
   let destroyed = false;
   let failed = false;
@@ -82,15 +92,25 @@ export function createCelestialVideoController(
     if (video.readyState < 2 || failed || destroyed) return;
     try {
       if (dirty) {
-        const ratio = Math.min(devicePixelRatio || 1, 1.5);
+        const ratio = Math.min(devicePixelRatio || 1, 2);
         canvas.width = Math.max(2, Math.round(canvas.clientWidth * ratio));
         canvas.height = Math.max(2, Math.round(canvas.clientHeight * ratio));
-        gl.viewport(0, 0, canvas.width, canvas.height);
+        const bounds = canvas.getBoundingClientRect();
+        for (const subject of subjects) {
+          const rect = subject.element.getBoundingClientRect();
+          subject.viewport = [Math.round((rect.left - bounds.left) * ratio), Math.round((bounds.bottom - rect.bottom) * ratio), Math.round(rect.width * ratio), Math.round(rect.height * ratio)];
+        }
         dirty = false;
       }
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.uniform2f(atlasSize, video.videoWidth, video.videoHeight / 2);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      for (const subject of subjects) {
+        gl.viewport(subject.viewport[0], subject.viewport[1], subject.viewport[2], subject.viewport[3]);
+        gl.uniform4fv(sourceRect, subject.region);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
       onReady(true);
     } catch { fail(); }
   };
@@ -107,7 +127,7 @@ export function createCelestialVideoController(
     }
     schedule();
   };
-  const onResize = new ResizeObserver(() => { dirty = true; if (running) render(); });
+  const onResize = new ResizeObserver(() => { dirty = true; render(); });
   onResize.observe(canvas);
   video.addEventListener("error", fail);
   canvas.addEventListener("webglcontextlost", fail);

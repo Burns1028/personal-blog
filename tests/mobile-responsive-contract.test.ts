@@ -119,7 +119,7 @@ test("the Home video remains one responsive scene with stationary touch targets"
   const mobile = mobileBlockContaining(css, "Mobile responsive contract: Home orrery");
   assert.match(mobile, /\.home-orrery\s*\{[^}]*width:\s*100%[^}]*min-height:\s*0/);
   assert.match(mobile, /\.home-cosmos__stage\s*\{[^}]*position:\s*relative[^}]*top:\s*auto[^}]*width:\s*100%/);
-  assert.match(css, /aspect-ratio:\s*1610 \/ 1290/);
+  assert.match(mobile, /aspect-ratio:\s*8 \/ 7/);
   assert.doesNotMatch(css, /@keyframes|data-three-body|translate3d/);
 });
 

@@ -35,9 +35,10 @@ test("homepage navigation does not depend on mock content records", () => {
 
   assert.doesNotMatch(homepage, /getCollection|data\/ideas|featuredProject|featuredIdea/);
   assert.match(homepage, /<HomeOrrery\s*\/>/);
-  assert.match(orrery, /href="\/projects"[\s\S]*?aria-label="进入 Projects"/);
-  assert.match(orrery, /href="\/writing"[\s\S]*?aria-label="进入 Writing"/);
-  assert.match(orrery, /href="\/ideas"[\s\S]*?aria-label="进入 Ideas"/);
+  for (const [route, label] of [["projects", "Projects"], ["writing", "Writing"], ["ideas", "Ideas"]]) {
+    assert.match(orrery, new RegExp(`href: "/${route}", label: "${label}"`));
+  }
+  assert.match(orrery, /href=\{href\}[\s\S]*?aria-label=\{`进入 \$\{label\}`\}/);
 });
 
 test("homepage redesign preserves each destination's signature visual", () => {

@@ -2,18 +2,24 @@
 import "../styles/home-orrery.css";
 import { homeOrreryAssets } from "../data/home-orrery-assets";
 const { scene } = homeOrreryAssets;
+const destinations = [
+  { key: "writing", href: "/writing", label: "Writing", artifact: "document" },
+  { key: "projects", href: "/projects", label: "Projects", artifact: "repo" },
+  { key: "ideas", href: "/ideas", label: "Ideas", artifact: "idea" },
+] as const;
 ---
 
 <section class="home-orrery" aria-label="Writing、Projects 与 Ideas 思想星系" data-home-orrery data-artifact-stage data-active-artifact="none">
   <div class="home-cosmos__stage">
-    <picture class="home-cosmos__poster" aria-hidden="true">
-      <img src={scene.poster.standard} srcset={`${scene.poster.standard} 1200w, ${scene.poster.retina} 1600w`} sizes={scene.sizes} alt="" width="1610" height="1290" loading="eager" decoding="async" fetchpriority="high" />
-    </picture>
     <canvas class="home-cosmos__video-canvas" data-celestial-canvas aria-hidden="true"></canvas>
     <video class="home-cosmos__video-source" data-celestial-video data-src={scene.video} muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
-    <a class="home-celestial home-celestial--writing" href="/writing" aria-label="进入 Writing" data-artifact="document"><span class="sr-only">Writing</span></a>
-    <a class="home-celestial home-celestial--projects" href="/projects" aria-label="进入 Projects" data-artifact="repo"><span class="sr-only">Projects</span></a>
-    <a class="home-celestial home-celestial--ideas" href="/ideas" aria-label="进入 Ideas" data-artifact="idea"><span class="sr-only">Ideas</span></a>
+    {destinations.map(({ key, href, label, artifact }) => {
+      const subject = scene.subjects[key];
+      return <a class={`home-celestial home-celestial--${key}`} href={href} aria-label={`进入 ${label}`} data-artifact={artifact} data-celestial-region={subject.region.join(",")}>
+        <img class="home-celestial__poster" src={subject.poster.standard} srcset={`${subject.poster.standard} ${subject.standardWidth}w, ${subject.poster.retina} ${subject.width}w`} sizes={subject.sizes} width={subject.width} height={subject.height} alt="" loading="eager" decoding="async" fetchpriority="high" />
+        <span class="sr-only">{label}</span>
+      </a>;
+    })}
   </div>
 </section>
 
@@ -29,7 +35,8 @@ const { scene } = homeOrreryAssets;
     let visible = false;
     let settled = document.documentElement.dataset.pageSettled === "true";
     let navigating = false;
-    const player = createCelestialVideoController(video, canvas, (ready) => {
+    const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-celestial-region]")).map((element) => ({ element, region: element.dataset.celestialRegion!.split(",").map(Number) }));
+    const player = createCelestialVideoController(video, canvas, targets, (ready) => {
       root.toggleAttribute("data-video-ready", ready);
     });
     const update = () => player?.setRunning(visible && settled && !navigating && !document.hidden && !reducedMotion.matches && !savesData);

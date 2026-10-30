@@ -1,5 +1,6 @@
-/* One keyed video, three stationary navigation targets. */
+/* Native-resolution subjects share one decoder and a height-aware composition. */
 .home-orrery {
+  --celestial-size: clamp(148px, min(18vw, 32svh), 248px);
   position: relative;
   z-index: 5;
   min-width: 0;
@@ -9,27 +10,24 @@
 
 .home-cosmos__stage {
   position: absolute;
-  top: clamp(105px, 12vh, 150px);
+  top: clamp(116px, 16svh, 180px);
   left: 0;
   width: 100%;
-  aspect-ratio: 1610 / 1290;
+  height: min(520px, calc(100svh - clamp(116px, 16svh, 180px) - 40px));
 }
 
-.home-cosmos__poster,
-.home-cosmos__poster img,
 .home-cosmos__video-canvas {
   position: absolute;
   display: block;
   inset: 0;
   width: 100%;
   height: 100%;
+  opacity: 0;
   pointer-events: none;
 }
-
-.home-cosmos__poster img { object-fit: contain; }
-.home-cosmos__video-canvas { opacity: 0; }
 .home-orrery[data-video-ready] .home-cosmos__video-canvas { opacity: 1; }
-.home-orrery[data-video-ready] .home-cosmos__poster { opacity: 0; }
+.home-orrery[data-video-ready] .home-celestial__poster { opacity: 0; }
+.home-celestial__poster { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 .home-cosmos__video-source {
   position: absolute;
@@ -43,14 +41,17 @@
   position: absolute;
   z-index: 2;
   display: block;
+  width: var(--celestial-size);
+  aspect-ratio: 1;
   border-radius: 50%;
+  transform: translate(-50%, -50%);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.home-celestial--projects { left: 13%; top: 9%; width: 29%; height: 36.2%; }
-.home-celestial--ideas { left: 49%; top: 11%; width: 43%; height: 29%; }
-.home-celestial--writing { left: 55%; top: 56%; width: 25%; height: 31.2%; }
+.home-celestial--projects { left: 25%; top: 27%; }
+.home-celestial--ideas { left: 74%; top: 27%; width: calc(var(--celestial-size) * 1.4); aspect-ratio: 704 / 384; }
+.home-celestial--writing { left: 50%; top: 75%; width: calc(var(--celestial-size) * 0.84); }
 
 .home-celestial:focus-visible {
   outline: 1px solid #cda158;
@@ -67,13 +68,17 @@ body[data-route="/"]:has(.home-orrery[data-active-artifact="idea"]) .hero-action
 @media (max-width: 767px) {
   /* Mobile responsive contract: Home orrery */
   .home-orrery {
+    --celestial-size: clamp(112px, 34vw, 180px);
     width: 100%;
     min-height: 0;
-    padding: 16px 0 36px;
+    padding: 12px 0 28px;
   }
   .home-cosmos__stage {
     position: relative;
     top: auto;
     width: 100%;
+    height: auto;
+    aspect-ratio: 8 / 7;
   }
+  .home-celestial--ideas { left: 72%; }
 }

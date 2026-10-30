@@ -10,8 +10,8 @@ test("homepage keeps three accessible destinations over the supplied stationary 
   const page = read("src/pages/index.astro");
   const component = read("src/components/HomeOrrery.astro");
   assert.match(page, /<HomeOrrery\s*\/>/);
-  assert.equal((component.match(/class="home-celestial home-celestial--/g) ?? []).length, 3);
-  for (const route of ["writing", "projects", "ideas"]) assert.match(component, new RegExp(`href="/${route}"`));
+  assert.equal((component.match(/key: "/g) ?? []).length, 3);
+  for (const route of ["writing", "projects", "ideas"]) assert.match(component, new RegExp(`href: "/${route}"`));
   assert.equal((component.match(/<video /g) ?? []).length, 1);
   assert.equal((component.match(/<canvas /g) ?? []).length, 1);
   assert.match(component, /muted loop playsinline preload="none"/);
@@ -36,7 +36,7 @@ test("video work starts after the first paint and pauses for hidden, offscreen, 
   assert.match(controller, /color \* alpha/);
   assert.doesNotMatch(controller, /getImageData|putImageData|setInterval/);
   const layout = read("src/layouts/BaseLayout.astro");
-  assert.match(layout, /homeOrreryAssets\.scene\.poster/);
+  assert.match(layout, /homeOrreryAssets\.scene\.subjects/);
   assert.doesNotMatch(layout, /motion\.texture/);
 });
 

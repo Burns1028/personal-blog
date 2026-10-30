@@ -2,14 +2,15 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import sharp from "sharp";
+import { homeCelestialRegions as atlas } from "../src/data/home-celestial-regions.ts";
 
 const args = process.argv.slice(2);
 const input = args[args.indexOf("--input") + 1];
 if (!args.includes("--input") || !input) throw new Error("Pass --input with the original green-screen MP4 path.");
 const root = resolve(import.meta.dirname, "..");
-const destination = resolve(root, "public/assets/home-celestials-v7");
+const destination = resolve(root, "public/assets/home-celestials-v8");
 mkdirSync(destination, { recursive: true });
-const loopSeconds = 10;
+const loopSeconds = 8;
 const blendSeconds = 0.4;
 const fps = 20;
 const fadeSeconds = (blendSeconds * fps - 1) / fps;
@@ -18,11 +19,13 @@ const key = "format=rgba,colorkey=0x22dc00:0.18:0.18,despill=type=green:expand=0
 const ffmpeg = (...options) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", input, ...options], { stdio: "inherit" });
 const still = async (filter, name) => {
   const frame = execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", input, "-ss", String(blendSeconds), "-frames:v", "1", "-vf", filter, "-f", "image2pipe", "-c:v", "png", "-"], { maxBuffer: 20_000_000 });
-  await sharp(frame).webp({ quality: 86, alphaQuality: 100 }).toFile(resolve(destination, name));
+  await sharp(frame).webp({ quality: 92, alphaQuality: 100 }).toFile(resolve(destination, name));
 };
 
-for (const width of [1200, 1600]) {
-  await still(`${key},scale=${width}:-1`, `scene-${width}.webp`);
+for (const [name, { source: [x, y, width, height] }] of Object.entries(atlas.subjects)) {
+  for (const size of [width / 2, width]) {
+    await still(`${key},crop=${width}:${height}:${x}:${y},scale=${size}:-1`, `${name}-${size}.webp`);
+  }
 }
 const navigation = [
   { name: "earth", crop: "512:512:185:85", sizes: [[64, 64], [128, 128]] },
@@ -40,8 +43,13 @@ for (const { name, crop, sizes } of navigation) {
 // Crossfade the last eight frames into the source's opening, so trimming the
 // clip does not introduce a hard jump. Pack before fading to preserve alpha.
 const loop = `split=2[tail-source][head-source];[tail-source]trim=start=${blendSeconds}:end=${loopSeconds + blendSeconds},setpts=PTS-STARTPTS[tail];[head-source]trim=end=${blendSeconds},setpts=PTS-STARTPTS[head];[tail][head]xfade=transition=fade:duration=${fadeSeconds}:offset=${loopSeconds - blendSeconds}`;
-ffmpeg("-filter_complex", `[0:v]fps=${fps},${key},scale=1080:866,format=rgba,split=2[rgb][matte];[rgb]format=rgb24[color];[matte]alphaextract,format=rgb24[alpha];[color][alpha]vstack=inputs=2,format=yuv444p,${loop},format=yuv420p[out]`,
-  "-map", "[out]", "-an", "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-level:v", "4.1", "-refs", "4", "-movflags", "+faststart", resolve(destination, "scene-alpha-packed.mp4"));
+const subjects = Object.entries(atlas.subjects);
+const split = subjects.map(([name]) => `[${name}-source]`).join("");
+const crops = subjects.map(([name, { source: [x, y, w, h] }]) => `[${name}-source]crop=${w}:${h}:${x}:${y}[${name}]`).join(";");
+const inputs = subjects.map(([name]) => `[${name}]`).join("");
+const layout = subjects.map(([, { region: [x, y] }]) => `${x}_${y}`).join("|");
+ffmpeg("-filter_complex", `[0:v]fps=${fps},${key},split=3${split};${crops};${inputs}xstack=inputs=3:layout=${layout}:fill=black@0,format=rgba,split=2[rgb][matte];[rgb]format=rgb24[color];[matte]alphaextract,format=rgb24[alpha];[color][alpha]vstack=inputs=2,format=yuv444p,${loop},format=yuv420p,setsar=1[out]`,
+  "-map", "[out]", "-an", "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-level:v", "4.1", "-refs", "4", "-movflags", "+faststart", resolve(destination, "scene-alpha-packed.mp4"));
 
 if (args.includes("--export-dir")) {
   const exports = resolve(args[args.indexOf("--export-dir") + 1]);
