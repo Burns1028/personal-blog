@@ -5,7 +5,7 @@ import test from "node:test";
 import sharp from "sharp";
 
 const root = resolve(import.meta.dirname, "..");
-const asset = (name: string) => resolve(root, "public/assets/home-celestials-v6", name);
+const asset = (name: string) => resolve(root, "public/assets/home-celestials-v7", name);
 
 test("video poster removes the green screen while keeping dark planet interiors opaque", async () => {
   const { data, info } = await sharp(asset("scene-1200.webp")).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

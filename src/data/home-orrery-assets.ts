@@ -1,4 +1,4 @@
-const root = "/assets/home-celestials-v6";
+const root = "/assets/home-celestials-v7";
 export const homeOrreryAssets = {
   background: {
     starfield: {

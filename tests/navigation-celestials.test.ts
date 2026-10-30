@@ -9,7 +9,7 @@ import { nav } from "../src/data/site.ts";
 const projectRoot = resolve(import.meta.dirname, "..");
 const publicRoot = resolve(
   projectRoot,
-  "public/assets/home-celestials-v6",
+  "public/assets/home-celestials-v7",
 );
 
 test("navigation celestial assets are responsive transparent cutouts", async () => {
@@ -72,7 +72,7 @@ test("shared navigation maps each destination to its celestial mark", () => {
     assert.ok(item.celestial, `${item.href} must define a celestial mark`);
     assert.match(
       item.celestial.src,
-      /home-celestials-v6\/nav-.+-(64|80)\.webp$/,
+      /home-celestials-v7\/nav-.+-(64|80)\.webp$/,
     );
     assert.match(item.celestial.srcset, / 1x, .+ 2x$/);
   }
