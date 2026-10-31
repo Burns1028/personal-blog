@@ -1,0 +1,48 @@
+/* Style the viewport scrollbar without replacing native scrolling. */
+html {
+  --page-scrollbar-track: #171713;
+  --page-scrollbar-thumb: #8a795b;
+}
+
+html.paper-page {
+  --page-scrollbar-track: #e9e0cf;
+  --page-scrollbar-thumb: #958061;
+}
+
+html.theme-ochre {
+  --page-scrollbar-track: #d9b27b;
+  --page-scrollbar-thumb: #8c6536;
+}
+
+html.theme-code {
+  --page-scrollbar-track: #0d1117;
+}
+
+html.theme-stone {
+  --page-scrollbar-track: #d8d6ce;
+  --page-scrollbar-thumb: #808271;
+}
+
+/* Let the system supply its full-width, high-contrast control when requested. */
+@media (forced-colors: none) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--page-scrollbar-thumb) var(--page-scrollbar-track);
+  }
+
+  html::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  html::-webkit-scrollbar-track,
+  html::-webkit-scrollbar-corner {
+    background: var(--page-scrollbar-track);
+  }
+
+  html::-webkit-scrollbar-thumb {
+    border: 2px solid var(--page-scrollbar-track);
+    border-radius: 999px;
+    background: var(--page-scrollbar-thumb);
+  }
+}
