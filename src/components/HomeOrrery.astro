@@ -20,6 +20,10 @@ const destinations = [
         <span class="sr-only">{label}</span>
       </a>;
     })}
+    <button class="home-cosmos__play" type="button" data-celestial-play hidden>
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 1 8 5-8 5Z" fill="currentColor" /></svg>
+      播放动画
+    </button>
   </div>
 </section>
 
@@ -30,16 +34,24 @@ const destinations = [
     root.dataset.bound = "true";
     const canvas = root.querySelector<HTMLCanvasElement>("[data-celestial-canvas]")!;
     const video = root.querySelector<HTMLVideoElement>("[data-celestial-video]")!;
+    const playButton = root.querySelector<HTMLButtonElement>("[data-celestial-play]")!;
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const savesData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
     let visible = false;
     let settled = document.documentElement.dataset.pageSettled === "true";
     let navigating = false;
+    let blocked = false;
+    const canPlay = () => visible && settled && !navigating && !document.hidden && !reducedMotion.matches && !savesData;
+    const syncPlayButton = () => { playButton.hidden = !blocked || !canPlay(); };
     const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-celestial-region]")).map((element) => ({ element, region: element.dataset.celestialRegion!.split(",").map(Number) }));
     const player = createCelestialVideoController(video, canvas, targets, (ready) => {
       root.toggleAttribute("data-video-ready", ready);
+    }, (value) => {
+      blocked = value;
+      syncPlayButton();
     });
-    const update = () => player?.setRunning(visible && settled && !navigating && !document.hidden && !reducedMotion.matches && !savesData);
+    const update = () => { player?.setRunning(canPlay()); syncPlayButton(); };
+    const retry = () => { if (canPlay()) player?.retry(); };
     const onSettled = () => { settled = true; update(); };
     const onNavigation = () => { navigating = true; update(); };
     const onPageShow = () => { navigating = false; update(); };
@@ -53,6 +65,9 @@ const destinations = [
       document.removeEventListener("visibilitychange", update);
       document.removeEventListener("burns:page-settled", onSettled);
       document.removeEventListener("burns:artifact-navigation-start", onNavigation);
+      document.removeEventListener("WeixinJSBridgeReady", retry);
+      document.removeEventListener("touchend", retry);
+      document.removeEventListener("click", retry);
       reducedMotion.removeEventListener("change", update);
       window.removeEventListener("pageshow", onPageShow);
       window.removeEventListener("pagehide", onPageHide);
@@ -61,6 +76,9 @@ const destinations = [
     document.addEventListener("visibilitychange", update);
     document.addEventListener("burns:page-settled", onSettled, { once: true });
     document.addEventListener("burns:artifact-navigation-start", onNavigation);
+    document.addEventListener("WeixinJSBridgeReady", retry);
+    document.addEventListener("touchend", retry, { passive: true });
+    document.addEventListener("click", retry);
     reducedMotion.addEventListener("change", update);
     window.addEventListener("pagehide", onPageHide);
     window.addEventListener("pageshow", onPageShow);

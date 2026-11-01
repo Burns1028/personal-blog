@@ -58,6 +58,27 @@
   outline-offset: 7px;
 }
 
+.home-cosmos__play {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid rgba(205, 161, 88, 0.45);
+  border-radius: 18px;
+  background: rgba(23, 23, 19, 0.8);
+  color: #d5bb8c;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.home-cosmos__play[hidden] { display: none; }
+.home-cosmos__play:focus-visible { outline: 2px solid #cda158; outline-offset: 3px; }
+
 body[data-route="/"]:has(.home-orrery[data-active-artifact="repo"]) .hero-actions a[data-artifact="repo"],
 body[data-route="/"]:has(.home-orrery[data-active-artifact="document"]) .hero-actions a[data-artifact="document"],
 body[data-route="/"]:has(.home-orrery[data-active-artifact="idea"]) .hero-actions a[data-artifact="idea"] {

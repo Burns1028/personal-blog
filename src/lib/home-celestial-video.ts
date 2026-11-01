@@ -4,6 +4,7 @@ export function createCelestialVideoController(
   canvas: HTMLCanvasElement,
   targets: { element: HTMLElement; region: readonly number[] }[],
   onReady: (ready: boolean) => void,
+  onBlocked: (blocked: boolean) => void = () => {},
 ) {
   const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false });
   if (!gl) return null;
@@ -72,6 +73,8 @@ export function createCelestialVideoController(
   let callback = 0;
   let lastTime = -1;
   let dirty = true;
+  let starting = false;
+  let playAttempt = 0;
   const nativeFrames = "requestVideoFrameCallback" in video;
 
   const cancelFrame = () => {
@@ -87,6 +90,7 @@ export function createCelestialVideoController(
     cancelFrame();
     video.pause();
     onReady(false);
+    onBlocked(false);
   };
   const render = () => {
     if (video.readyState < 2 || failed || destroyed) return;
@@ -127,25 +131,56 @@ export function createCelestialVideoController(
     }
     schedule();
   };
+  // Keep play() synchronous with a tap/bridge event so mobile WebViews can
+  // grant playback. A policy refusal is recoverable, unlike a decoder error.
+  const play = () => {
+    if (!running || failed || destroyed || starting || !video.paused) return;
+    starting = true;
+    const attempt = ++playAttempt;
+    video.muted = true;
+    video.playsInline = true;
+    if (!video.src) video.src = video.dataset.src!;
+    void video.play().then(() => {
+      if (attempt !== playAttempt || destroyed) return;
+      starting = false;
+      if (!running) return;
+      onBlocked(false);
+      render();
+      schedule();
+    }).catch((error) => {
+      if (attempt !== playAttempt || destroyed) return;
+      starting = false;
+      if (error.name === "NotAllowedError" || error.name === "AbortError") {
+        onBlocked(true);
+      } else {
+        fail();
+      }
+    });
+  };
+  const onPause = () => {
+    cancelFrame();
+    if (running && !failed && !destroyed) onBlocked(true);
+  };
   const onResize = new ResizeObserver(() => { dirty = true; render(); });
   onResize.observe(canvas);
   video.addEventListener("error", fail);
+  video.addEventListener("pause", onPause);
   canvas.addEventListener("webglcontextlost", fail);
   return {
     setRunning(next: boolean) {
       if (failed || destroyed || running === next) return;
       running = next;
-      if (!next) { video.pause(); cancelFrame(); return; }
-      video.muted = true;
-      if (!video.src) video.src = video.dataset.src!;
-      void video.play().then(() => {
-        if (!running || destroyed) { video.pause(); return; }
-        render();
-        schedule();
-      }).catch((error) => {
-        if ((error as DOMException).name !== "AbortError") fail();
-      });
+      if (!next) {
+        ++playAttempt;
+        starting = false;
+        video.pause();
+        cancelFrame();
+        onBlocked(false);
+        return;
+      }
+      play();
     },
+    retry: play,
     destroy() {
       destroyed = true;
       cancelFrame();
@@ -154,6 +189,7 @@ export function createCelestialVideoController(
       video.load();
       onResize.disconnect();
       video.removeEventListener("error", fail);
+      video.removeEventListener("pause", onPause);
       canvas.removeEventListener("webglcontextlost", fail);
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);
