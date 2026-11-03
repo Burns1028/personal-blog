@@ -12,7 +12,7 @@ const destinations = [
 <section class="home-orrery" aria-label="Writing、Projects 与 Ideas 思想星系" data-home-orrery data-artifact-stage data-active-artifact="none">
   <div class="home-cosmos__stage">
     <canvas class="home-cosmos__video-canvas" data-celestial-canvas aria-hidden="true"></canvas>
-    <video class="home-cosmos__video-source" data-celestial-video data-src={scene.video} muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+    <video class="home-cosmos__video-source" data-celestial-video data-src={scene.video} muted loop playsinline preload="none" autoplay aria-hidden="true" tabindex="-1"></video>
     {destinations.map(({ key, href, label, artifact }) => {
       const subject = scene.subjects[key];
       return <a class={`home-celestial home-celestial--${key}`} href={href} aria-label={`进入 ${label}`} data-artifact={artifact} data-celestial-region={subject.region.join(",")}>
@@ -20,10 +20,6 @@ const destinations = [
         <span class="sr-only">{label}</span>
       </a>;
     })}
-    <button class="home-cosmos__play" type="button" data-celestial-play hidden>
-      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 1 8 5-8 5Z" fill="currentColor" /></svg>
-      播放动画
-    </button>
   </div>
 </section>
 
@@ -34,23 +30,17 @@ const destinations = [
     root.dataset.bound = "true";
     const canvas = root.querySelector<HTMLCanvasElement>("[data-celestial-canvas]")!;
     const video = root.querySelector<HTMLVideoElement>("[data-celestial-video]")!;
-    const playButton = root.querySelector<HTMLButtonElement>("[data-celestial-play]")!;
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const savesData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
     let visible = false;
     let settled = document.documentElement.dataset.pageSettled === "true";
     let navigating = false;
-    let blocked = false;
     const canPlay = () => visible && settled && !navigating && !document.hidden && !reducedMotion.matches && !savesData;
-    const syncPlayButton = () => { playButton.hidden = !blocked || !canPlay(); };
     const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-celestial-region]")).map((element) => ({ element, region: element.dataset.celestialRegion!.split(",").map(Number) }));
     const player = createCelestialVideoController(video, canvas, targets, (ready) => {
       root.toggleAttribute("data-video-ready", ready);
-    }, (value) => {
-      blocked = value;
-      syncPlayButton();
     });
-    const update = () => { player?.setRunning(canPlay()); syncPlayButton(); };
+    const update = () => { player?.setRunning(canPlay()); };
     const retry = () => { if (canPlay()) player?.retry(); };
     const onSettled = () => { settled = true; update(); };
     const onNavigation = () => { navigating = true; update(); };

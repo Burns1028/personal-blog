@@ -137,6 +137,7 @@ export function createCelestialVideoController(
     if (!running || failed || destroyed || starting || !video.paused) return;
     starting = true;
     const attempt = ++playAttempt;
+    video.defaultMuted = true;
     video.muted = true;
     video.playsInline = true;
     if (!video.src) video.src = video.dataset.src!;
