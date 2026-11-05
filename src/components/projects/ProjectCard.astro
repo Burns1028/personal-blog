@@ -27,7 +27,7 @@ const { project } = Astro.props;
     </svg>
     <div>
       <h2>{project.title}</h2>
-      <span>/{project.slug}</span>
+      <span>/{project.githubFullName.split("/")[1]}</span>
     </div>
   </header>
 
